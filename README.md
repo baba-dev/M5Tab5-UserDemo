@@ -55,13 +55,15 @@ Using stuff from base code, we get and publish these states to HA:
 
 ## 📂 Repository Structure
 
-- docs/ ← wireframes, AI guides, design tokens
-- ui/ ← LVGL UI modules
-- integration/ ← MQTT + HA + Frigate glue code
-- platform/ ← Display, input, audio, power drivers
-- assets/ ← Icons, backgrounds (RGB565, pre-sized)
+The repo base is forked from default demo of M5Stack Tab5.
+Our custom data is in the following folders:
+- custom/docs/ ← wireframes, AI guides, design tokens
+- custom/ui/ ← LVGL UI modules
+- custom/integration/ ← MQTT + HA + Frigate glue code
+- custom/platform/ ← Display, input, audio, power drivers
+- custom/assets/ ← Icons, backgrounds (RGB565, pre-sized)
 
-> See [`docs/wireframes.md`](docs/wireframes.md) for the low-fi design spec and [`docs/AI_Codex_Guide.md`](docs/AI_Codex_Guide.md) for AI coding guidelines.
+> See [`docs/wireframes.md`](custom/docs/wireframes.md) for the low-fi design spec and [`docs/AI_Codex_Guide.md`](custom/docs/AI_Codex_Guide.md) for AI coding guidelines.
 
 ## 🔧 Prerequisites
 
