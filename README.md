@@ -57,7 +57,7 @@ Using stuff from base code, we get and publish these states to HA:
 
 The repo base is forked from default demo of M5Stack Tab5.
 Our custom data is in the following folders:
-- custom/docs/ ← wireframes, AI guides, design tokens
+- docs/ ← wireframes, AI guides, design tokens
 - custom/ui/ ← LVGL UI modules
 - custom/integration/ ← MQTT + HA + Frigate glue code
 - custom/platform/ ← Display, input, audio, power drivers
