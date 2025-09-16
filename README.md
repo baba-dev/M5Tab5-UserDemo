@@ -21,6 +21,14 @@ The default user demo for testing out Tab5 features & control.
 - **Second Page: Landscape-first dashboard (1280×720)**  
   At-a-glance view of lights, climate, security, and media from Home Assistant.
 
+- **- **Third Page: Frigate Notifications+ Cameras**
+Shows last detection in a intelligently parsed format along with camera name, time and object.
+  - Live local stream (HLS→MJPEG→snapshot fallback)  
+  - Swipe camera carousel  
+  - Event timeline with thumbnails & PiP viewer
+
+- *Features List:*  
+
 - **Home Assistant Integration (MQTT Discovery)**  
 Seamless integration with local Home Asssistant via MQTT.
   - Toggle lights, fans, switches with state sync & animated controls.
@@ -28,12 +36,6 @@ Seamless integration with local Home Asssistant via MQTT.
   - Control climate, media players and Android TVs.  
   - Trigger scenes and automations.
   
-- **Frigate + Cameras**
-Shows last detection in a intelligently parsed format along with camera name, time and object.
-  - Live local stream (HLS→MJPEG→snapshot fallback)  
-  - Swipe camera carousel  
-  - Event timeline with thumbnails & PiP viewer
-
 - **Voice Control**  
 Using Tab5 Mics & Speakers with HA
   - Wake-word detection on-device  
