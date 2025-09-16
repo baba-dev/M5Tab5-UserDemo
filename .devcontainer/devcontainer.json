@@ -1,0 +1,27 @@
+{
+  "name": "M5Tab5 ESP-IDF 5.x",
+  "image": "espressif/idf:release-v5.1",
+  "containerEnv": {
+    "IDF_TARGET": "esp32p4"
+  },
+  "runArgs": [
+    "--privileged",
+    "--device=/dev/ttyUSB0",
+    "--device=/dev/ttyACM0"
+  ],
+  "postCreateCommand": "python3 fetch_repos.py",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "espressif.esp-idf-extension",
+        "ms-python.python",
+        "ms-vscode.cpptools"
+      ],
+      "settings": {
+        "idf.espIdfPath": "/opt/esp/idf",
+        "idf.pythonBinPath": "/usr/bin/python3",
+        "idf.toolsPath": "/opt/esp"
+      }
+    }
+  }
+}
