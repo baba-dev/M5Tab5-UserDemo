@@ -8,7 +8,14 @@
 
 This project extends the official [M5Tab5 User Demo](https://docs.m5stack.com/en/esp_idf/m5tab5/userdemo) firmware into a **beautiful, animated home control panel**.
 
-- **First Page: Default Demo for Tab5**  
+## Design & Docs
+
+Links to key design and documentation resources:
+- [`docs/TASKS.md`](docs/TASKS.md)
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- [`docs/ASSETS.md`](docs/ASSETS.md)
+
+- **First Page: Default Demo for Tab5**
 The default user demo for testing out Tab5 features & control.
 
 - **Second Page: Landscape-first dashboard (1280×720)**  
