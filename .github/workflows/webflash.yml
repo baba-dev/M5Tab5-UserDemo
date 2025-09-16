@@ -1,0 +1,59 @@
+---
+name: Web Flash (ESP Web Tools)
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Fetch components
+        run: python3 fetch_repos.py
+
+      - name: Build firmware
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.5
+          target: esp32p4
+          path: .
+
+      - name: Prepare web assets
+        run: |
+          mkdir -p site
+          FWBIN=$(ls build/*.bin | head -n1)
+          cp "$FWBIN" site/firmware.bin
+          cat > site/manifest.json << 'JSON'
+          {
+            "name": "M5Tab5 User Demo",
+            "version": "${{ github.ref_name }}",
+            "builds": [{
+              "chipFamily": "ESP32",
+              "parts": [{ "path": "firmware.bin", "offset": 0 }]
+            }]
+          }
+          JSON
+          cat > site/flash.html << 'HTML'
+          <!DOCTYPE html><html><body>
+          <h1>M5Tab5 – Web Flash</h1>
+          <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+          <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
+          </body></html>
+          HTML
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

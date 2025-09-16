@@ -1,0 +1,18 @@
+---
+ui:
+  - custom/ui/**
+
+integration:
+  - custom/integration/**
+
+platform:
+  - custom/platform/**
+
+assets:
+  - custom/assets/**
+
+docs:
+  - docs/**
+
+ci:
+  - .github/**

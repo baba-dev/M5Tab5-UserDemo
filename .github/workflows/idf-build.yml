@@ -1,0 +1,32 @@
+---
+name: IDF Build
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Fetch M5/LVGL components
+        run: python3 fetch_repos.py
+
+      - name: Build (ESP-IDF 5.5, esp32p4)
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.5
+          target: esp32p4
+          path: .
+          extra_docker_args: "-v ${{ github.workspace }}/.ccache:/root/.ccache -e CCACHE_DIR=/root/.ccache"
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: m5tab5-firmware
+          path: "build/*.bin"

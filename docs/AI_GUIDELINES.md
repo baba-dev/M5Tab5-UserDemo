@@ -51,6 +51,6 @@ safety rails, and formatting rules for automated contributions.
 - If a task conflicts with performance limits or design tokens, update the docs
   first, then land the code change in a follow-up PR.
 - When encountering unclear MQTT payloads or stream behaviors, extend the
-  contract in `docs/MQTT_CONTRACT.md` and flag the ambiguity in the roadmap.
+  contract in `docs/mqtt_contract.md` and flag the ambiguity in the roadmap.
 - Avoid introducing new third-party dependencies without explicit human
   approval.
