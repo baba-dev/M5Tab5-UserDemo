@@ -11,9 +11,10 @@ This project extends the official [M5Tab5 User Demo](https://docs.m5stack.com/en
 ## Design & Docs
 
 Links to key design and documentation resources:
-- [`docs/TASKS.md`](docs/TASKS.md)
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- [`docs/ASSETS.md`](docs/ASSETS.md)
+- [`docs/TASKS.md`](docs/TASKS.md): prioritized roadmap for milestone planning.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): firmware structure and runtime data flow.
+- [`docs/ASSETS.md`](docs/ASSETS.md): asset pipeline expectations and QA checklist.
+- [`docs/AI_GUIDELINES.md`](docs/AI_GUIDELINES.md): workflow rules for AI-driven contributions.
 
 - **First Page: Default Demo for Tab5**
 The default user demo for testing out Tab5 features & control.
