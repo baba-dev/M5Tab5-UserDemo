@@ -21,12 +21,19 @@ The default user demo for testing out Tab5 features & control.
 - **Second Page: Landscape-first dashboard (1280×720)**  
   At-a-glance view of lights, climate, security, and media from Home Assistant.
 
-- **- **Third Page: Frigate Notifications+ Cameras**
+- **Third Page: Frigate Notifications+ Cameras**
 Shows last detection in a intelligently parsed format along with camera name, time and object.
   - Live local stream (HLS→MJPEG→snapshot fallback)  
   - Swipe camera carousel  
   - Event timeline with thumbnails & PiP viewer
 
+
+- **Fourth Page: Sensors Data, Visualizations, Charts**
+Shows Sensors stats from Home Assistant
+  - Nice Charts for history.  
+  - More details and parsed sensor data.
+ 
+    
 - *Features List:*  
 
 - **Home Assistant Integration (MQTT Discovery)**  
