@@ -1,0 +1,74 @@
+[
+  {
+    "id": "light.living_room_lamp",
+    "type": "light",
+    "area": "Living Room",
+    "ui_location": "Home dashboard hero tile",
+    "attributes": ["brightness"],
+    "notes": "Primary toggle used to validate light control plumbing."
+  },
+  {
+    "id": "light.kitchen_island",
+    "type": "light",
+    "area": "Kitchen",
+    "ui_location": "Home dashboard quick actions",
+    "attributes": ["brightness"],
+    "notes": "Displayed as a compact icon button."
+  },
+  {
+    "id": "switch.coffee_maker",
+    "type": "switch",
+    "area": "Kitchen",
+    "ui_location": "Automation shortcuts",
+    "attributes": [],
+    "notes": "Used for testing generic switch widgets."
+  },
+  {
+    "id": "climate.living_room",
+    "type": "climate",
+    "area": "Living Room",
+    "ui_location": "Climate panel",
+    "attributes": ["temperature", "humidity", "hvac_mode"],
+    "notes": "Supports heat, cool, and auto modes."
+  },
+  {
+    "id": "media_player.living_room_display",
+    "type": "media_player",
+    "area": "Living Room",
+    "ui_location": "Media carousel",
+    "attributes": ["volume_level", "media_title", "media_artist"],
+    "notes": "Used to render album art and playback controls."
+  },
+  {
+    "id": "sensor.tab5_temperature",
+    "type": "sensor",
+    "area": "Tab5",
+    "ui_location": "Sensors page",
+    "attributes": ["unit_of_measurement:°C"],
+    "notes": "Reads local temperature from the board sensors."
+  },
+  {
+    "id": "sensor.tab5_humidity",
+    "type": "sensor",
+    "area": "Tab5",
+    "ui_location": "Sensors page",
+    "attributes": ["unit_of_measurement:%"],
+    "notes": "Mirrors the humidity channel in telemetry charts."
+  },
+  {
+    "id": "binary_sensor.tab5_motion",
+    "type": "binary_sensor",
+    "area": "Tab5",
+    "ui_location": "Security page",
+    "attributes": ["device_class:motion"],
+    "notes": "Backed by the IMU gesture detector."
+  },
+  {
+    "id": "button.tab5_sleep",
+    "type": "button",
+    "area": "Tab5",
+    "ui_location": "Control center",
+    "attributes": [],
+    "notes": "Triggers low-power sleep mode from the UI."
+  }
+]

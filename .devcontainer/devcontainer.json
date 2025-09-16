@@ -1,15 +1,16 @@
 {
   "name": "M5Tab5 ESP-IDF 5.x",
-  "image": "espressif/idf:release-v5.1",
+  "image": "espressif/idf:release-v5.5",
   "containerEnv": {
-    "IDF_TARGET": "esp32p4"
+    "IDF_TARGET": "esp32p4",
+    "CCACHE_DIR": "/workspaces/.ccache"
   },
   "runArgs": [
     "--privileged",
     "--device=/dev/ttyUSB0",
     "--device=/dev/ttyACM0"
   ],
-  "postCreateCommand": "python3 fetch_repos.py",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
       "extensions": [

@@ -1,5 +1,9 @@
 # M5Tab5 Home Control Tablet
 
+[![IDF Build](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/idf-build.yml/badge.svg)](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/idf-build.yml)
+[![Lint](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/lint.yml/badge.svg)](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/lint.yml)
+[![Release Please](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/release-please.yml/badge.svg)](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/release-please.yml)
+
 **M5Stack Tab5 + ESP-IDF + LVGL** → a full-featured **Home Assistant control tablet**, Frigate viewer, and sensor bridge.
 
 ---

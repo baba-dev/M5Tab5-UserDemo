@@ -77,7 +77,7 @@ prerequisites, and deliver a focused change.
   - Dependencies: M2.1 and M2.2.
   - Outcome: replace mock providers with real MQTT subscriptions and publish
     helpers.
-  - Considerations: extend `docs/MQTT_CONTRACT.md` with payload schemas.
+  - Considerations: extend `docs/mqtt_contract.md` with payload schemas.
 - **M3.2 — Frigate live view** (status: ☐)
   - Dependencies: M2.3.
   - Outcome: stream live video with fallback handling and update the event
