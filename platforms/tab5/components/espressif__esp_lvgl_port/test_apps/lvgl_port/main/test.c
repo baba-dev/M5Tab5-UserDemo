@@ -7,7 +7,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_check.h"
-#include "driver/i2c.h"
+#include "driver/i2c_master.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_lcd_panel_io.h"
@@ -134,18 +134,21 @@ static esp_err_t app_lcd_deinit(void)
     return ESP_OK;
 }
 
+static i2c_master_bus_handle_t touch_i2c_bus = NULL;
+
 static esp_err_t app_touch_init(void)
 {
-    /* Initilize I2C */
-    const i2c_config_t i2c_conf = {.mode             = I2C_MODE_MASTER,
-                                   .sda_io_num       = EXAMPLE_TOUCH_I2C_SDA,
-                                   .sda_pullup_en    = GPIO_PULLUP_DISABLE,
-                                   .scl_io_num       = EXAMPLE_TOUCH_I2C_SCL,
-                                   .scl_pullup_en    = GPIO_PULLUP_DISABLE,
-                                   .master.clk_speed = EXAMPLE_TOUCH_I2C_CLK_HZ};
-    ESP_RETURN_ON_ERROR(i2c_param_config(EXAMPLE_TOUCH_I2C_NUM, &i2c_conf), TAG, "I2C configuration failed");
-    ESP_RETURN_ON_ERROR(i2c_driver_install(EXAMPLE_TOUCH_I2C_NUM, i2c_conf.mode, 0, 0, 0), TAG,
-                        "I2C initialization failed");
+    if (!touch_i2c_bus) {
+        const i2c_master_bus_config_t i2c_conf = {
+            .clk_source                   = I2C_CLK_SRC_DEFAULT,
+            .i2c_port                     = EXAMPLE_TOUCH_I2C_NUM,
+            .sda_io_num                   = EXAMPLE_TOUCH_I2C_SDA,
+            .scl_io_num                   = EXAMPLE_TOUCH_I2C_SCL,
+            .glitch_ignore_cnt            = 7,
+            .flags.enable_internal_pullup = false,
+        };
+        ESP_RETURN_ON_ERROR(i2c_new_master_bus(&i2c_conf, &touch_i2c_bus), TAG, "I2C bus init failed");
+    }
 
     /* Initialize touch HW */
     const esp_lcd_touch_config_t tp_cfg = {
@@ -166,9 +169,7 @@ static esp_err_t app_touch_init(void)
             },
     };
     const esp_lcd_panel_io_i2c_config_t tp_io_config = ESP_LCD_TOUCH_IO_I2C_TT21100_CONFIG();
-    ESP_RETURN_ON_ERROR(
-        esp_lcd_new_panel_io_i2c((esp_lcd_i2c_bus_handle_t)EXAMPLE_TOUCH_I2C_NUM, &tp_io_config, &tp_io_handle), TAG,
-        "");
+    ESP_RETURN_ON_ERROR(esp_lcd_new_panel_io_i2c(touch_i2c_bus, &tp_io_config, &tp_io_handle), TAG, "");
     return esp_lcd_touch_new_i2c_tt21100(tp_io_handle, &tp_cfg, &touch_handle);
 }
 
@@ -176,7 +177,10 @@ static esp_err_t app_touch_deinit(void)
 {
     ESP_RETURN_ON_ERROR(esp_lcd_touch_del(touch_handle), TAG, "Touch deinit failed");
     ESP_RETURN_ON_ERROR(esp_lcd_panel_io_del(tp_io_handle), TAG, "Touch IO deinit failed");
-    ESP_RETURN_ON_ERROR(i2c_driver_delete(EXAMPLE_TOUCH_I2C_NUM), TAG, "I2C deinit failed");
+    if (touch_i2c_bus) {
+        ESP_RETURN_ON_ERROR(i2c_del_master_bus(touch_i2c_bus), TAG, "I2C bus deinit failed");
+        touch_i2c_bus = NULL;
+    }
     return ESP_OK;
 }
 
