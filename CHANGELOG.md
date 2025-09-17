@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.0.0...v1.1.0) (2025-09-17)
+
+
+### Features
+
+* **assets:** load wallpapers from filesystem ([30ee611](https://github.com/baba-dev/M5Tab5-UserDemo/commit/30ee611d96c9f0a2737b291387c139cc4bb90933))
+* **ui:** add left nav rail with 5 tabs and empty pages ([64990da](https://github.com/baba-dev/M5Tab5-UserDemo/commit/64990dab095eaf99dff149c71aa8d2493050a583))
+
+
+### Bug Fixes
+
+* **app:** include ui_root from component ([a5fde4e](https://github.com/baba-dev/M5Tab5-UserDemo/commit/a5fde4e0c675def9231c755ea2201ba928f615c9))
+
 ## 1.0.1 (2025-09-17)
 
 ### Fixes
