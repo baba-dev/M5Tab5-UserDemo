@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 . "${IDF_PATH}/export.sh" >/dev/null 2>&1 || true
-idf.py set-target esp32p4
-idf.py build
+exec python3 "${IDF_PATH}/tools/idf.py" "$@"

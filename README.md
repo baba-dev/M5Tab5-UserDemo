@@ -177,6 +177,18 @@ This repo includes a Docker-based devcontainer using `espressif/idf:release-v5.5
 - Build: `idf.py build`
 - Format: `idf.py clang-format` (or `bash scripts/format.sh`)
 
+### CI builds (ESP-IDF v5.5.x, ESP32-P4)
+GitHub Actions uses Espressif’s Docker-based builder to compile this repo.
+- IDF: `v5.5.1`
+- Target: `esp32p4`
+- Submodules: checked out recursively
+- Cache: ccache
+
+Locally, the devcontainer auto-exports the IDF env, so `idf.py` works in any shell:
+- Check: `bash -lc 'idf.py --version'`
+- Build: `scripts/build.sh`
+- Format: `scripts/format.sh`
+
 ------------
 
 
