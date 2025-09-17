@@ -7,7 +7,7 @@
 
 #include "ui_wallpaper.h"
 
-#include "custom/assets/asset_mount.h"
+#include "assets/asset_mount.h"
 
 #define WALLPAPER_SWITCH_PERIOD_MS 30000
 
