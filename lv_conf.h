@@ -757,11 +757,19 @@
     #define LV_FS_ARDUINO_SD_LETTER '\0'     /*Set an upper cased letter on which the drive will accessible (e.g. 'A')*/
 #endif
 
+/*Bridge to common file systems (POSIX, FatFS, etc.)*/
+#define LV_USE_FS_IF 1
+#if LV_USE_FS_IF
+    #define LV_FS_IF_POSIX 'A'
+    #define LV_FS_IF_FATFS '\0'
+    #define LV_FS_IF_PC '\0'
+#endif
+
 /*LODEPNG decoder library*/
 #define LV_USE_LODEPNG 0
 
 /*PNG decoder(libpng) library*/
-#define LV_USE_LIBPNG 0
+#define LV_USE_LIBPNG 1
 
 /*BMP decoder library*/
 #define LV_USE_BMP 0

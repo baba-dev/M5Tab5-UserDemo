@@ -3,3 +3,7 @@
 build
 dependencies
 .DS_Store
+
+# Generated LVGL image blobs (runtime PNGs load from filesystem)
+custom/assets/bg/*.c
+custom/assets/bg/*.h
