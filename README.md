@@ -189,6 +189,14 @@ Locally, the devcontainer auto-exports the IDF env, so `idf.py` works in any she
 - Build: `scripts/build.sh`
 - Format: `scripts/format.sh`
 
+### Environments
+We deploy with GitHub **Environments**:
+- `staging`: CI/test context
+- `production`: protected (wait timer + reviewer)
+Pages deploys to **environment `github-pages`** with a live URL on each release.
+
+Learn more: GitHub docs on [managing environments](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment), [deploying to environments](https://docs.github.com/en/actions/deployment/about-deployments/deploying-with-github-actions), and [protection rules](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environment-protection-rules).
+
 ------------
 
 
