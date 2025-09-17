@@ -20,8 +20,13 @@ Links to key design and documentation resources:
 - [`docs/ASSETS.md`](docs/ASSETS.md): asset pipeline expectations and QA checklist.
 - [`docs/AI_GUIDELINES.md`](docs/AI_GUIDELINES.md): workflow rules for AI-driven contributions.
 
+- **Navigation Rail Preview**
+  - Persistent left rail with icon buttons for ESP32P4 demo, Rooms, Frigate Security, Local Climate Station, and TV Controls.
+  - Tap a destination to reveal a full-bleed wallpaper page; backgrounds rotate between `custom/assets/bg/1.png` and `custom/assets/bg/2.png` every 30 seconds.
+  - Cards, buttons, and title bars share softened 16 px radii and shadows to match the hardware aesthetic.
+
 - **First Page: Default Demo for Tab5**
-The default user demo for testing out Tab5 features & control.
+  The default user demo for testing out Tab5 features & control.
 
 - **Second Page: Landscape-first dashboard (1280×720)**  
   At-a-glance view of lights, climate, security, and media from Home Assistant.
