@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.1.0...v1.1.1) (2025-09-17)
+
+
+### Bug Fixes
+
+* **ui:** include wallpaper headers ([a184384](https://github.com/baba-dev/M5Tab5-UserDemo/commit/a184384188d9b0bbd7ff2f61bd32bd7706c31f32))
+
 ## [1.1.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.0.0...v1.1.0) (2025-09-17)
 
 
