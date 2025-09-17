@@ -25,8 +25,12 @@ static const char *k_nav_labels[UI_NAV_PAGE_COUNT] = {
 
 static void ui_nav_button_event_cb(lv_event_t *event)
 {
+    if (event == NULL) {
+        return;
+    }
+
     ui_nav_rail_t *rail = (ui_nav_rail_t *)lv_event_get_user_data(event);
-    if (rail == NULL || event->code != LV_EVENT_CLICKED) {
+    if (rail == NULL || lv_event_get_code(event) != LV_EVENT_CLICKED) {
         return;
     }
 
@@ -48,7 +52,7 @@ static void ui_nav_apply_button_style(lv_obj_t *button)
     lv_obj_set_style_bg_color(button, lv_color_hex(0x1b2430), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(button, LV_OPA_90, LV_PART_MAIN);
     lv_obj_set_style_bg_color(button, lv_color_hex(0x2563eb), LV_PART_MAIN | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(button, LV_OPA_95, LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_opa(button, LV_OPA_100, LV_PART_MAIN | LV_STATE_CHECKED);
     lv_obj_set_style_shadow_width(button, 18, LV_PART_MAIN | LV_STATE_CHECKED);
     lv_obj_set_style_shadow_opa(button, LV_OPA_60, LV_PART_MAIN | LV_STATE_CHECKED);
     lv_obj_set_style_shadow_ofs_y(button, 6, LV_PART_MAIN | LV_STATE_CHECKED);
@@ -90,7 +94,7 @@ ui_nav_rail_t *ui_nav_rail_create(lv_obj_t *parent, ui_nav_rail_callback_t callb
     if (rail == NULL) {
         return NULL;
     }
-    lv_memset_00(rail, sizeof(ui_nav_rail_t));
+    lv_memset(rail, 0, sizeof(ui_nav_rail_t));
 
     rail->container = lv_obj_create(parent);
     lv_obj_set_size(rail->container, 156, LV_PCT(100));
@@ -100,7 +104,7 @@ ui_nav_rail_t *ui_nav_rail_create(lv_obj_t *parent, ui_nav_rail_callback_t callb
     lv_obj_set_style_bg_color(rail->container, lv_color_hex(0x11161d), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(rail->container, LV_OPA_90, LV_PART_MAIN);
     lv_obj_set_style_shadow_width(rail->container, 28, LV_PART_MAIN);
-    lv_obj_set_style_shadow_opa(rail->container, LV_OPA_45, LV_PART_MAIN);
+    lv_obj_set_style_shadow_opa(rail->container, LV_OPA_40, LV_PART_MAIN);
     lv_obj_set_style_shadow_ofs_x(rail->container, 0, LV_PART_MAIN);
     lv_obj_set_style_shadow_ofs_y(rail->container, 10, LV_PART_MAIN);
     lv_obj_set_style_border_width(rail->container, 0, LV_PART_MAIN);
