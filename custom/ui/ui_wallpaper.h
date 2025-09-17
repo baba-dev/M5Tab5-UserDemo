@@ -24,9 +24,7 @@ extern "C" {
 #endif
 
 typedef struct ui_wallpaper_t {
-    lv_obj_t *img;
-    uint8_t idx;
-    lv_timer_t *timer;
+    lv_obj_t *layer;
 } ui_wallpaper_t;
 
 ui_wallpaper_t *ui_wallpaper_attach(lv_obj_t *parent);

@@ -31,7 +31,7 @@ static lv_obj_t *ui_page_create_content(lv_obj_t *page, const char *title_text)
     lv_obj_remove_style_all(title);
     lv_obj_set_width(title, LV_PCT(100));
     lv_obj_set_style_bg_color(title, lv_color_hex(0x141e28), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(title, LV_OPA_78, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(title, LV_OPA_80, LV_PART_MAIN);
     lv_obj_set_style_radius(title, 16, LV_PART_MAIN);
     lv_obj_set_style_shadow_width(title, 24, LV_PART_MAIN);
     lv_obj_set_style_shadow_opa(title, LV_OPA_50, LV_PART_MAIN);

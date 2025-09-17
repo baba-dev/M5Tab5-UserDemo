@@ -62,7 +62,7 @@ ui_root_t *ui_root_create(void)
     if (root == NULL) {
         return NULL;
     }
-    lv_memset_00(root, sizeof(ui_root_t));
+    lv_memset(root, 0, sizeof(ui_root_t));
 
     root->screen = lv_screen_active();
 
