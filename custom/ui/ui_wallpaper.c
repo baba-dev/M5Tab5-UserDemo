@@ -44,10 +44,14 @@ ui_wallpaper_t *ui_wallpaper_attach(lv_obj_t *parent)
             lv_obj_add_flag(wallpaper->image, LV_OBJ_FLAG_IGNORE_LAYOUT);
             lv_obj_set_size(wallpaper->image, LV_PCT(100), LV_PCT(100));
             lv_obj_center(wallpaper->image);
+#if LVGL_VERSION_MAJOR >= 9
+            lv_img_set_src(wallpaper->image, image_path);
+#else
             if (lv_img_set_src(wallpaper->image, image_path) != LV_RES_OK) {
                 lv_obj_del(wallpaper->image);
                 wallpaper->image = NULL;
             }
+#endif
         }
     }
 
