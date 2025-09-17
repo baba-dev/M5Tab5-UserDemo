@@ -1,5 +1,4 @@
----
-name: IDF Build
+name: IDF Build (ESP32-P4)
 
 on:
   pull_request:
@@ -9,18 +8,30 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Fetch M5/LVGL components
-        run: python3 fetch_repos.py
+      # Optional: speed up repeated builds (ccache)
+      - name: Prepare ccache dir
+        run: mkdir -p .ccache
 
-      - name: Build (ESP-IDF 5.5, esp32p4)
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('**/CMakeLists.txt', '**/*.c', '**/*.cpp', 'sdkconfig*') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ github.ref_name }}-
+            ccache-${{ runner.os }}-
+
+      - name: Build with ESP-IDF 5.5.x (esp32p4)
         uses: espressif/esp-idf-ci-action@v1
         with:
-          esp_idf_version: v5.5
+          esp_idf_version: v5.5.1
           target: esp32p4
           path: .
           extra_docker_args: "-v ${{ github.workspace }}/.ccache:/root/.ccache -e CCACHE_DIR=/root/.ccache"
@@ -29,4 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: m5tab5-firmware
-          path: "build/*.bin"
+          path: |
+            build/*.bin
+            build/*.elf
+            build/*.map
