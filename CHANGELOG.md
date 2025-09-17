@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.2.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.1.1...v1.2.0) (2025-09-17)
+
+
+### Features
+
+* **ui:** load wallpaper image ([606bb5c](https://github.com/baba-dev/M5Tab5-UserDemo/commit/606bb5c4e865f26c976e7604dc78f86740aca1fe))
+
+
+### Bug Fixes
+
+* **assets:** adjust asset mount include ([77c61ee](https://github.com/baba-dev/M5Tab5-UserDemo/commit/77c61ee8be13083e9cbaa2f7da535a695acd94e7))
+* **ui:** include asset header via component path ([5b1a6e9](https://github.com/baba-dev/M5Tab5-UserDemo/commit/5b1a6e99209eda3647c1cd1060de98f9a1cf5e13))
+* **ui:** simplify wallpaper and nav init ([4e6061b](https://github.com/baba-dev/M5Tab5-UserDemo/commit/4e6061bc9dd28503fe6f582de03e2d504c2a4539))
+* **ui:** support lvgl9 wallpaper src ([0b3375d](https://github.com/baba-dev/M5Tab5-UserDemo/commit/0b3375db9b18c911bf60c1c0b62b1fcd628212de))
+
 ## [1.1.1](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.1.0...v1.1.1) (2025-09-17)
 
 
