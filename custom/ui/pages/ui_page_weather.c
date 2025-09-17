@@ -5,7 +5,7 @@
  */
 #include "ui_page_weather.h"
 
-#include "ui_wallpaper.h"
+#include "../ui_wallpaper.h"
 
 static void ui_page_weather_delete_cb(lv_event_t *event)
 {

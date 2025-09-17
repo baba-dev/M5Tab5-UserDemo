@@ -5,7 +5,7 @@
  */
 #include "ui_page_media.h"
 
-#include "ui_wallpaper.h"
+#include "../ui_wallpaper.h"
 
 static void ui_page_media_delete_cb(lv_event_t *event)
 {
