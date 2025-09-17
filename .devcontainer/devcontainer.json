@@ -2,7 +2,9 @@
   "name": "M5Tab5 - ESP-IDF v5.5",
   "build": { "dockerfile": "Dockerfile" },
   "features": {},
+  "containerEnv": { "BASH_ENV": "/etc/profile" },
   "postCreateCommand": "git submodule update --init --recursive && idf.py --version || true",
+  "postStartCommand": "bash -lc 'idf.py --version || true'",
   "customizations": {
     "vscode": {
       "extensions": [
