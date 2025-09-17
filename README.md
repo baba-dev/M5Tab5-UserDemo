@@ -91,6 +91,12 @@ Our custom data is in the following folders:
 
 > See [`docs/wireframes.md`](docs/wireframes.md) for the low-fi design spec and [`docs/AI_Codex_Guide.md`](docs/AI_Codex_Guide.md) for AI coding guidelines.
 
+## 🖼️ Assets at Runtime
+
+- Wallpapers are regular PNG files stored in flash at `/custom/assets/bg/1.png` and `/custom/assets/bg/2.png`.
+- If an SD card is present, matching files at `/sdcard/custom/assets/bg/1.png` and `/sdcard/custom/assets/bg/2.png` override the built-in images.
+- LVGL mounts the POSIX filesystem on drive letter `A`, so runtime image sources look like `A:/custom/assets/bg/1.png`.
+
 ## 🔧 Prerequisites
 
 - **ESP-IDF 5.x** (P4 target support required)
