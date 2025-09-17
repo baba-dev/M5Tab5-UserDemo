@@ -11,7 +11,7 @@
 #include <smooth_ui_toolkit.h>
 #include <smooth_lvgl.h>
 #include <apps/utils/audio/audio.h>
-#include "custom/ui/ui_root.h"
+#include "ui/ui_root.h"
 
 using namespace launcher_view;
 using namespace smooth_ui_toolkit;
