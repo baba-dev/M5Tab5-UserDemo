@@ -158,6 +158,14 @@ Exit with Ctrl+].
 
 - Test camera performance with multiple stream types; pick best one for latency.
 
+### Devcontainer (ESP-IDF v5.5)
+This repo includes a Docker-based devcontainer using `espressif/idf:release-v5.5`.
+- Rebuild/Reload Dev Container in VS Code.
+- Inside the container, the ESP-IDF environment is auto-loaded via `${IDF_PATH}/export.sh`.
+- Verify: `bash scripts/check_idf_env.sh`
+- Build: `idf.py build`
+- Format: `idf.py clang-format` (or `bash scripts/format.sh`)
+
 ------------
 
 
