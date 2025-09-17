@@ -15,6 +15,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Fetch third-party dependencies
+        run: python fetch_repos.py
+
       # Optional: speed up repeated builds (ccache)
       - name: Prepare ccache dir
         run: mkdir -p .ccache
@@ -33,7 +36,7 @@ jobs:
         with:
           esp_idf_version: v5.5.1
           target: esp32p4
-          path: .
+          path: platforms/tab5
           extra_docker_args: "-v ${{ github.workspace }}/.ccache:/root/.ccache -e CCACHE_DIR=/root/.ccache"
 
       - name: Upload firmware
