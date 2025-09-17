@@ -7,7 +7,7 @@
 #include <mooncake_log.h>
 #include <vector>
 #include <memory>
-#include <string.h>
+#include <cstring>
 #include <bsp/m5stack_tab5.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/event_groups.h>
