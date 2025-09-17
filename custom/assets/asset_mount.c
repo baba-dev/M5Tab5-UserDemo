@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "custom/assets/asset_mount.h"
+#include "asset_mount.h"
 
 #include <stdbool.h>
 #include <stddef.h>
