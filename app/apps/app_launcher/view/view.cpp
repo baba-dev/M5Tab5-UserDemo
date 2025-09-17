@@ -11,6 +11,7 @@
 #include <smooth_ui_toolkit.h>
 #include <smooth_lvgl.h>
 #include <apps/utils/audio/audio.h>
+#include "custom/ui/ui_root.h"
 
 using namespace launcher_view;
 using namespace smooth_ui_toolkit;
@@ -55,6 +56,12 @@ void LauncherView::init()
     for (auto& panel : _panels) {
         panel->init();
     }
+
+    if (_ui_root != nullptr) {
+        ui_root_destroy(_ui_root);
+        _ui_root = nullptr;
+    }
+    _ui_root = ui_root_create();
 }
 
 void LauncherView::update()
@@ -63,5 +70,13 @@ void LauncherView::update()
 
     for (auto& panel : _panels) {
         panel->update(_is_stacked);
+    }
+}
+
+LauncherView::~LauncherView()
+{
+    if (_ui_root != nullptr) {
+        ui_root_destroy(_ui_root);
+        _ui_root = nullptr;
     }
 }

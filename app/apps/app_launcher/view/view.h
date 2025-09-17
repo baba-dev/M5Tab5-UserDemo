@@ -12,6 +12,8 @@
 #include <smooth_lvgl.h>
 #include <vector>
 
+struct ui_root_t;
+
 namespace launcher_view {
 
 /**
@@ -291,11 +293,13 @@ class LauncherView {
 public:
     void init();
     void update();
+    ~LauncherView();
 
 private:
     bool _is_stacked = false;
     std::unique_ptr<smooth_ui_toolkit::lvgl_cpp::Image> _img_bg;
     std::vector<std::unique_ptr<PanelBase>> _panels;
+    ui_root_t *_ui_root = nullptr;
 
     void update_anim();
 };
