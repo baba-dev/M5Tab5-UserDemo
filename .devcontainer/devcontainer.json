@@ -1,28 +1,18 @@
 {
-  "name": "M5Tab5 ESP-IDF 5.x",
-  "image": "espressif/idf:release-v5.5",
-  "containerEnv": {
-    "IDF_TARGET": "esp32p4",
-    "CCACHE_DIR": "/workspaces/.ccache"
-  },
-  "runArgs": [
-    "--privileged",
-    "--device=/dev/ttyUSB0",
-    "--device=/dev/ttyACM0"
-  ],
-  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "name": "M5Tab5 - ESP-IDF v5.5",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {},
+  "postCreateCommand": "git submodule update --init --recursive && idf.py --version || true",
   "customizations": {
     "vscode": {
       "extensions": [
         "espressif.esp-idf-extension",
-        "ms-python.python",
         "ms-vscode.cpptools"
       ],
       "settings": {
-        "idf.espIdfPath": "/opt/esp/idf",
-        "idf.pythonBinPath": "/usr/bin/python3",
-        "idf.toolsPath": "/opt/esp"
+        "C_Cpp.clang_format_style": "file"
       }
     }
-  }
+  },
+  "remoteUser": "vscode"
 }
