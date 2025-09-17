@@ -53,6 +53,9 @@ APIs—do not mix in `i2c_master_cmd_begin()` or the legacy link commands.
 - If the firmware prints `CONFLICT! driver_ng is not allowed to be used with
   this old driver`, erase the flash and confirm no component still pulls in
   `driver/i2c.h`.
+- The build now fails if either `CONFIG_I2C_ENABLE_LEGACY_DRIVERS` or
+  `CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK` is enabled; fix the configuration
+  before flashing new firmware.
 - Verify CI passed the "Enforce NG I2C usage" step; it runs `git grep` to block
   legacy includes or helper calls from landing in `main`.
 - For stubborn build issues, re-run `python3 fetch_repos.py` to make sure every

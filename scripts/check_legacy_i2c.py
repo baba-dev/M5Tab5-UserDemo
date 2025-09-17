@@ -80,6 +80,8 @@ EXCLUDED_DIRS: frozenset[str] = frozenset(
     }
 )
 
+KCONFIG_PREFIX: str = "sdkconfig"
+
 LEGACY_PATTERNS: tuple[LegacyPattern, ...] = (
     LegacyPattern(
         re.compile(r"#\s*include\s*[\"<]driver/i2c\.h[\">]"),
@@ -115,6 +117,17 @@ LEGACY_PATTERNS: tuple[LegacyPattern, ...] = (
     ),
 )
 
+CONFIG_GUARDS: tuple[LegacyPattern, ...] = (
+    LegacyPattern(
+        re.compile(r"^CONFIG_I2C_ENABLE_LEGACY_DRIVERS=([yY])\b"),
+        "legacy I2C driver enabled in configuration",
+    ),
+    LegacyPattern(
+        re.compile(r"^CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK=([yY])\b"),
+        "legacy driver conflict check disabled in configuration",
+    ),
+)
+
 
 def iter_source_files(
     paths: Sequence[Path],
@@ -141,6 +154,28 @@ def iter_source_files(
                     yield path
 
 
+def iter_config_files(
+    paths: Sequence[Path],
+    *,
+    excluded_dirs: Iterable[str] = EXCLUDED_DIRS,
+) -> Iterator[Path]:
+    """Yield Kconfig-style files (``sdkconfig*``) below *paths*."""
+
+    exclude = set(excluded_dirs)
+
+    for base in paths:
+        if base.is_file():
+            if base.name.startswith(KCONFIG_PREFIX):
+                yield base
+            continue
+
+        for dirpath, dirnames, filenames in os.walk(base, followlinks=False):
+            dirnames[:] = [d for d in dirnames if d not in exclude]
+            for filename in filenames:
+                if filename.startswith(KCONFIG_PREFIX):
+                    yield Path(dirpath, filename)
+
+
 def scan_file(path: Path, patterns: Sequence[LegacyPattern] = LEGACY_PATTERNS) -> list[Finding]:
     """Return a list of legacy usage matches for *path*."""
 
@@ -149,6 +184,29 @@ def scan_file(path: Path, patterns: Sequence[LegacyPattern] = LEGACY_PATTERNS) -
         for line_no, line in enumerate(handle, start=1):
             for pattern in patterns:
                 if pattern.regex.search(line):
+                    matches.append(
+                        Finding(
+                            path=path,
+                            line_no=line_no,
+                            reason=pattern.description,
+                            line=line.rstrip(),
+                        )
+                    )
+    return matches
+
+
+def scan_config_file(
+    path: Path,
+    patterns: Sequence[LegacyPattern] = CONFIG_GUARDS,
+) -> list[Finding]:
+    """Return a list of configuration violations for *path*."""
+
+    matches: list[Finding] = []
+    with path.open("r", encoding="utf-8", errors="ignore") as handle:
+        for line_no, line in enumerate(handle, start=1):
+            stripped = line.strip()
+            for pattern in patterns:
+                if pattern.regex.search(stripped):
                     matches.append(
                         Finding(
                             path=path,
@@ -169,6 +227,10 @@ def scan_paths(paths: Sequence[Path]) -> ScanResult:
     for file_path in iter_source_files(paths):
         files_scanned += 1
         findings.extend(scan_file(file_path))
+
+    for config_path in iter_config_files(paths):
+        files_scanned += 1
+        findings.extend(scan_config_file(config_path))
 
     return ScanResult(files_scanned=files_scanned, findings=findings)
 

@@ -3,12 +3,24 @@
  *
  * SPDX-License-Identifier: MIT
  */
+#include <memory>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+#include <sdkconfig.h>
+
 #include "hal/hal_esp32.h"
 #include <app.h>
 #include <hal/hal.h>
-#include <memory>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+
+#if defined(CONFIG_I2C_ENABLE_LEGACY_DRIVERS) && CONFIG_I2C_ENABLE_LEGACY_DRIVERS
+#error "Legacy ESP-IDF I2C driver is unsupported; disable CONFIG_I2C_ENABLE_LEGACY_DRIVERS."
+#endif
+
+#if defined(CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK) && CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK
+#error "Do not enable CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK; leave it set to n."
+#endif
 
 extern "C" void app_main(void)
 {

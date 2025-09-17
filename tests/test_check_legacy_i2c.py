@@ -78,6 +78,32 @@ class CheckLegacyI2CTests(unittest.TestCase):
             finding = result.findings[0]
             self.assertIn("legacy i2c_master_cmd_begin", finding.reason)
 
+    def test_flags_legacy_driver_enabled_in_sdkconfig(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "sdkconfig"
+            cfg_path.write_text("CONFIG_I2C_ENABLE_LEGACY_DRIVERS=y\n", encoding="utf-8")
+
+            result = self.module.scan_paths([Path(tmpdir)])
+
+            self.assertEqual(result.files_scanned, 1)
+            self.assertEqual(len(result.findings), 1)
+            finding = result.findings[0]
+            self.assertEqual(finding.path, cfg_path)
+            self.assertIn("legacy I2C driver enabled", finding.reason)
+
+    def test_flags_conflict_check_disabled_in_sdkconfig(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "sdkconfig.defaults"
+            cfg_path.write_text("CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK=y\n", encoding="utf-8")
+
+            result = self.module.scan_paths([Path(tmpdir)])
+
+            self.assertEqual(result.files_scanned, 1)
+            self.assertEqual(len(result.findings), 1)
+            finding = result.findings[0]
+            self.assertEqual(finding.path, cfg_path)
+            self.assertIn("legacy driver conflict check disabled", finding.reason)
+
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
     unittest.main()
