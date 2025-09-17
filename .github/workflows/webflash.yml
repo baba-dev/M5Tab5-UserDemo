@@ -1,56 +1,111 @@
----
-name: Web Flash (ESP Web Tools)
+name: Web Flash (Pages) - ESP Web Tools
+
 on:
   push:
-    tags: ["v*"]
+    tags: [ "v*" ]
+  release:
+    types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Fetch components
-        run: python3 fetch_repos.py
+      - name: Prepare ccache
+        run: mkdir -p .ccache
 
-      - name: Build firmware
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: .ccache
+          key: ccache-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('**/CMakeLists.txt', 'sdkconfig*', '**/*.[ch]', '**/*.cpp') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ github.ref_name }}-
+            ccache-${{ runner.os }}-
+
+      - name: Build firmware (ESP-IDF 5.5.x / esp32p4)
         uses: espressif/esp-idf-ci-action@v1
         with:
-          esp_idf_version: v5.5
+          esp_idf_version: v5.5.1
           target: esp32p4
           path: .
+          extra_docker_args: "-v ${{ github.workspace }}/.ccache:/root/.ccache -e CCACHE_DIR=/root/.ccache"
 
-      - name: Prepare web assets
+      - name: Collect firmware
+        id: fw
         run: |
           mkdir -p site
-          FWBIN=$(ls build/*.bin | head -n1)
+          FWBIN="$(ls build/*.bin | head -n1)"
+          test -n "$FWBIN"
           cp "$FWBIN" site/firmware.bin
-          cat > site/manifest.json << 'JSON'
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VER="${GITHUB_REF_NAME}"
+          else
+            VER="$(git rev-parse --short HEAD)"
+          fi
+          echo "ver=$VER" >> $GITHUB_OUTPUT
+
+      - name: Create manifest.json for ESP Web Tools
+        run: |
+          cat > site/manifest.json << JSON
           {
             "name": "M5Tab5 User Demo",
-            "version": "${{ github.ref_name }}",
+            "version": "${{ steps.fw.outputs.ver }}",
             "builds": [{
               "chipFamily": "ESP32",
-              "parts": [{ "path": "firmware.bin", "offset": 0 }]
+              "parts": [
+                { "path": "firmware.bin", "offset": 0 }
+              ]
             }]
           }
           JSON
+
+      - name: Create flash.html (install button)
+        run: |
           cat > site/flash.html << 'HTML'
-          <!DOCTYPE html><html><body>
-          <h1>M5Tab5 – Web Flash</h1>
-          <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
-          <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
-          </body></html>
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <title>M5Tab5 – Web Flash</title>
+              <!-- Load ESP Web Tools button -->
+              <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+              <style>
+                body{font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+                     display:grid; place-items:center; min-height:100dvh; margin:0; background:#0b0c10;}
+                .card{background:#121418; color:#e6e6e6; padding:24px; border-radius:16px; box-shadow:0 10px 30px #0008;}
+                h1{margin:0 0 8px}
+                p{opacity:.8; margin:0 0 16px}
+                esp-web-install-button{--mdc-theme-primary:#38bdf8}
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <h1>M5Tab5 – Web Flash</h1>
+                <p>Connect your Tab5 (ESP32-P4), then click Install.</p>
+                <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
+              </div>
+            </body>
+          </html>
           HTML
 
-      - name: Upload artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site

@@ -3,6 +3,7 @@
 [![IDF Build](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/idf-build.yml/badge.svg)](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/idf-build.yml)
 [![Lint](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/lint.yml/badge.svg)](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/lint.yml)
 [![Release Please](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/release-please.yml/badge.svg)](https://github.com/baba-dev/M5Tab5-UserDemo/actions/workflows/release-please.yml)
+[![Web Flash](https://img.shields.io/badge/Web%20Flash-ESP%20Web%20Tools-38bdf8)](https://baba-dev.github.io/M5Tab5-UserDemo/flash.html)
 
 **M5Stack Tab5 + ESP-IDF + LVGL** → a full-featured **Home Assistant control tablet**, Frigate viewer, and sensor bridge.
 
@@ -113,21 +114,29 @@ Optional:
 
 1. **Clone repo & submodules**
 
-	git clone https://github.com/baba-dev/M5Tab5-UserDemo.git
+        git clone https://github.com/baba-dev/M5Tab5-UserDemo.git
    cd M5Tab5-UserDemo
    python fetch_repos.py  # fetch M5 & LVGL components
 
 2. **Set ESP32-P4 target**
 
-	idf.py set-target esp32p4
+        idf.py set-target esp32p4
 
 3. **Configure (optional)**
 
-	idf.py menuconfig
+        idf.py menuconfig
 
-	Set Wi-Fi SSID & password (or flash once and store in NVS).
+        Set Wi-Fi SSID & password (or flash once and store in NVS).
 
-	Set MQTT broker URI & credentials.
+        Set MQTT broker URI & credentials.
+
+### Web Flash
+
+Every release publishes a browser flasher at **GitHub Pages** (Settings → Pages).
+Open: `https://baba-dev.github.io/M5Tab5-UserDemo/flash.html`
+
+This uses **ESP Web Tools** to flash `firmware.bin` described by `manifest.json`.
+(Install button is loaded via the official script CDN.)
 
 ## 🚀 Flash & Monitor
 
