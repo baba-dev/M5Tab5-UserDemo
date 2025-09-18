@@ -91,10 +91,10 @@ class CheckLegacyI2CTests(unittest.TestCase):
             self.assertEqual(finding.path, cfg_path)
             self.assertIn("legacy I2C driver enabled", finding.reason)
 
-    def test_flags_conflict_check_disabled_in_sdkconfig(self) -> None:
+    def test_flags_conflict_check_still_enabled_in_sdkconfig(self) -> None:
         with TemporaryDirectory() as tmpdir:
             cfg_path = Path(tmpdir) / "sdkconfig.defaults"
-            cfg_path.write_text("CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK=y\n", encoding="utf-8")
+            cfg_path.write_text("CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK=n\n", encoding="utf-8")
 
             result = self.module.scan_paths([Path(tmpdir)])
 
@@ -102,7 +102,23 @@ class CheckLegacyI2CTests(unittest.TestCase):
             self.assertEqual(len(result.findings), 1)
             finding = result.findings[0]
             self.assertEqual(finding.path, cfg_path)
-            self.assertIn("legacy driver conflict check disabled", finding.reason)
+            self.assertIn("legacy driver conflict check still enabled", finding.reason)
+
+    def test_flags_conflict_check_comment_in_sdkconfig(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir) / "sdkconfig"
+            cfg_path.write_text(
+                "# CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK is not set\n",
+                encoding="utf-8",
+            )
+
+            result = self.module.scan_paths([Path(tmpdir)])
+
+            self.assertEqual(result.files_scanned, 1)
+            self.assertEqual(len(result.findings), 1)
+            finding = result.findings[0]
+            self.assertEqual(finding.path, cfg_path)
+            self.assertIn("legacy driver conflict check still enabled", finding.reason)
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution

@@ -18,8 +18,8 @@
 #error "Legacy ESP-IDF I2C driver is unsupported; disable CONFIG_I2C_ENABLE_LEGACY_DRIVERS."
 #endif
 
-#if defined(CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK) && CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK
-#error "Do not enable CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK; leave it set to n."
+#if !defined(CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK) || !CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK
+#error "Enable CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK so the legacy driver stays dormant."
 #endif
 
 extern "C" void app_main(void)

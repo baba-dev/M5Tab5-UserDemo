@@ -123,8 +123,12 @@ CONFIG_GUARDS: tuple[LegacyPattern, ...] = (
         "legacy I2C driver enabled in configuration",
     ),
     LegacyPattern(
-        re.compile(r"^CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK=([yY])\b"),
-        "legacy driver conflict check disabled in configuration",
+        re.compile(r"^CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK=([nN])\b"),
+        "legacy driver conflict check still enabled in configuration",
+    ),
+    LegacyPattern(
+        re.compile(r"^#\s*CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK\s+is not set"),
+        "legacy driver conflict check still enabled in configuration",
     ),
 )
 
