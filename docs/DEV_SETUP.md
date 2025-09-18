@@ -6,7 +6,7 @@
   `release-v5.4` toolchain to ensure the project uses the NG I²C driver stack
   exclusively.
 - Run `python3 fetch_repos.py` before building so that managed components are
-  pulled into the workspace.
+  pulled into the workspace or refreshed to the pinned revisions.
 
 ## Build checklist
 
