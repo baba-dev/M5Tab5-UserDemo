@@ -20,7 +20,7 @@ Primary integration: **Home Assistant (MQTT + Assist)**, **Frigate**.
 ## Global Structure (Navigation)
 - Tabs: **Home**, **Rooms**, **Security**, **Climate** (optional **Media**)
 - Left-side **nav rail** (implemented) with icon+label buttons for ESP32P4 demo, Rooms, Frigate Security, Local Climate Station, and TV Controls
-- Full-bleed wallpaper rotates between `custom/assets/bg/1.png` and `custom/assets/bg/2.png` every 30 seconds on custom pages
+- Full-bleed background uses a warm gradient (`linear-gradient(90deg, #fcff9e 0%, #c67700 100%)`) on custom pages
 - **Control Center** opens as modal sheet (swipe down from header or tap status icons)
 
 ```mermaid
