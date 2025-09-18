@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <stdbool.h>
+
 #ifdef __has_include
 #if __has_include("lvgl.h")
 #ifndef LV_LVGL_H_INCLUDE_SIMPLE
@@ -40,6 +42,9 @@ ui_nav_rail_t *ui_nav_rail_create(lv_obj_t *parent, ui_nav_rail_callback_t callb
 void ui_nav_rail_destroy(ui_nav_rail_t *rail);
 void ui_nav_rail_set_active(ui_nav_rail_t *rail, ui_nav_page_t page);
 lv_obj_t *ui_nav_rail_get_container(ui_nav_rail_t *rail);
+void ui_nav_rail_show(ui_nav_rail_t *rail, bool animate);
+void ui_nav_rail_hide(ui_nav_rail_t *rail, bool animate);
+bool ui_nav_rail_is_visible(const ui_nav_rail_t *rail);
 
 #ifdef __cplusplus
 }
