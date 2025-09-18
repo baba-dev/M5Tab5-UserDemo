@@ -24,4 +24,22 @@ idf_component_register(SRCS "app_main.cpp" ${APP_LAYER_SRCS} ${MY_HAL_SRCS}
 
 set(CUSTOM_ASSETS_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../custom/assets")
 get_filename_component(CUSTOM_ASSETS_DIR "${CUSTOM_ASSETS_DIR}" REALPATH)
-spiffs_create_partition_image(storage "${CUSTOM_ASSETS_DIR}" FLASH_IN_PROJECT)
+
+set(CUSTOM_ASSETS_IMAGE_ROOT "${CMAKE_CURRENT_BINARY_DIR}/spiffs_custom_assets")
+set(CUSTOM_ASSETS_STAMP "${CUSTOM_ASSETS_IMAGE_ROOT}/.staged")
+file(GLOB_RECURSE CUSTOM_ASSET_FILES CONFIGURE_DEPENDS LIST_DIRECTORIES false
+     "${CUSTOM_ASSETS_DIR}/*")
+
+add_custom_command(
+    OUTPUT "${CUSTOM_ASSETS_STAMP}"
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CUSTOM_ASSETS_IMAGE_ROOT}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CUSTOM_ASSETS_IMAGE_ROOT}/custom"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CUSTOM_ASSETS_DIR}"
+                                    "${CUSTOM_ASSETS_IMAGE_ROOT}/custom/assets"
+    COMMAND ${CMAKE_COMMAND} -E touch "${CUSTOM_ASSETS_STAMP}"
+    DEPENDS ${CUSTOM_ASSET_FILES}
+    COMMENT "Staging custom assets for SPIFFS image"
+)
+
+spiffs_create_partition_image(storage "${CUSTOM_ASSETS_IMAGE_ROOT}" FLASH_IN_PROJECT
+                              DEPENDS "${CUSTOM_ASSETS_STAMP}")
