@@ -120,6 +120,17 @@ class CheckLegacyI2CTests(unittest.TestCase):
             self.assertEqual(finding.path, cfg_path)
             self.assertIn("legacy driver conflict check still enabled", finding.reason)
 
+    def test_formatter_handles_paths_outside_root(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            src_path = Path(tmpdir) / "legacy.c"
+            src_path.write_text('#include "driver/i2c.h"\n', encoding="utf-8")
+
+            result = self.module.scan_paths([Path(tmpdir)])
+
+            self.assertEqual(len(result.findings), 1)
+            formatted = self.module._format_finding(result.findings[0], self.module.REPO_ROOT)
+            self.assertIn(str(src_path.resolve()), formatted)
+
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
     unittest.main()
