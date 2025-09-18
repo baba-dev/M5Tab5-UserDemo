@@ -7,3 +7,4 @@ dependencies
 # Generated LVGL image blobs (runtime PNGs load from filesystem)
 custom/assets/bg/*.c
 custom/assets/bg/*.h
+tests/ui/output/
