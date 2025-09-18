@@ -13,6 +13,8 @@ struct ui_nav_rail_t {
     ui_nav_page_t active;
     ui_nav_rail_callback_t callback;
     void *user_data;
+    bool visible;
+    lv_coord_t hidden_offset;
 };
 
 static const char *k_nav_icons[UI_NAV_PAGE_COUNT] = {
@@ -130,6 +132,11 @@ ui_nav_rail_t *ui_nav_rail_create(lv_obj_t *parent, ui_nav_rail_callback_t callb
 
     ui_nav_rail_set_active(rail, UI_NAV_PAGE_DEFAULT);
 
+    rail->hidden_offset = -(lv_obj_get_width(rail->container) + 24);
+    lv_obj_set_style_translate_x(rail->container, rail->hidden_offset, LV_PART_MAIN);
+    lv_obj_add_flag(rail->container, LV_OBJ_FLAG_HIDDEN);
+    rail->visible = false;
+
     return rail;
 }
 
@@ -174,4 +181,48 @@ lv_obj_t *ui_nav_rail_get_container(ui_nav_rail_t *rail)
         return NULL;
     }
     return rail->container;
+}
+
+void ui_nav_rail_show(ui_nav_rail_t *rail, bool animate)
+{
+    if (rail == NULL || rail->container == NULL) {
+        return;
+    }
+
+    if (rail->visible) {
+        return;
+    }
+
+    LV_UNUSED(animate);
+
+    lv_obj_clear_flag(rail->container, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_translate_x(rail->container, 0, LV_PART_MAIN);
+    lv_obj_move_foreground(rail->container);
+    rail->visible = true;
+}
+
+void ui_nav_rail_hide(ui_nav_rail_t *rail, bool animate)
+{
+    if (rail == NULL || rail->container == NULL) {
+        return;
+    }
+
+    if (!rail->visible) {
+        lv_obj_set_style_translate_x(rail->container, rail->hidden_offset, LV_PART_MAIN);
+        return;
+    }
+
+    LV_UNUSED(animate);
+
+    lv_obj_set_style_translate_x(rail->container, rail->hidden_offset, LV_PART_MAIN);
+    lv_obj_add_flag(rail->container, LV_OBJ_FLAG_HIDDEN);
+    rail->visible = false;
+}
+
+bool ui_nav_rail_is_visible(const ui_nav_rail_t *rail)
+{
+    if (rail == NULL) {
+        return false;
+    }
+    return rail->visible;
 }
