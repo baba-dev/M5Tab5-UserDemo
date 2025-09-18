@@ -52,7 +52,7 @@ public:
             _label_msg->setText("Scanning SD Card ...");
         } else {
             _label_msg->setTextColor(lv_color_hex(0xFD4444));
-            _label_msg->setText("SD Card not mounted.\n\nPlease insert SD Card and reboot.");
+            _label_msg->setText("SD Card support is disabled.\n\nBuilt-in assets will be used.");
         }
     }
 

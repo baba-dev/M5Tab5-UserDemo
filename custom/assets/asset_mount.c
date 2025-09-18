@@ -233,21 +233,7 @@ void assets_fs_init(void)
 #endif
 
 #if defined(ESP_PLATFORM)
-    sdmmc_host_t host                        = SDMMC_HOST_DEFAULT();
-    sdmmc_slot_config_t slot_config          = SDMMC_SLOT_CONFIG_DEFAULT();
-    esp_vfs_fat_sdmmc_mount_config_t mnt_cfg = {
-        .format_if_mount_failed = false,
-        .max_files              = 4,
-        .allocation_unit_size   = 16 * 1024,
-    };
-    sdmmc_card_t *card = NULL;
-    esp_err_t err      = esp_vfs_fat_sdmmc_mount(SD_MOUNT_POINT, &host, &slot_config, &mnt_cfg, &card);
-    if (err == ESP_OK) {
-        s_sd_ok = true;
-        ASSET_LOGI(k_tag, "SD mounted at %s", SD_MOUNT_POINT);
-    } else {
-        ASSET_LOGW(k_tag, "SD not mounted (err=0x%x). Proceeding without SD.", (unsigned int)err);
-    }
+    ASSET_LOGW(k_tag, "SD card mounting disabled; using internal assets only");
 #else
     ASSET_LOGI(k_tag, "Desktop build: using host filesystem without SD mount");
 #endif
