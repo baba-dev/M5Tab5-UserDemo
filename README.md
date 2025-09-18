@@ -23,7 +23,7 @@ Links to key design and documentation resources:
 
 - **Navigation Rail Preview**
   - Persistent left rail with icon buttons for ESP32P4 demo, Rooms, Frigate Security, Local Climate Station, and TV Controls.
-  - Tap a destination to reveal a full-bleed wallpaper page; backgrounds rotate between `custom/assets/bg/1.png` and `custom/assets/bg/2.png` every 30 seconds.
+  - Tap a destination to reveal a full-bleed gradient backdrop (`linear-gradient(90deg, #fcff9e 0%, #c67700 100%)`).
   - Cards, buttons, and title bars share softened 16 px radii and shadows to match the hardware aesthetic.
 
 - **First Page: Default Demo for Tab5**
@@ -88,15 +88,13 @@ Our custom data is in the following folders:
 - custom/ui/ ← LVGL UI modules
 - custom/integration/ ← MQTT + HA + Frigate glue code
 - custom/platform/ ← Display, input, audio, power drivers
-- custom/assets/ ← Icons, backgrounds (RGB565, pre-sized)
+- custom/assets/ ← Shared UI assets (fonts, icons, future binaries)
 
 > See [`docs/wireframes.md`](docs/wireframes.md) for the low-fi design spec and [`docs/AI_Codex_Guide.md`](docs/AI_Codex_Guide.md) for AI coding guidelines.
 
-## 🖼️ Assets at Runtime
+## 🖼️ Visual Styling at Runtime
 
-- Wallpapers are regular PNG files stored in flash at `/custom/assets/bg/1.png` and `/custom/assets/bg/2.png`.
-- If an SD card is present, matching files at `/sdcard/custom/assets/bg/1.png` and `/sdcard/custom/assets/bg/2.png` override the built-in images.
-- LVGL mounts the POSIX filesystem on drive letter `A`, so runtime image sources look like `A:/custom/assets/bg/1.png`.
+- Custom home screens render a built-in gradient background, so no wallpaper assets are flashed or loaded from storage.
 
 ## 🔧 Prerequisites
 
