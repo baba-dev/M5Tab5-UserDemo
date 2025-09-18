@@ -17,13 +17,15 @@ struct ui_root_t {
     ui_nav_page_t active;
     lv_obj_t *nav_scrim;
     lv_obj_t *gesture_zone;
+
+    // Edge-swipe + drag-to-reveal state
     bool edge_swipe_active;
     bool edge_swipe_triggered;
     bool nav_dragging;
     lv_coord_t edge_swipe_start_x;
-    lv_coord_t edge_swipe_reveal;
-    lv_coord_t edge_swipe_range;
-    lv_coord_t edge_swipe_threshold;
+    lv_coord_t edge_swipe_reveal;     // current reveal amount during drag
+    lv_coord_t edge_swipe_range;      // full reveal distance (computed)
+    lv_coord_t edge_swipe_threshold;  // threshold to treat as "show"
 };
 
 static void ui_root_hide_nav(ui_root_t *root, bool animate);
@@ -99,6 +101,7 @@ static void ui_root_scrim_event_cb(lv_event_t *event)
     ui_root_hide_nav(root, true);
 }
 
+// Left-edge zone: press/drag/release based reveal
 static void ui_root_edge_gesture_cb(lv_event_t *event)
 {
     if (event == NULL) {
@@ -112,13 +115,15 @@ static void ui_root_edge_gesture_cb(lv_event_t *event)
 
     lv_event_code_t code = lv_event_get_code(event);
     lv_indev_t *indev    = lv_indev_get_act();
+
     switch (code) {
-        case LV_EVENT_PRESSED:
+        case LV_EVENT_PRESSED: {
             root->edge_swipe_active    = true;
             root->edge_swipe_triggered = false;
             root->nav_dragging         = false;
             root->edge_swipe_reveal    = 0;
             ui_root_update_nav_metrics(root);
+
             if (indev != NULL) {
                 lv_point_t point;
                 lv_indev_get_point(indev, &point);
@@ -126,6 +131,7 @@ static void ui_root_edge_gesture_cb(lv_event_t *event)
             } else {
                 root->edge_swipe_start_x = 0;
             }
+
             if (!ui_nav_rail_is_visible(root->nav)) {
                 lv_obj_t *nav_obj = ui_root_nav_container(root);
                 if (nav_obj != NULL) {
@@ -136,46 +142,49 @@ static void ui_root_edge_gesture_cb(lv_event_t *event)
                 root->nav_dragging = true;
             }
             break;
-        case LV_EVENT_PRESSING:
+        }
+
+        case LV_EVENT_PRESSING: {
             if (!root->edge_swipe_active || indev == NULL) {
                 break;
             }
-            {
-                lv_point_t point;
-                lv_indev_get_point(indev, &point);
-                if (root->nav_dragging) {
-                    lv_coord_t delta = point.x - root->edge_swipe_start_x;
-                    if (delta < 0) {
-                        delta = 0;
-                    }
-                    lv_coord_t range = root->edge_swipe_range;
-                    if (range <= 0) {
-                        range = -ui_nav_rail_get_hidden_offset(root->nav);
-                        if (range < 0) {
-                            range = 0;
-                        }
-                        root->edge_swipe_range = range;
-                    }
-                    if (delta > range) {
-                        delta = range;
-                    }
-                    root->edge_swipe_reveal = delta;
-                    lv_obj_t *nav_obj       = ui_root_nav_container(root);
-                    if (nav_obj != NULL) {
-                        lv_coord_t hidden = ui_nav_rail_get_hidden_offset(root->nav);
-                        lv_obj_set_style_translate_x(nav_obj, hidden + delta, LV_PART_MAIN);
-                    }
-                    if (root->edge_swipe_threshold > 0 && delta >= root->edge_swipe_threshold) {
-                        root->edge_swipe_triggered = true;
-                    }
-                } else if ((point.x - root->edge_swipe_start_x) > root->edge_swipe_threshold) {
-                    root->edge_swipe_triggered = true;
-                    ui_root_show_nav(root, true);
+
+            lv_point_t point;
+            lv_indev_get_point(indev, &point);
+
+            if (root->nav_dragging) {
+                lv_coord_t delta = point.x - root->edge_swipe_start_x;
+                if (delta < 0) delta = 0;
+
+                lv_coord_t range = root->edge_swipe_range;
+                if (range <= 0) {
+                    range = -ui_nav_rail_get_hidden_offset(root->nav);
+                    if (range < 0) range = 0;
+                    root->edge_swipe_range = range;
                 }
+
+                if (delta > range) delta = range;
+
+                root->edge_swipe_reveal = delta;
+
+                lv_obj_t *nav_obj = ui_root_nav_container(root);
+                if (nav_obj != NULL) {
+                    lv_coord_t hidden = ui_nav_rail_get_hidden_offset(root->nav);
+                    lv_obj_set_style_translate_x(nav_obj, hidden + delta, LV_PART_MAIN);
+                }
+
+                if (root->edge_swipe_threshold > 0 && delta >= root->edge_swipe_threshold) {
+                    root->edge_swipe_triggered = true;
+                }
+            } else if ((point.x - root->edge_swipe_start_x) > root->edge_swipe_threshold) {
+                root->edge_swipe_triggered = true;
+                ui_root_show_nav(root, true);
             }
             break;
+        }
+
         case LV_EVENT_RELEASED:
-        case LV_EVENT_PRESS_LOST:
+        case LV_EVENT_PRESS_LOST: {
             if (root->edge_swipe_active) {
                 bool should_show = root->edge_swipe_triggered;
                 if (!should_show && root->edge_swipe_range > 0) {
@@ -192,11 +201,14 @@ static void ui_root_edge_gesture_cb(lv_event_t *event)
             root->nav_dragging         = false;
             root->edge_swipe_reveal    = 0;
             break;
+        }
+
         default:
             break;
     }
 }
 
+// When nav itself is visible, a left-swipe on it hides the rail.
 static void ui_root_nav_gesture_cb(lv_event_t *event)
 {
     if (event == NULL) {
@@ -264,6 +276,7 @@ ui_root_t *ui_root_create(void)
 
     ui_root_create_pages(root);
 
+    // Scrim behind nav
     root->nav_scrim = lv_obj_create(root->screen);
     if (root->nav_scrim != NULL) {
         lv_obj_remove_style_all(root->nav_scrim);
@@ -276,6 +289,7 @@ ui_root_t *ui_root_create(void)
         lv_obj_add_event_cb(root->nav_scrim, ui_root_scrim_event_cb, LV_EVENT_CLICKED, root);
     }
 
+    // Left-edge gesture capture zone
     root->gesture_zone = lv_obj_create(root->screen);
     if (root->gesture_zone != NULL) {
         lv_obj_remove_style_all(root->gesture_zone);
@@ -291,17 +305,20 @@ ui_root_t *ui_root_create(void)
         lv_obj_add_event_cb(root->gesture_zone, ui_root_edge_gesture_cb, LV_EVENT_PRESS_LOST, root);
     }
 
+    // Keep rail above, update metrics on size changes
     lv_obj_t *nav_container = ui_root_nav_container(root);
     if (nav_container != NULL) {
         lv_obj_move_foreground(nav_container);
         lv_obj_add_event_cb(nav_container, ui_root_nav_size_event_cb, LV_EVENT_SIZE_CHANGED, root);
     }
+
     if (root->nav_scrim != NULL) {
         lv_obj_move_background(root->nav_scrim);
     }
     if (root->gesture_zone != NULL) {
         lv_obj_move_foreground(root->gesture_zone);
     }
+
     ui_nav_rail_hide(root->nav, false);
     lv_obj_add_event_cb(ui_nav_rail_get_container(root->nav), ui_root_nav_gesture_cb, LV_EVENT_GESTURE, root);
     ui_root_update_nav_metrics(root);
@@ -385,10 +402,12 @@ static void ui_root_hide_nav(ui_root_t *root, bool animate)
     }
 
     ui_nav_rail_hide(root->nav, animate);
+
     if (root->gesture_zone != NULL) {
         lv_obj_clear_flag(root->gesture_zone, LV_OBJ_FLAG_HIDDEN);
         lv_obj_move_foreground(root->gesture_zone);
     }
+
     root->nav_dragging      = false;
     root->edge_swipe_reveal = 0;
     ui_root_update_nav_metrics(root);
@@ -413,9 +432,11 @@ static void ui_root_show_nav(ui_root_t *root, bool animate)
     if (nav_obj != NULL) {
         lv_obj_move_foreground(nav_obj);
     }
+
     if (root->gesture_zone != NULL) {
         lv_obj_add_flag(root->gesture_zone, LV_OBJ_FLAG_HIDDEN);
     }
+
     ui_root_update_nav_metrics(root);
 }
 

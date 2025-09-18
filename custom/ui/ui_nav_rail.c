@@ -240,9 +240,13 @@ void ui_nav_rail_hide(ui_nav_rail_t *rail, bool animate)
         return;
     }
 
+    if (!rail->visible) {
+        lv_obj_set_style_translate_x(rail->container, rail->hidden_offset, LV_PART_MAIN);
+        return;
+    }
+
     LV_UNUSED(animate);
 
-    rail->hidden_offset = -(lv_obj_get_width(rail->container) + rail->base_offset);
     lv_obj_set_style_translate_x(rail->container, rail->hidden_offset, LV_PART_MAIN);
     lv_obj_add_flag(rail->container, LV_OBJ_FLAG_HIDDEN);
     rail->visible = false;
