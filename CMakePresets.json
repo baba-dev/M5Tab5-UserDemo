@@ -1,0 +1,17 @@
+{
+  "version": 5,
+  "configurePresets": [
+    {
+      "name": "tests-ninja-fast",
+      "displayName": "Host tests (Ninja/ccache/unity)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/tests/build",
+      "cacheVariables": {
+        "CMAKE_UNITY_BUILD": "ON",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "ROMS_ONLY": "ON"
+      }
+    }
+  ]
+}
