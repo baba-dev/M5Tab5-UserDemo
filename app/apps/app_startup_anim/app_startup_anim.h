@@ -42,4 +42,8 @@ private:
     smooth_ui_toolkit::AnimateValue _anim_logo_5_x;
     uint32_t _time_count = 0;
     bool _is_sfx_played  = false;
+    lv_color_t _cached_screen_bg_color{};
+    lv_opa_t _cached_screen_bg_opa = LV_OPA_COVER;
+    bool _cached_screen_scrollable = false;
+    bool _screen_state_cached      = false;
 };

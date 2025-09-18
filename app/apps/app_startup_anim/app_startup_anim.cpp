@@ -32,8 +32,14 @@ void AppStartupAnim::onOpen()
 
     LvglLockGuard lock;
 
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-    lv_obj_remove_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t* screen          = lv_screen_active();
+    _cached_screen_bg_color   = lv_obj_get_style_bg_color(screen, LV_PART_MAIN);
+    _cached_screen_bg_opa     = lv_obj_get_style_bg_opa(screen, LV_PART_MAIN);
+    _cached_screen_scrollable = lv_obj_has_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    _screen_state_cached      = true;
+
+    lv_obj_set_style_bg_color(screen, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+    lv_obj_remove_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
 
     _logo_tab = std::make_unique<Image>(lv_screen_active());
     _logo_tab->setAlign(LV_ALIGN_TOP_MID);
@@ -128,6 +134,18 @@ void AppStartupAnim::onClose()
     _logo_tab.reset();
     _logo_5.reset();
     _label_version.reset();
+
+    if (_screen_state_cached) {
+        lv_obj_t* screen = lv_screen_active();
+        lv_obj_set_style_bg_color(screen, _cached_screen_bg_color, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(screen, _cached_screen_bg_opa, LV_PART_MAIN);
+        if (_cached_screen_scrollable) {
+            lv_obj_add_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+        } else {
+            lv_obj_remove_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+        }
+        _screen_state_cached = false;
+    }
 
     GetHAL()->setSpeakerVolume(60);
 }
