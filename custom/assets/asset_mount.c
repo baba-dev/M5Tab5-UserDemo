@@ -182,9 +182,13 @@ static void lv_fs_if_init(void)
 #define ASSET_LOGW(tag, fmt, ...) LV_LOG_WARN(fmt, ##__VA_ARGS__)
 #endif
 
-#define SD_ASSET_ROOT       "/sdcard/custom/assets"
+#define SD_ASSET_ROOT "/sdcard/custom/assets"
+#if !defined(ESP_PLATFORM) && defined(LV_FS_IF_POSIX) && (LV_FS_IF_POSIX != '\0')
+#define INTERNAL_ASSET_ROOT "./custom/assets"
+#else
 #define INTERNAL_ASSET_ROOT "/custom/assets"
-#define BG_RELATIVE         "/bg"
+#endif
+#define BG_RELATIVE "/bg"
 
 static const char *k_tag = "assets";
 
