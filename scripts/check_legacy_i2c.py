@@ -240,7 +240,11 @@ def scan_paths(paths: Sequence[Path]) -> ScanResult:
 
 
 def _format_finding(finding: Finding, root: Path) -> str:
-    relative_path = finding.path.resolve().relative_to(root)
+    resolved_path = finding.path.resolve()
+    try:
+        relative_path = resolved_path.relative_to(root)
+    except ValueError:
+        relative_path = resolved_path
     return (
         f"{relative_path}:{finding.line_no}: {finding.reason}\n"
         f"    {finding.line}"
