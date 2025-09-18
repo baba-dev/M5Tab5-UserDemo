@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.2.0...v1.3.0) (2025-09-18)
+
+
+### Features
+
+* **ui:** add rooms page grid and tests ([bb91c7a](https://github.com/baba-dev/M5Tab5-UserDemo/commit/bb91c7aae869c5327eb88a9307e2b6931510a40c))
+
+
+### Bug Fixes
+
+* **desktop:** guard SDL helpers when disabled ([8128299](https://github.com/baba-dev/M5Tab5-UserDemo/commit/81282994a57cdaa837ea068129c7f4cdad1e7e9e))
+
 ## [1.2.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.1.1...v1.2.0) (2025-09-18)
 
 
