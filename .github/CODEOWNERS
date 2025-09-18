@@ -1,0 +1,3 @@
+# Critical hardware components require explicit review
+components/hal/* @you
+custom/platform/* @you

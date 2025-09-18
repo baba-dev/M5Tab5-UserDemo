@@ -769,7 +769,7 @@
 #define LV_USE_LODEPNG 0
 
 /*PNG decoder(libpng) library*/
-#define LV_USE_LIBPNG 1
+#define LV_USE_LIBPNG 0
 
 /*BMP decoder library*/
 #define LV_USE_BMP 0

@@ -13,12 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Use system GTest (fast) and tools
+      # Install build tools and GTest
       - name: Install deps
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build cmake ccache libgtest-dev
-          # Build GTest if headers/libs not prebuilt on the runner image
+          # Build GTest libs (headers are already present)
           sudo cmake -S /usr/src/googletest -B /usr/src/googletest/build
           sudo cmake --build /usr/src/googletest/build -j
           sudo cp -a /usr/src/googletest/build/lib/* /usr/local/lib/
@@ -47,3 +47,6 @@ jobs:
 
       - name: Run tests
         run: ctest --test-dir tests/build --output-on-failure --timeout 60
+
+      - name: Secret scan
+        run: ./tools/check_secrets.sh
