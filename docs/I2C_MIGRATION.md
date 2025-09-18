@@ -10,10 +10,12 @@ to include `driver/i2c_master.h` and allocate buses with
 
 ## Configuration expectations
 
-`sdkconfig.defaults` disables the legacy I²C driver and keeps the conflict
-checker active. If `idf.py menuconfig` reports that the legacy driver is
-enabled, set `CONFIG_I2C_ENABLE_LEGACY_DRIVERS` to `n` and keep
-`CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK` disabled.
+`sdkconfig.defaults` disables the legacy I²C driver and forces the conflict
+checker into bypass mode. ESP-IDF still links the legacy implementation into
+the `driver` component, so `CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK` must stay set
+to `y`; otherwise the runtime guard aborts as soon as the NG driver is pulled
+in. The `scripts/check_legacy_i2c.py` helper continues to block
+`driver/i2c.h` includes so the legacy APIs remain unused.
 
 ## Creating an I²C master bus
 
@@ -53,8 +55,8 @@ APIs—do not mix in `i2c_master_cmd_begin()` or the legacy link commands.
 - If the firmware prints `CONFLICT! driver_ng is not allowed to be used with
   this old driver`, erase the flash and confirm no component still pulls in
   `driver/i2c.h`.
-- The build now fails if either `CONFIG_I2C_ENABLE_LEGACY_DRIVERS` or
-  `CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK` is enabled; fix the configuration
+- The build now fails if `CONFIG_I2C_ENABLE_LEGACY_DRIVERS` is enabled or if
+  `CONFIG_I2C_SKIP_LEGACY_CONFLICT_CHECK` is left unset; fix the configuration
   before flashing new firmware.
 - Verify CI passed the "Enforce NG I2C usage" step; it runs `git grep` to block
   legacy includes or helper calls from landing in `main`.
