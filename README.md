@@ -126,7 +126,7 @@ Optional:
 
         git clone https://github.com/baba-dev/M5Tab5-UserDemo.git
    cd M5Tab5-UserDemo
-   python fetch_repos.py  # fetch M5 & LVGL components
+   python fetch_repos.py  # fetch or update M5 & LVGL components
 
 2. **Set ESP32-P4 target**
 
