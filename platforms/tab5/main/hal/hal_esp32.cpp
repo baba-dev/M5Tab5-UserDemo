@@ -267,50 +267,19 @@ void HalEsp32::update_system_time()
 /* -------------------------------------------------------------------------- */
 /*                                   SD Card                                  */
 /* -------------------------------------------------------------------------- */
-#include <dirent.h>
-#include <sys/types.h>
-
 bool HalEsp32::isSdCardMounted()
 {
-    return true;
+    return _sd_card_mounted;
 }
 
 std::vector<hal::HalBase::FileEntry_t> HalEsp32::scanSdCard(const std::string& dirPath)
 {
-    std::vector<hal::HalBase::FileEntry_t> file_entries;
+    (void)dirPath;
+    _sd_card_mounted = false;
 
-    mclog::tagInfo(_tag, "init sd card");
-    if (bsp_sdcard_init("/sd", 25) != ESP_OK) {
-        mclog::error("failed to mount sd card");
-        return file_entries;
-    }
+    mclog::tagWarn(_tag, "SD card access disabled; skipping scan request");
 
-    std::string target_path = "/sd/" + dirPath;
-
-    DIR* dir = opendir(target_path.c_str());
-    if (dir == nullptr) {
-        mclog::error("failed to open directory: {}", target_path);
-        return file_entries;
-    }
-
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != nullptr) {
-        if (std::string(entry->d_name) == "." || std::string(entry->d_name) == "..") {
-            continue;
-        }
-
-        hal::HalBase::FileEntry_t file_entry;
-        file_entry.name  = entry->d_name;
-        file_entry.isDir = (entry->d_type == DT_DIR);
-        file_entries.push_back(file_entry);
-    }
-
-    closedir(dir);
-
-    mclog::tagInfo(_tag, "deinit sd card");
-    bsp_sdcard_deinit("/sd");
-
-    return file_entries;
+    return {};
 }
 
 /* -------------------------------------------------------------------------- */
