@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <sys/stat.h>
 
 #ifdef __has_include
 #if __has_include("lvgl.h")
@@ -175,11 +174,9 @@ static void lv_fs_if_init(void)
 #define ASSET_LOGW(tag, fmt, ...) LV_LOG_WARN(fmt, ##__VA_ARGS__)
 #endif
 
-#define SD_MOUNT_POINT      "/sdcard"
+#define SD_ASSET_ROOT       "/sdcard/custom/assets"
 #define INTERNAL_ASSET_ROOT "/custom/assets"
 #define BG_RELATIVE         "/bg"
-#define FALLBACK_1          INTERNAL_ASSET_ROOT BG_RELATIVE "/1.png"
-#define FALLBACK_2          INTERNAL_ASSET_ROOT BG_RELATIVE "/2.png"
 
 static const char *k_tag = "assets";
 
@@ -187,36 +184,61 @@ static bool s_fs_initialized = false;
 static bool s_sd_ok          = false;
 static bool s_warned_missing = false;
 
+static const char *drive_prefix(void)
+{
+#if defined(LV_FS_IF_POSIX) && (LV_FS_IF_POSIX != '\0')
+    static const char prefix[] = {LV_FS_IF_POSIX, ':', '\0'};
+    return prefix;
+#elif defined(LV_FS_MEMFS_LETTER) && (LV_FS_MEMFS_LETTER != '\0')
+    static const char prefix[] = {LV_FS_MEMFS_LETTER, ':', '\0'};
+    return prefix;
+#else
+    return "";
+#endif
+}
+
 static bool path_exists(const char *path)
 {
     if (path == NULL) {
         return false;
     }
-    struct stat st;
-    return stat(path, &st) == 0;
+
+    lv_fs_file_t file;
+    lv_fs_res_t res = lv_fs_open(&file, path, LV_FS_MODE_RD);
+    if (res == LV_FS_RES_OK) {
+        lv_fs_close(&file);
+        return true;
+    }
+    return false;
 }
 
-static const char *pick_file(const char *relative, const char *fallback)
+static bool format_path(char *buffer, size_t size, const char *root, const char *relative)
 {
-    static char path_buffer[128];
+    const char *prefix = drive_prefix();
+    int length         = snprintf(buffer, size, "%s%s%s/%s", prefix, root, BG_RELATIVE, relative);
+    return length > 0 && length < (int)size;
+}
 
-    if (s_sd_ok) {
-        int written = snprintf(path_buffer, sizeof(path_buffer), "%s%s/%s", SD_MOUNT_POINT, BG_RELATIVE, relative);
-        if (written > 0 && written < (int)sizeof(path_buffer) && path_exists(path_buffer)) {
-            return path_buffer;
-        }
+static const char *pick_file(const char *relative, char *buffer, size_t size)
+{
+    if (buffer == NULL || size == 0) {
+        return NULL;
     }
 
-    int written = snprintf(path_buffer, sizeof(path_buffer), "%s%s/%s", INTERNAL_ASSET_ROOT, BG_RELATIVE, relative);
-    if (written > 0 && written < (int)sizeof(path_buffer) && path_exists(path_buffer)) {
-        return path_buffer;
+    if (s_sd_ok && format_path(buffer, size, SD_ASSET_ROOT, relative) && path_exists(buffer)) {
+        return buffer;
     }
 
-    if (!s_warned_missing) {
+    if (!format_path(buffer, size, INTERNAL_ASSET_ROOT, relative)) {
+        return NULL;
+    }
+
+    if (!path_exists(buffer) && !s_warned_missing) {
         s_warned_missing = true;
-        ASSET_LOGW(k_tag, "Falling back to built-in wallpaper path: %s", fallback);
+        ASSET_LOGW(k_tag, "Falling back to built-in wallpaper path: %s", buffer);
     }
-    return fallback;
+
+    return buffer;
 }
 
 void assets_fs_init(void)
@@ -241,10 +263,12 @@ void assets_fs_init(void)
 
 const char *assets_path_1(void)
 {
-    return pick_file("1.png", FALLBACK_1);
+    static char path_buffer[128];
+    return pick_file("1.png", path_buffer, sizeof(path_buffer));
 }
 
 const char *assets_path_2(void)
 {
-    return pick_file("2.png", FALLBACK_2);
+    static char path_buffer[128];
+    return pick_file("2.png", path_buffer, sizeof(path_buffer));
 }

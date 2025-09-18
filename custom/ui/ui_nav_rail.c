@@ -13,6 +13,9 @@ struct ui_nav_rail_t {
     ui_nav_page_t active;
     ui_nav_rail_callback_t callback;
     void *user_data;
+    bool visible;
+    lv_coord_t base_offset;
+    lv_coord_t hidden_offset;
 };
 
 static const char *k_nav_icons[UI_NAV_PAGE_COUNT] = {
@@ -84,6 +87,34 @@ static void ui_nav_add_button_content(lv_obj_t *button, uint32_t index)
     lv_obj_set_style_text_color(label, lv_color_hex(0xcad3df), LV_PART_MAIN);
 }
 
+static void ui_nav_rail_update_offsets(ui_nav_rail_t *rail)
+{
+    if (rail == NULL || rail->container == NULL) {
+        return;
+    }
+
+    lv_coord_t width    = lv_obj_get_width(rail->container);
+    rail->hidden_offset = -(width + rail->base_offset);
+
+    if (!rail->visible) {
+        lv_obj_set_style_translate_x(rail->container, rail->hidden_offset, LV_PART_MAIN);
+    }
+}
+
+static void ui_nav_container_event_cb(lv_event_t *event)
+{
+    if (event == NULL) {
+        return;
+    }
+
+    if (lv_event_get_code(event) != LV_EVENT_SIZE_CHANGED) {
+        return;
+    }
+
+    ui_nav_rail_t *rail = (ui_nav_rail_t *)lv_event_get_user_data(event);
+    ui_nav_rail_update_offsets(rail);
+}
+
 ui_nav_rail_t *ui_nav_rail_create(lv_obj_t *parent, ui_nav_rail_callback_t callback, void *user_data)
 {
     if (parent == NULL) {
@@ -130,6 +161,13 @@ ui_nav_rail_t *ui_nav_rail_create(lv_obj_t *parent, ui_nav_rail_callback_t callb
 
     ui_nav_rail_set_active(rail, UI_NAV_PAGE_DEFAULT);
 
+    rail->base_offset = lv_obj_get_x(rail->container);
+    rail->visible     = false;
+    ui_nav_rail_update_offsets(rail);
+    lv_obj_set_style_translate_x(rail->container, rail->hidden_offset, LV_PART_MAIN);
+    lv_obj_add_flag(rail->container, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_event_cb(rail->container, ui_nav_container_event_cb, LV_EVENT_SIZE_CHANGED, rail);
+
     return rail;
 }
 
@@ -174,4 +212,46 @@ lv_obj_t *ui_nav_rail_get_container(ui_nav_rail_t *rail)
         return NULL;
     }
     return rail->container;
+}
+
+void ui_nav_rail_show(ui_nav_rail_t *rail, bool animate)
+{
+    if (rail == NULL || rail->container == NULL) {
+        return;
+    }
+
+    if (rail->visible) {
+        return;
+    }
+
+    LV_UNUSED(animate);
+
+    lv_obj_clear_flag(rail->container, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_style_translate_x(rail->container, 0, LV_PART_MAIN);
+    lv_obj_move_foreground(rail->container);
+    rail->visible     = true;
+    rail->base_offset = lv_obj_get_x(rail->container);
+    ui_nav_rail_update_offsets(rail);
+}
+
+void ui_nav_rail_hide(ui_nav_rail_t *rail, bool animate)
+{
+    if (rail == NULL || rail->container == NULL) {
+        return;
+    }
+
+    LV_UNUSED(animate);
+
+    rail->hidden_offset = -(lv_obj_get_width(rail->container) + rail->base_offset);
+    lv_obj_set_style_translate_x(rail->container, rail->hidden_offset, LV_PART_MAIN);
+    lv_obj_add_flag(rail->container, LV_OBJ_FLAG_HIDDEN);
+    rail->visible = false;
+}
+
+bool ui_nav_rail_is_visible(const ui_nav_rail_t *rail)
+{
+    if (rail == NULL) {
+        return false;
+    }
+    return rail->visible;
 }
