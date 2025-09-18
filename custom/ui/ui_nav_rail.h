@@ -45,6 +45,7 @@ lv_obj_t *ui_nav_rail_get_container(ui_nav_rail_t *rail);
 void ui_nav_rail_show(ui_nav_rail_t *rail, bool animate);
 void ui_nav_rail_hide(ui_nav_rail_t *rail, bool animate);
 bool ui_nav_rail_is_visible(const ui_nav_rail_t *rail);
+lv_coord_t ui_nav_rail_get_hidden_offset(const ui_nav_rail_t *rail);
 
 #ifdef __cplusplus
 }

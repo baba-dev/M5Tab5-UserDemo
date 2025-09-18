@@ -255,3 +255,11 @@ bool ui_nav_rail_is_visible(const ui_nav_rail_t *rail)
     }
     return rail->visible;
 }
+
+lv_coord_t ui_nav_rail_get_hidden_offset(const ui_nav_rail_t *rail)
+{
+    if (rail == NULL) {
+        return 0;
+    }
+    return rail->hidden_offset;
+}

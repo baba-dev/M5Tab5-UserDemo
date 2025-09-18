@@ -9,6 +9,14 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#if defined(ESP_PLATFORM)
+#if defined(__has_include)
+#if __has_include("sdkconfig.h")
+#include "sdkconfig.h"
+#endif
+#endif
+#endif
+
 #ifdef __has_include
 #if __has_include("lvgl.h")
 #ifndef LV_LVGL_H_INCLUDE_SIMPLE
@@ -229,16 +237,33 @@ static const char *pick_file(const char *relative, char *buffer, size_t size)
         return buffer;
     }
 
-    if (!format_path(buffer, size, INTERNAL_ASSET_ROOT, relative)) {
-        return NULL;
+    static const char *const k_internal_roots[] = {
+#if defined(CONFIG_BSP_SPIFFS_MOUNT_POINT)
+        CONFIG_BSP_SPIFFS_MOUNT_POINT "/custom/assets",
+#endif
+        INTERNAL_ASSET_ROOT,
+    };
+
+    for (size_t i = 0; i < (sizeof(k_internal_roots) / sizeof(k_internal_roots[0])); i++) {
+        const char *root = k_internal_roots[i];
+        if (root == NULL || root[0] == '\0') {
+            continue;
+        }
+        if (!format_path(buffer, size, root, relative)) {
+            continue;
+        }
+        if (path_exists(buffer)) {
+            return buffer;
+        }
     }
 
-    if (!path_exists(buffer) && !s_warned_missing) {
+    if (!s_warned_missing && format_path(buffer, size, INTERNAL_ASSET_ROOT, relative)) {
         s_warned_missing = true;
         ASSET_LOGW(k_tag, "Falling back to built-in wallpaper path: %s", buffer);
+        return buffer;
     }
 
-    return buffer;
+    return NULL;
 }
 
 void assets_fs_init(void)
