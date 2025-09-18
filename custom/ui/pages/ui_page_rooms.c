@@ -350,6 +350,8 @@ static lv_obj_t* create_content(lv_obj_t* page, ui_page_rooms_ctx_t* ctx)
     lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(content, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
+    ctx->content = content;
+
     ctx->toolbar = lv_obj_create(content);
     toolbar_style_init(ctx->toolbar);
 
