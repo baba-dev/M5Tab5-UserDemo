@@ -86,13 +86,45 @@ httpd_handle_t start_webserver()
 // 初始化 Wi-Fi AP 模式
 void wifi_init_softap()
 {
-    ESP_ERROR_CHECK(esp_netif_init());
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    static bool s_netif_ready      = false;
+    static bool s_event_loop_ready = false;
 
-    esp_netif_create_default_wifi_ap();
+    if (!s_netif_ready) {
+        esp_err_t err = esp_netif_init();
+        if (err == ESP_ERR_INVALID_STATE) {
+            ESP_LOGW(TAG, "esp_netif already initialized");
+        } else if (err != ESP_OK) {
+            ESP_LOGE(TAG, "esp_netif_init failed: %s", esp_err_to_name(err));
+            return;
+        }
+        s_netif_ready = true;
+    }
+
+    if (!s_event_loop_ready) {
+        esp_err_t err = esp_event_loop_create_default();
+        if (err == ESP_ERR_INVALID_STATE) {
+            ESP_LOGW(TAG, "default event loop already created");
+        } else if (err != ESP_OK) {
+            ESP_LOGE(TAG, "esp_event_loop_create_default failed: %s", esp_err_to_name(err));
+            return;
+        }
+        s_event_loop_ready = true;
+    }
+
+    esp_netif_t* netif = esp_netif_create_default_wifi_ap();
+    if (netif == nullptr) {
+        ESP_LOGE(TAG, "failed to create default Wi-Fi AP netif");
+        return;
+    }
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    esp_err_t err          = esp_wifi_init(&cfg);
+    if (err == ESP_ERR_WIFI_INIT_STATE) {
+        ESP_LOGW(TAG, "Wi-Fi already initialized");
+    } else if (err != ESP_OK) {
+        ESP_LOGE(TAG, "esp_wifi_init failed: %s", esp_err_to_name(err));
+        return;
+    }
 
     wifi_config_t wifi_config = {};
     std::strncpy(reinterpret_cast<char*>(wifi_config.ap.ssid), WIFI_SSID, sizeof(wifi_config.ap.ssid));
@@ -101,9 +133,23 @@ void wifi_init_softap()
     wifi_config.ap.max_connection = MAX_STA_CONN;
     wifi_config.ap.authmode       = WIFI_AUTH_OPEN;
 
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
-    ESP_ERROR_CHECK(esp_wifi_start());
+    err = esp_wifi_set_mode(WIFI_MODE_AP);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "esp_wifi_set_mode failed: %s", esp_err_to_name(err));
+        return;
+    }
+
+    err = esp_wifi_set_config(WIFI_IF_AP, &wifi_config);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "esp_wifi_set_config failed: %s", esp_err_to_name(err));
+        return;
+    }
+
+    err = esp_wifi_start();
+    if (err != ESP_OK && err != ESP_ERR_WIFI_CONN) {
+        ESP_LOGE(TAG, "esp_wifi_start failed: %s", esp_err_to_name(err));
+        return;
+    }
 
     ESP_LOGI(TAG, "Wi-Fi AP started. SSID:%s password:%s", WIFI_SSID, WIFI_PASS);
 }
@@ -121,6 +167,8 @@ static void wifi_ap_test_task(void* param)
 
 bool HalEsp32::wifi_init()
 {
+    static bool s_wifi_task_started = false;
+
     mclog::tagInfo(TAG, "wifi init");
 
     esp_err_t ret = nvs_flash_init();
@@ -130,8 +178,19 @@ bool HalEsp32::wifi_init()
     }
     ESP_ERROR_CHECK(ret);
 
-    xTaskCreate(wifi_ap_test_task, "ap", 4096, nullptr, 5, nullptr);
-    return true;
+    if (s_wifi_task_started) {
+        ESP_LOGW(TAG, "Wi-Fi init already in progress");
+        return true;
+    }
+
+    BaseType_t task_created = xTaskCreate(wifi_ap_test_task, "ap", 4096, nullptr, 5, nullptr);
+    if (task_created == pdPASS) {
+        s_wifi_task_started = true;
+        return true;
+    }
+
+    ESP_LOGE(TAG, "failed to create Wi-Fi AP task");
+    return false;
 }
 
 void HalEsp32::setExtAntennaEnable(bool enable)
