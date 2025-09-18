@@ -41,3 +41,10 @@ A generated overview of the repository structure with short descriptions for qui
 
 For deeper detail on MQTT topics and Home Assistant entities, see
 [`docs/mqtt_contract.md`](./mqtt_contract.md) and [`docs/entities.json`](./entities.json).
+
+## Rooms page layout
+
+The Rooms experience lives in `custom/ui/pages/ui_page_rooms.*` with its card widget helpers
+under `custom/ui/widgets/`. It renders a fixed three-column grid sized for the Tab5's 1280×720
+landscape canvas. Each column hosts a glassmorphic room card (Bakery, Bedroom, Living Room)
+with a master toggle, temperature and humidity readout, and animated entry/interaction states.
