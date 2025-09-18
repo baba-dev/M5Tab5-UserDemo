@@ -73,10 +73,22 @@ Using stuff from base code, we get and publish these states to HA:
   - Quick toggles: Do Not Disturb, Auto-brightness  
   - Sleep & restart controls
 
-- **Developer Experience**  
-  - Modular LVGL components (`ui_home`, `ui_rooms`, `ui_security`, `ui_control_center`)  
-  - Design tokens & wireframes in `docs/` for AI/assistants  
-  - CI-friendly (ESP-IDF build, firmware artifacts)  
+- **Developer Experience**
+  - Modular LVGL components (`ui_home`, `ui_rooms`, `ui_security`, `ui_control_center`)
+  - Design tokens & wireframes in `docs/` for AI/assistants
+  - CI-friendly (ESP-IDF build, firmware artifacts)
+
+## 🧹 Formatting & Git Hooks
+
+Install the repo's clang-format hook locally with [pre-commit](https://pre-commit.com/):
+
+```bash
+pip install pre-commit  # once per machine
+pre-commit install
+```
+
+Running `pre-commit install` configures Git to automatically run clang-format on
+changed files before each commit.
 
 ---
 
