@@ -26,6 +26,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .ccache
+          # ✅ FIX: pass multiple patterns as separate args to hashFiles()
           key: ccache-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('**/CMakeLists.txt', '**/*.c', '**/*.cpp', 'sdkconfig*') }}
           restore-keys: |
             ccache-${{ runner.os }}-${{ github.ref_name }}-
@@ -37,6 +38,7 @@ jobs:
           esp_idf_version: v5.5.1
           target: esp32p4
           path: platforms/tab5
+          # mount ccache dir inside the container
           extra_docker_args: "-v ${{ github.workspace }}/.ccache:/root/.ccache -e CCACHE_DIR=/root/.ccache"
 
       - name: Upload firmware
@@ -44,6 +46,6 @@ jobs:
         with:
           name: m5tab5-firmware
           path: |
-            build/*.bin
-            build/*.elf
-            build/*.map
+            platforms/tab5/build/**/*.bin
+            platforms/tab5/build/**/*.elf
+            platforms/tab5/build/**/*.map
