@@ -37,10 +37,17 @@ set(LV_CONF_INCLUDE_SIMPLE OFF)
 set(LV_CONF_PATH ../../lv_conf.h)
 add_subdirectory(dependencies/lvgl)
 
+find_package(PNG REQUIRED)
+
 # SDL
-find_package(SDL2 REQUIRED SDL2)
-include_directories(PUBLIC ${SDL2_INCLUDE_DIRS})
-target_include_directories(lvgl PUBLIC ${SDL2_INCLUDE_DIRS})
+find_package(SDL2 QUIET)
+if (SDL2_FOUND)
+    include_directories(PUBLIC ${SDL2_INCLUDE_DIRS})
+    target_include_directories(lvgl PUBLIC ${SDL2_INCLUDE_DIRS})
+else()
+    message(WARNING "SDL2 not found; desktop app target will be skipped")
+    set(SDL2_LIBRARIES "")
+endif()
 
 # App layer
 file(GLOB_RECURSE APP_LAYER_SRCS
@@ -62,16 +69,42 @@ file(GLOB_RECURSE APP_DESKTOP_BUILD_SRCS
     platforms/desktop/*.cc
     platforms/desktop/*.c
 )
-add_executable(app_desktop_build ${APP_DESKTOP_BUILD_SRCS} ${APP_LAYER_SRCS})
-target_include_directories(app_desktop_build PUBLIC ${APP_LAYER_INCS})
-target_link_libraries(app_desktop_build PUBLIC 
-    mooncake 
-    mooncake_log
-    lvgl 
-    lvgl_examples 
-    lvgl_demos 
-    ${SDL2_LIBRARIES}
-    smooth_ui_toolkit
+if (SDL2_FOUND)
+    add_executable(app_desktop_build ${APP_DESKTOP_BUILD_SRCS} ${APP_LAYER_SRCS})
+    target_include_directories(app_desktop_build PUBLIC ${APP_LAYER_INCS})
+    target_link_libraries(app_desktop_build PUBLIC
+        mooncake
+        mooncake_log
+        lvgl
+        lvgl_examples
+        lvgl_demos
+        ${SDL2_LIBRARIES}
+        smooth_ui_toolkit
+        pthread
+    )
+endif()
+
+set(ROOMS_PAGE_SHARED_SRCS
+    custom/ui/pages/ui_page_rooms.c
+    custom/ui/pages/ui_rooms_model.c
+    custom/ui/widgets/ui_room_card.c
+    custom/ui/ui_theme.c
+    custom/ui/ui_wallpaper.c
+)
+
+add_executable(rooms_page_test ${ROOMS_PAGE_SHARED_SRCS} tests/ui/rooms_page_test.c)
+target_include_directories(rooms_page_test PUBLIC ${APP_LAYER_INCS})
+target_link_libraries(rooms_page_test PUBLIC
+    lvgl
+    PNG::PNG
+    pthread
+)
+
+add_executable(rooms_page_snapshot ${ROOMS_PAGE_SHARED_SRCS} tests/ui/rooms_page_snapshot.c)
+target_include_directories(rooms_page_snapshot PUBLIC ${APP_LAYER_INCS})
+target_link_libraries(rooms_page_snapshot PUBLIC
+    lvgl
+    PNG::PNG
     pthread
 )
 

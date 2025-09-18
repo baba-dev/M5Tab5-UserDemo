@@ -1,16 +1,52 @@
 name: Host Tests
 
-on: [pull_request, push]
+on:
+  pull_request:
+  push:
+    branches: [main]
 
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+
     steps:
       - uses: actions/checkout@v4
-      - name: CMake toolchain
-        uses: aminya/setup-cpp@v1
-        with: { compiler: llvm, cmake: true }
-      - name: Build & Run
+
+      # Install build tools and GTest
+      - name: Install deps
         run: |
-          make test
-          ./tools/check_secrets.sh
+          sudo apt-get update
+          sudo apt-get install -y ninja-build cmake ccache libgtest-dev
+          # Build GTest libs (headers are already present)
+          sudo cmake -S /usr/src/googletest -B /usr/src/googletest/build
+          sudo cmake --build /usr/src/googletest/build -j
+          sudo cp -a /usr/src/googletest/build/lib/* /usr/local/lib/
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-host-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', 'custom/**', 'tests/**') }}
+          restore-keys: |
+            ccache-host-${{ runner.os }}-
+
+      - name: Configure (Ninja + ccache + unity)
+        env:
+          CCACHE_DIR: ~/.cache/ccache
+        run: |
+          cmake -S tests -B tests/build \
+            -G Ninja \
+            -DCMAKE_UNITY_BUILD=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DROMS_ONLY=ON
+
+      - name: Build rooms_page_test
+        run: cmake --build tests/build --target rooms_page_test -j
+
+      - name: Run tests
+        run: ctest --test-dir tests/build --output-on-failure --timeout 60
+
+      - name: Secret scan
+        run: ./tools/check_secrets.sh

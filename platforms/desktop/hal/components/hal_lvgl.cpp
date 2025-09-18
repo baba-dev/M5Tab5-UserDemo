@@ -3,18 +3,19 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "../hal_desktop.h"
-#include "../hal_config.h"
-#include "hal/hal.h"
-#include <mooncake_log.h>
+#include <assets/assets.h>
 #include <lvgl.h>
+#include <mooncake_log.h>
 #include <mutex>
 #include <thread>
-#include <assets/assets.h>
+
+#include "../hal_config.h"
+#include "../hal_desktop.h"
+#include "hal/hal.h"
 // https://github.com/lvgl/lv_port_pc_vscode/blob/master/main/src/main.c
 
 static const std::string _tag = "lvgl";
-static std::mutex _lvgl_mutex;
+static std::mutex        _lvgl_mutex;
 
 void HalDesktop::lvgl_init()
 {
@@ -24,6 +25,7 @@ void HalDesktop::lvgl_init()
 
     lv_group_set_default(lv_group_create());
 
+#if LV_USE_SDL
     auto display = lv_sdl_window_create(HAL_SCREEN_WIDTH, HAL_SCREEN_HEIGHT);
     lv_display_set_default(display);
 
@@ -44,19 +46,27 @@ void HalDesktop::lvgl_init()
     auto keyboard = lv_sdl_keyboard_create();
     lv_indev_set_display(keyboard, display);
     lv_indev_set_group(keyboard, lv_group_get_default());
+#else
+    mclog::tagWarn(_tag, "LV_USE_SDL is disabled; skipping SDL display and input initialization");
+#endif
 
 #if not defined(__APPLE__) && not defined(__MACH__)
-    std::thread([]() {
-        while (!hal::Check()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        }
-        while (true) {
-            GetHAL()->lvglLock();
-            auto time_till_next = lv_timer_handler();
-            GetHAL()->lvglUnlock();
-            std::this_thread::sleep_for(std::chrono::milliseconds(time_till_next));
-        }
-    }).detach();
+    std::thread(
+        []()
+        {
+            while (!hal::Check())
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(20));
+            }
+            while (true)
+            {
+                GetHAL()->lvglLock();
+                auto time_till_next = lv_timer_handler();
+                GetHAL()->lvglUnlock();
+                std::this_thread::sleep_for(std::chrono::milliseconds(time_till_next));
+            }
+        })
+        .detach();
 #endif
 }
 
