@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.2.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.1.1...v1.2.0) (2025-09-18)
+
+
+### Features
+
+* **ui:** load wallpaper image ([606bb5c](https://github.com/baba-dev/M5Tab5-UserDemo/commit/606bb5c4e865f26c976e7604dc78f86740aca1fe))
+
+
+### Bug Fixes
+
+* **app:** restore screen background after startup anim ([3820251](https://github.com/baba-dev/M5Tab5-UserDemo/commit/3820251b4d5ea6f6238fc234d72309eb41446c76))
+* **assets:** adjust asset mount include ([77c61ee](https://github.com/baba-dev/M5Tab5-UserDemo/commit/77c61ee8be13083e9cbaa2f7da535a695acd94e7))
+* **assets:** package and resolve wallpaper files ([629bd24](https://github.com/baba-dev/M5Tab5-UserDemo/commit/629bd24671ae53d635b5045af212239219c7dd75))
+* **config:** disable legacy i2c driver ([d411dbd](https://github.com/baba-dev/M5Tab5-UserDemo/commit/d411dbd027317ae1993071f7cff3117294cb0ab0))
+* **i2c:** block legacy driver regressions ([ac8558e](https://github.com/baba-dev/M5Tab5-UserDemo/commit/ac8558e5d136fc75709d5181f105039d4f092c96))
+* **i2c:** bypass legacy conflict guard ([2ddcfee](https://github.com/baba-dev/M5Tab5-UserDemo/commit/2ddcfeeeb8dc2a5f3469d0d27e2ac1af948c1bc9))
+* **platform:** disable sd card features ([0003476](https://github.com/baba-dev/M5Tab5-UserDemo/commit/0003476553b13e73632441ee707711440bfcc846))
+* **tab5:** stage custom assets layout ([5d2d6ea](https://github.com/baba-dev/M5Tab5-UserDemo/commit/5d2d6ead1893755142300b68a82340f75c122617))
+* **ui:** improve rail swipe and wallpaper lookup ([d409bf3](https://github.com/baba-dev/M5Tab5-UserDemo/commit/d409bf3e912cb63a1e5d7605d280027174a466be))
+* **ui:** include asset header via component path ([5b1a6e9](https://github.com/baba-dev/M5Tab5-UserDemo/commit/5b1a6e99209eda3647c1cd1060de98f9a1cf5e13))
+* **ui:** restore wallpaper and swipe nav ([9099010](https://github.com/baba-dev/M5Tab5-UserDemo/commit/909901082bdc0948731eada1570bd0bb51675576))
+* **ui:** simplify wallpaper and nav init ([4e6061b](https://github.com/baba-dev/M5Tab5-UserDemo/commit/4e6061bc9dd28503fe6f582de03e2d504c2a4539))
+* **ui:** support lvgl9 wallpaper src ([0b3375d](https://github.com/baba-dev/M5Tab5-UserDemo/commit/0b3375db9b18c911bf60c1c0b62b1fcd628212de))
+* **ui:** widen nav rail swipe zone ([77d05d4](https://github.com/baba-dev/M5Tab5-UserDemo/commit/77d05d493632fa2ccf82edb9eb853cef5796d4d6))
+* **wifi:** guard ap init against repeated setup ([49b3af4](https://github.com/baba-dev/M5Tab5-UserDemo/commit/49b3af4a39dfbce14282c8481ea768c8420be896))
+
 ## [1.1.1](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.1.0...v1.1.1) (2025-09-17)
 
 
