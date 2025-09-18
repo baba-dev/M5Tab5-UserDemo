@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabledManagers": ["github-actions", "pip"],
+  "extends": ["config:base"],
+  "schedule": ["before 3am on monday"],
+  "prConcurrentLimit": 2,
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "schedule": ["every weekend"],
+      "minimumReleaseAge": "3 days"
+    }
+  ]
+}

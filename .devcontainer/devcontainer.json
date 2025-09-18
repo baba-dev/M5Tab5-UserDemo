@@ -1,11 +1,15 @@
 {
-  "name": "M5Tab5 - ESP-IDF v5.5",
-  "build": { "dockerfile": "Dockerfile" },
-  "containerEnv": { "BASH_ENV": "/etc/profile" },
-  "postStartCommand": "bash -lc 'idf.py --version || true'",
+  "name": "M5Tab5 Dev",
+  "image": "espressif/idf:release-v5.5",
+  "features": { "ghcr.io/devcontainers/features/git:1": {} },
+  "containerEnv": { "CCACHE_DIR": "/workspaces/.ccache" },
+  "mounts": [
+    "source=${localWorkspaceFolder}/.ccache,target=/workspaces/.ccache,type=bind"
+  ],
+  "postCreateCommand": "python -m pip install -U pip && pip install -r requirements.txt || true",
   "customizations": {
     "vscode": {
-      "extensions": ["espressif.esp-idf-extension", "ms-vscode.cpptools"]
+      "extensions": ["ms-vscode.cmake-tools", "ms-vscode.cpptools", "twxs.cmake"]
     }
   }
 }

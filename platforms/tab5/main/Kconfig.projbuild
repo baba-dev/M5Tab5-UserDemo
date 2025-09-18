@@ -1,0 +1,11 @@
+menu "Tab5 application"
+
+config APP_LOG_LEVEL
+    int "Default application log level"
+    range 0 5
+    default 3
+    help
+      Sets the default log verbosity for the application layer.
+      0 = none, 1 = error, 2 = warn, 3 = info, 4 = debug, 5 = verbose.
+
+endmenu

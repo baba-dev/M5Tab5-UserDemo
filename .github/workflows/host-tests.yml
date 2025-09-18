@@ -1,0 +1,16 @@
+name: Host Tests
+
+on: [pull_request, push]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: CMake toolchain
+        uses: aminya/setup-cpp@v1
+        with: { compiler: llvm, cmake: true }
+      - name: Build & Run
+        run: |
+          make test
+          ./tools/check_secrets.sh
