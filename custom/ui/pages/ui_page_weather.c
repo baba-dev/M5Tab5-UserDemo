@@ -8,6 +8,7 @@
 #include "../ui_theme.h"
 #include "../ui_wallpaper.h"
 #include "../widgets/ui_room_card.h"
+#include "integration/weather_formatter.h"
 
 static lv_obj_t* create_metric_block(lv_obj_t* parent, const char* title, const char* value)
 {
@@ -65,6 +66,32 @@ create_forecast_item(lv_obj_t* parent, const char* day, const char* icon, const 
     lv_obj_set_style_text_color(range_label, ui_theme_color_on_surface(), LV_PART_MAIN);
 }
 
+static const char* forecast_icon_symbol(weather_forecast_icon_t icon)
+{
+    switch (icon)
+    {
+        case WEATHER_FORECAST_ICON_CLEAR:
+            return LV_SYMBOL_REFRESH;
+        case WEATHER_FORECAST_ICON_PARTLY_CLOUDY:
+            return LV_SYMBOL_EYE_OPEN;
+        case WEATHER_FORECAST_ICON_CLOUDY:
+            return LV_SYMBOL_MINUS;
+        case WEATHER_FORECAST_ICON_RAIN:
+            return LV_SYMBOL_DOWNLOAD;
+        case WEATHER_FORECAST_ICON_SNOW:
+            return LV_SYMBOL_UPLOAD;
+        case WEATHER_FORECAST_ICON_WIND:
+            return LV_SYMBOL_SHUFFLE;
+        case WEATHER_FORECAST_ICON_FOG:
+            return LV_SYMBOL_DRIVE;
+        case WEATHER_FORECAST_ICON_THUNDER:
+            return LV_SYMBOL_BELL;
+        case WEATHER_FORECAST_ICON_UNKNOWN:
+        default:
+            return LV_SYMBOL_MINUS;
+    }
+}
+
 static void ui_page_weather_delete_cb(lv_event_t* event)
 {
     ui_wallpaper_t* wallpaper = (ui_wallpaper_t*)lv_event_get_user_data(event);
@@ -91,6 +118,8 @@ static lv_obj_t* ui_page_create_content(lv_obj_t* page, const char* title_text)
     lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
     lv_obj_set_style_text_font(title, &lv_font_montserrat_32, LV_PART_MAIN);
     lv_obj_set_style_text_color(title, ui_theme_color_on_surface(), LV_PART_MAIN);
+
+    weather_temperature_unit_t unit = weather_formatter_get_preferred_temperature_unit();
 
     ui_room_card_config_t living_config = {
         .room_id   = "living_room",
@@ -121,9 +150,21 @@ static lv_obj_t* ui_page_create_content(lv_obj_t* page, const char* title_text)
             lv_obj_set_style_pad_gap(metrics, 16, LV_PART_MAIN);
             lv_obj_set_flex_flow(metrics, LV_FLEX_FLOW_COLUMN);
 
-            create_metric_block(metrics, "Indoor Temperature", "72 \u00B0F");
-            create_metric_block(metrics, "Humidity", "45% RH");
-            create_metric_block(metrics, "HVAC Mode", "Auto (Cooling)");
+            weather_climate_payload_t living_payload = {
+                .has_temperature_c    = true,
+                .temperature_c        = 22.2f,
+                .has_humidity_percent = true,
+                .humidity_percent     = 45.0f,
+                .hvac_mode            = "auto",
+                .hvac_action          = "cooling",
+            };
+
+            weather_indoor_metrics_t living_metrics;
+            weather_formatter_format_indoor(&living_payload, unit, &living_metrics);
+
+            create_metric_block(metrics, "Indoor Temperature", living_metrics.temperature);
+            create_metric_block(metrics, "Humidity", living_metrics.humidity);
+            create_metric_block(metrics, "HVAC Mode", living_metrics.hvac_mode);
         }
     }
 
@@ -156,8 +197,29 @@ static lv_obj_t* ui_page_create_content(lv_obj_t* page, const char* title_text)
             lv_obj_set_style_pad_gap(metrics, 16, LV_PART_MAIN);
             lv_obj_set_flex_flow(metrics, LV_FLEX_FLOW_COLUMN);
 
-            create_metric_block(metrics, "sensor.tab5_temperature", "18 \u00B0C");
-            create_metric_block(metrics, "sensor.tab5_humidity", "52 %");
+            weather_sensor_payload_t outdoor_payloads[] = {
+                {.entity_id = "sensor.tab5_temperature",
+                 .has_value = true,
+                 .value     = 18.0f,
+                 .unit      = "\u00B0C"},
+                {.entity_id = "sensor.tab5_humidity",
+                 .has_value = true,
+                 .value     = 52.0f,
+                 .unit      = "%"},
+            };
+
+            weather_outdoor_metric_t outdoor_metrics[2];
+            size_t                   outdoor_metric_count = weather_formatter_format_outdoor(
+                outdoor_payloads,
+                sizeof(outdoor_payloads) / sizeof(outdoor_payloads[0]),
+                unit,
+                outdoor_metrics,
+                sizeof(outdoor_metrics) / sizeof(outdoor_metrics[0]));
+
+            for (size_t i = 0; i < outdoor_metric_count; i++)
+            {
+                create_metric_block(metrics, outdoor_metrics[i].label, outdoor_metrics[i].value);
+            }
         }
     }
 
@@ -181,9 +243,41 @@ static lv_obj_t* ui_page_create_content(lv_obj_t* page, const char* title_text)
     lv_obj_set_flex_align(
         forecast, LV_FLEX_ALIGN_SPACE_AROUND, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    create_forecast_item(forecast, "Today", LV_SYMBOL_REFRESH, "75° / 62°");
-    create_forecast_item(forecast, "Tomorrow", LV_SYMBOL_DOWNLOAD, "78° / 64°");
-    create_forecast_item(forecast, "Sat", LV_SYMBOL_UPLOAD, "80° / 66°");
+    weather_forecast_payload_t forecast_payloads[] = {
+        {.period_id  = "Today",
+         .has_high_c = true,
+         .high_c     = 23.9f,
+         .has_low_c  = true,
+         .low_c      = 16.7f,
+         .condition  = "rain"},
+        {.period_id  = "Tomorrow",
+         .has_high_c = true,
+         .high_c     = 25.6f,
+         .has_low_c  = true,
+         .low_c      = 18.0f,
+         .condition  = "partlycloudy"},
+        {.period_id  = "Sat",
+         .has_high_c = true,
+         .high_c     = 26.7f,
+         .has_low_c  = true,
+         .low_c      = 19.0f,
+         .condition  = "clear"},
+    };
+
+    weather_forecast_item_t forecast_items[3];
+    size_t                  forecast_count =
+        weather_formatter_format_forecast(forecast_payloads,
+                                          sizeof(forecast_payloads) / sizeof(forecast_payloads[0]),
+                                          unit,
+                                          forecast_items,
+                                          sizeof(forecast_items) / sizeof(forecast_items[0]));
+
+    for (size_t i = 0; i < forecast_count; i++)
+    {
+        const weather_forecast_item_t* item = &forecast_items[i];
+        create_forecast_item(
+            forecast, item->day_label, forecast_icon_symbol(item->icon), item->temperature_range);
+    }
 
     return content;
 }
