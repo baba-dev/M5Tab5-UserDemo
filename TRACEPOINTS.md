@@ -1,6 +1,6 @@
 # Tracepoints
 
-Use the macros in `components/core/include/app_trace.h` to annotate important
+Use the macros in `custom/app_trace.h` to annotate important
 runtime events. Common sections/events:
 
 | Section  | Event          | Purpose                                  |
