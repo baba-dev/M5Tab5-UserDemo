@@ -5,6 +5,7 @@
  */
 #include "hal/hal_esp32.h"
 #include <mooncake_log.h>
+#include <algorithm>
 #include <vector>
 #include <driver/gpio.h>
 #include <memory>
