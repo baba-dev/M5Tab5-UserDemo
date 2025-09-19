@@ -17,7 +17,8 @@
 namespace custom::integration
 {
     class CctvController;
-}
+    class MediaController;
+}  // namespace custom::integration
 
 struct ui_root_t;
 
@@ -324,6 +325,7 @@ namespace launcher_view
         std::vector<std::unique_ptr<PanelBase>>                  _panels;
         ui_root_t*                                               _ui_root = nullptr;
         std::unique_ptr<custom::integration::SettingsController> _settings_controller;
+        std::unique_ptr<custom::integration::MediaController>    _media_controller;
         std::unique_ptr<custom::integration::CctvController>     _cctv_controller;
 
         void update_anim();

@@ -110,13 +110,17 @@ prerequisites, and deliver a focused change.
   - Current state: not started; the page renders placeholder Fahrenheit/Celsius
     values without conversion helpers.
   - Considerations: reuse formatting helpers across Settings where applicable.
-- **M2.4 — Media control hooks** (status: ☐)
+- **M2.4 — Media control hooks** (status: ☑)
   - Dependencies: M1.4.
   - Outcome: attach LVGL callbacks in `ui_page_media.*` that emit play/pause,
     skip, volume, and quick-scene events to a media controller in
     `custom/integration/`.
-  - Current state: not started; controls are visual only.
-  - Considerations: coordinate icon/text updates when playback state changes.
+  - Current state: LVGL transport controls publish events handled by
+    `MediaController`, which relays Assist/Home Assistant commands and feeds
+    mock metadata back into the UI. Desktop tests exercise the event bus via
+    `tests/ui/test_media_page.py`.
+  - Considerations: extend coverage for edge cases like rapid volume drags or
+    oversized quick-scene lists as the integration evolves.
 - **M2.5 — Settings telemetry bridge** (status: ☐⚙)
   - Dependencies: M1.5.
   - Outcome: finish threading connection test results, OTA progress, and theme

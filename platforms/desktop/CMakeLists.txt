@@ -109,6 +109,21 @@ target_link_libraries(rooms_page_snapshot PUBLIC
     pthread
 )
 
+set(MEDIA_PAGE_SHARED_SRCS
+    custom/ui/pages/ui_page_media.c
+    custom/ui/widgets/ui_room_card.c
+    custom/ui/ui_theme.c
+    custom/ui/ui_wallpaper.c
+)
+
+add_executable(media_page_test ${MEDIA_PAGE_SHARED_SRCS} tests/ui/media_page_test.c)
+target_include_directories(media_page_test PUBLIC ${APP_LAYER_INCS})
+target_link_libraries(media_page_test PUBLIC
+    lvgl
+    PNG::PNG
+    pthread
+)
+
 # 设置构建路径
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build/desktop)
 

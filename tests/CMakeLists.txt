@@ -9,7 +9,7 @@ set(CMAKE_UNITY_BUILD ON)
 set(CMAKE_BUILD_TYPE Debug)
 add_compile_options(-w)
 
-# Build only Rooms Page tests when ON (CI sets this); when OFF we also build core unit tests
+# Build only UI page tests when ON (CI sets this); when OFF we also build core unit tests
 option(ROMS_ONLY "Build only Rooms Page tests" ON)
 
 enable_testing()
@@ -79,6 +79,29 @@ target_link_libraries(rooms_page_test PRIVATE
   GTest::gtest GTest::gtest_main
 )
 add_test(NAME rooms_page_test COMMAND rooms_page_test)
+
+# -----------------------------
+# Media page UI under test
+# -----------------------------
+add_library(ui_media_under_test
+  ${REPO_ROOT}/custom/ui/pages/ui_page_media.c
+  ${REPO_ROOT}/custom/ui/widgets/ui_room_card.c
+  ${REPO_ROOT}/custom/ui/ui_theme.c
+  ${REPO_ROOT}/custom/ui/ui_wallpaper.c
+)
+target_include_directories(ui_media_under_test PUBLIC
+  ${REPO_ROOT}/custom/ui
+  ${REPO_ROOT}/custom/ui/pages
+)
+target_link_libraries(ui_media_under_test PUBLIC lvgl::lvgl lvgl_config)
+
+add_executable(media_page_test
+  ui/media_page_test.c
+)
+target_link_libraries(media_page_test PRIVATE
+  ui_media_under_test
+)
+add_test(NAME media_page_test COMMAND media_page_test)
 
 # -----------------------------
 # Core library + unit tests (optional when ROMS_ONLY=OFF)
