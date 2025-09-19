@@ -190,7 +190,8 @@ namespace
         if (unit.empty())
         {
             char buffer[WEATHER_FORMATTER_MAX_VALUE_LEN];
-            std::snprintf(buffer, sizeof(buffer), "%d", round_temperature(converted));
+            std::snprintf(
+                buffer, sizeof(buffer), "%d", static_cast<int>(round_temperature(converted)));
             return std::string(buffer);
         }
 
