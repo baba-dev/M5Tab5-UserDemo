@@ -12,9 +12,12 @@ static const char* TAG = "settings_ui";
 
 static esp_timer_handle_t s_dim_timer = NULL;
 
+static settings_ui_runtime_t* s_dim_state = NULL;
+
 static void dim_timer_callback(void* arg)
 {
-    settings_ui_runtime_t* state = (settings_ui_runtime_t*)arg;
+    (void)arg;
+    settings_ui_runtime_t* state = s_dim_state;
     if (!state)
     {
         return;
@@ -59,11 +62,13 @@ esp_err_t settings_ui_schedule_dim(settings_ui_runtime_t* state, uint32_t timeou
     {
         return ESP_ERR_INVALID_ARG;
     }
+    s_dim_state = state;
+
     if (!s_dim_timer)
     {
         const esp_timer_create_args_t args = {
             .callback = &dim_timer_callback,
-            .arg      = state,
+            .arg      = NULL,
             .name     = "ui_dim",
         };
         esp_err_t err = esp_timer_create(&args, &s_dim_timer);
@@ -71,12 +76,6 @@ esp_err_t settings_ui_schedule_dim(settings_ui_runtime_t* state, uint32_t timeou
         {
             return err;
         }
-    }
-
-    esp_err_t err = esp_timer_set_arg(s_dim_timer, state);
-    if (err != ESP_OK)
-    {
-        return err;
     }
 
     if (esp_timer_is_active(s_dim_timer))
@@ -89,9 +88,12 @@ esp_err_t settings_ui_schedule_dim(settings_ui_runtime_t* state, uint32_t timeou
 
 void settings_ui_cancel_dim(settings_ui_runtime_t* state)
 {
-    (void)state;
     if (s_dim_timer && esp_timer_is_active(s_dim_timer))
     {
         esp_timer_stop(s_dim_timer);
+    }
+    if (state == s_dim_state)
+    {
+        s_dim_state = NULL;
     }
 }
