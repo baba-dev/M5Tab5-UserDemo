@@ -5,6 +5,7 @@
  */
 #include "diag/diag.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 
 #include "esp_err.h"
@@ -53,7 +54,7 @@ static esp_err_t health_handler(httpd_req_t* req)
     char    payload[128];
     int     written = snprintf(payload,
                            sizeof(payload),
-                           "{\"uptime_ms\":%lld,\"heap\":%u}",
+                           "{\"uptime_ms\":%lld,\"heap\":%" PRIu32 "}",
                            (long long)uptime_ms,
                            esp_get_free_heap_size());
     if (written < 0)
@@ -75,9 +76,7 @@ diag_start(const app_cfg_t* cfg, diag_handles_t* handles, diag_event_cb_t callba
     emit_diag_event(callback, user_data, DIAG_EVENT_STARTING, ESP_OK);
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.uri_match_fn   = httpd_uri_match_simple;
-
-    esp_err_t err = httpd_start(&handles->httpd, &config);
+    esp_err_t      err    = httpd_start(&handles->httpd, &config);
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "Failed to start diagnostics server: 0x%x", (unsigned int)err);
