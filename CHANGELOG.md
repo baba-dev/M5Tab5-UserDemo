@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.4.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.3.0...v1.4.0) (2025-09-19)
+
+
+### Features
+
+* **settings:** add config services and tests ([7569b13](https://github.com/baba-dev/M5Tab5-UserDemo/commit/7569b13eda2c1e2d07fbfb48ca31b77ccb938343))
+* **ui:** add media playback layout ([a6adfc6](https://github.com/baba-dev/M5Tab5-UserDemo/commit/a6adfc6fa2cc090c3b080d790c9288c2c6d1fa1d))
+* **ui:** add settings management page ([b5ff353](https://github.com/baba-dev/M5Tab5-UserDemo/commit/b5ff353a104ae52f9aa706b5691994b5843365b6))
+* **ui:** rebuild cctv page layout ([e2b470f](https://github.com/baba-dev/M5Tab5-UserDemo/commit/e2b470fd8c36b780bf199394431d0ee1797adc81))
+* **ui:** refresh weather layout ([4bb1ae3](https://github.com/baba-dev/M5Tab5-UserDemo/commit/4bb1ae3fd406f6db520465844690b9d37332abc9))
+
+
+### Bug Fixes
+
+* **scripts:** handle findings outside root ([d2666e1](https://github.com/baba-dev/M5Tab5-UserDemo/commit/d2666e1c9082b39ebd7ada2dc42a0b82f76e00c5))
+* **ui:** replace lv array size macro in loops ([9115d7f](https://github.com/baba-dev/M5Tab5-UserDemo/commit/9115d7ffbb1f564d465328165a41c9f07544c737))
+* **ui:** store rooms content obj ([10a05ca](https://github.com/baba-dev/M5Tab5-UserDemo/commit/10a05ca7f7a819855670d58a5521eed858d2b406))
+* **ui:** use valid cctv card icon ([a624c45](https://github.com/baba-dev/M5Tab5-UserDemo/commit/a624c45ef02790daaaf8c164708bd7d93648b782))
+
 ## [1.3.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.2.0...v1.3.0) (2025-09-18)
 
 
