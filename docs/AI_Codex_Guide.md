@@ -11,7 +11,8 @@ AI execution rules: this file + docs/AI_GUIDELINES.md (if present)
 0) Mission & Constraints
 Mission
 
-Implement the Home, Rooms, Security, and Control Center screens as per the low-fi wireframes. Produce small, reviewable changes that run smoothly on device.
+Implement the Rooms, CCTV, Weather, Media, and Settings experiences as per the low-fi wireframes.
+Produce small, reviewable changes that run smoothly on device.
 
 Hard Constraints (do not deviate)
 
@@ -33,14 +34,19 @@ Keep interaction animations ≥50 FPS, ambient ≥30 FPS.
   AI_Codex_Guide.md            ← this file (you are here)
   AI_GUIDELINES.md             ← optional extra rules
 
-/ui
-  ui_theme.h                   ← tokens (spacing, colors, radii, motion)
-  ui_components.*              ← shared cards/chips/sliders/toasts
-  ui_home.*                    ← Home screen
-  ui_rooms.*                   ← Rooms screen
-  ui_security.*                ← Security (Frigate) screen
-  ui_control_center.*          ← Control Center sheet
-  ui_debug.*                   ← optional debug overlay (FPS, heap)
+/custom/ui
+  ui_theme.*                   ← tokens (spacing, colors, radii, motion)
+  ui_nav_rail.*                ← navigation rail & gestures
+  ui_root.*                    ← screen container + page routing
+  ui_wallpaper.*               ← shared wallpaper helper
+  pages/
+    ui_page_rooms.*            ← Rooms cards + detail events
+    ui_page_cctv.*             ← CCTV view + event list
+    ui_page_weather.*          ← Local climate metrics
+    ui_page_media.*            ← Media controls & scenes
+    ui_page_settings.*         ← Settings sliders + testers
+    ui_rooms_model.*           ← shared Rooms state helpers
+  widgets/                     ← shared cards/chips/sliders/toasts
 
 /assets
   icons/                       ← 1x assets sized to final use, RGB565
@@ -83,27 +89,37 @@ Do not invent new tokens, colors, or timings. If you need one, add it to docs/wi
 
 Implement exactly these behaviors:
 
-Home
+Rooms (ui_page_rooms.*)
 
-Cards: tap → expand; long-press Quick Action → confirm sheet.
+- Grid of room cards populated from `ui_rooms_model.*`.
+- Tap the toggle on a card to fire `UI_PAGE_ROOMS_EVENT_TOGGLE` with optimistic feedback.
+- Long-press a card body to request the per-room sheet via `UI_PAGE_ROOMS_EVENT_OPEN_SHEET`.
+- Cards surface temperature/humidity badges and availability state.
 
-Status chips: navigate to relevant screen; anomaly colors: accent/warn/alert.
+CCTV (ui_page_cctv.*)
 
-Rooms
+- Primary camera card with Prev/Next controls, quality picker, and mute toggle shell.
+- Live feed placeholder sized per spec; keep toggles hidden on camera/event cards.
+- Event cards list recent clips; tapping should emit an open-clip signal when bindings arrive.
 
-List left, detail right; two-finger swipe changes room.
+Weather (ui_page_weather.*)
 
-Long-press a light → per-entity detail sheet.
+- Living Room card shows indoor temperature, humidity, and HVAC mode metrics.
+- Outdoor card surfaces raw sensor IDs with current readings.
+- Forecast row presents 3 quick-glance day summaries with iconography.
 
-Security
+Media (ui_page_media.*)
 
-Camera carousel + Live tile; event chips open clip/PiP.
+- Now Playing card renders album art, metadata, transport buttons, and a volume slider.
+- Quick Scenes card exposes preset buttons for lighting/media moods.
+- Hide unused default room-card specs/toggles when not applicable.
 
-Alert mode: frame screen in warn/alert, focus automatically.
+Settings (ui_page_settings.*)
 
-Control Center
-
-Swipe-down to open; brightness, volume, toggles; sleep action.
+- Connectivity testers display pill states (Online/Degraded/Offline) per status callbacks.
+- Theme block combines dark-mode switch and theme dropdown; changes propagate via async payloads.
+- Brightness slider updates the numeric pill; action buttons (OTA, diagnostics, logs)
+  forward events.
 
 Global
 
@@ -159,29 +175,42 @@ Fallback chain: HLS → MJPEG → snapshot (UI shows badge).
 
 Skeleton screens (layout only)
 
-Create empty ui_home.*, ui_rooms.*, ui_security.*, ui_control_center.* with layout objects and placeholder components from ui_components.*.
+- Stand up `custom/ui/ui_root.*` with nav rail scaffolding.
+- Create empty `ui_page_rooms.*`, `ui_page_cctv.*`, `ui_page_weather.*`, `ui_page_media.*`,
+  and `ui_page_settings.*` with layout placeholders using shared widgets.
 
-Hook tab navigation & gestures.
+Rooms iteration
 
-Components
+- Build the room card grid with `ui_room_card` widgets and wire toggle/long-press events.
+- Populate cards from `ui_rooms_model.*`; surface climate badges and availability state.
 
-Shared Card, Chip, Slider, Toast, Tabs, Confirm Sheet—styled via ui_theme.h.
+CCTV iteration
 
-Bindings
+- Compose the live camera card with toolbar controls and video placeholder.
+- Lay out event cards for recent clips; stub tap handlers for future bindings.
 
-Wire Home card values to mock data → then swap to MQTT/Frigate bindings.
+Weather iteration
+
+- Add Living Room and Outdoor cards with metric stacks.
+- Render the forecast row with icon + high/low pairs.
+
+Media iteration
+
+- Flesh out the Now Playing card (album art, metadata, transport controls, volume slider).
+- Add Quick Scenes buttons and make them emit scene selection events.
+
+Settings iteration
+
+- Implement connectivity testers, theme toggle/dropdown, brightness slider, and action buttons.
+- Expose async setters for status/theme/brightness updates.
 
 Motion & feedback
 
-Add expand/contract, color pulse, toast confirmations; error states.
-
-Control Center
-
-Brightness/volume toggles; sleep action; publish to HA where applicable.
+- Add transitions for card/toolbars, slider feedback, and toast confirmations; cover error states.
 
 Debug & Perf
 
-Hidden overlay; verify FPS/allocations.
+- Hidden overlay; verify FPS/allocations.
 
 Each step should be a small PR (see checklist below).
 
@@ -209,7 +238,14 @@ Each step should be a small PR (see checklist below).
 
 Use a standard preface when asking the AI for changes:
 
-Context: You are working in baba-dev/M5Tab5-UserDemo. Read docs/wireframes.md and docs/AI_Codex_Guide.md. Build only what those files describe. Use LVGL on Tab5 at 1280×720 landscape. Respect tokens in ui_theme.h. Keep changes minimal and isolated: prefer editing ui_home.*, ui_rooms.*, ui_security.*, ui_control_center.*, ui_components.*, or integration/*. Preload RGB565 assets sized to display; no runtime scaling. Use optimistic UI with rollback on timeout. Add a short note on performance and video of the result.
+Context: You are working in baba-dev/M5Tab5-UserDemo.
+Read docs/wireframes.md and docs/AI_Codex_Guide.md.
+Build only what those files describe. Use LVGL on Tab5 at 1280×720 landscape.
+Respect tokens in ui_theme.h. Keep changes minimal and isolated: prefer editing custom/ui/ui_root.*,
+custom/ui/pages/ui_page_*.*, custom/ui/pages/ui_rooms_model.*,
+custom/ui/widgets/*, or integration/*.
+Preload RGB565 assets sized to display; no runtime scaling.
+Use optimistic UI with rollback on timeout. Add a short note on performance and video of the result.
 
 Example task prompts (no code requested here)
 
