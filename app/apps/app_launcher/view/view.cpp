@@ -22,6 +22,7 @@
 using namespace launcher_view;
 using namespace smooth_ui_toolkit;
 using namespace smooth_ui_toolkit::lvgl_cpp;
+using custom::integration::CctvController;
 using custom::integration::MediaController;
 using custom::integration::SettingsController;
 
