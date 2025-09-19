@@ -146,7 +146,8 @@ target_include_directories(ui_media_under_test PUBLIC
   ${REPO_ROOT}/custom/ui
   ${REPO_ROOT}/custom/ui/pages
 )
-target_link_libraries(ui_media_under_test PUBLIC lvgl::lvgl lvgl_config)
+target_compile_definitions(ui_media_under_test PUBLIC LV_EVENT_LAST=2000)
+target_link_libraries(ui_media_under_test PUBLIC lvgl::lvgl lvgl_config ui_assets_stub)
 
 add_executable(media_page_test
   ui/media_page_test.c
@@ -160,14 +161,6 @@ add_test(NAME media_page_test COMMAND media_page_test)
 # Core library + unit tests (optional when ROMS_ONLY=OFF)
 # -----------------------------
 if (NOT ROMS_ONLY)
-  add_library(app_core
-    ${REPO_ROOT}/components/core/src/ringbuf.cpp
-    ${REPO_ROOT}/components/core/src/settings.cpp
-  )
-  target_include_directories(app_core PUBLIC
-    ${REPO_ROOT}/components/core/include
-  )
-
   add_library(settings_core_under_test
     ${REPO_ROOT}/components/settings_core/src/app_cfg.c
     ${REPO_ROOT}/components/backup_server/src/backup_format.c
@@ -186,13 +179,10 @@ if (NOT ROMS_ONLY)
   )
 
   add_executable(unit_tests
-    unit/test_ringbuf.cpp
-    unit/test_settings.cpp
     unit/test_app_cfg.cpp
     unit/test_weather_formatter.cpp
   )
   target_link_libraries(unit_tests PRIVATE
-    app_core
     settings_core_under_test
     weather_formatter_under_test
     GTest::gtest

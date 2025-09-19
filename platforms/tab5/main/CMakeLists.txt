@@ -21,7 +21,7 @@ file(GLOB_RECURSE MY_HAL_SRCS
 idf_component_register(
     SRCS "app_main.cpp" ${APP_LAYER_SRCS} ${MY_HAL_SRCS}
     INCLUDE_DIRS "." ${APP_LAYER_INCS}
-    REQUIRES core backup_server connection_tester diag net_sntp ota_update settings_core
+    REQUIRES backup_server connection_tester diag net_sntp ota_update settings_core
              settings_ui
     EMBED_TXTFILES "../audio/canon_in_d.mp3" "../audio/startup_sfx.mp3" "../audio/shutdown_sfx.mp3")
 
