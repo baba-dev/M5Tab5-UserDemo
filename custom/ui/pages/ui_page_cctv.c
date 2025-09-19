@@ -114,7 +114,7 @@ static lv_obj_t* ui_page_create_content(lv_obj_t* page, const char* title_text)
     ui_room_card_config_t camera_config = {
         .room_id   = "cctv_main",
         .title     = "Backyard Camera",
-        .icon_text = LV_SYMBOL_EYE,
+        .icon_text = LV_SYMBOL_EYE_OPEN,
     };
 
     ui_room_card_t* camera_card     = ui_room_card_create(content, &camera_config);
