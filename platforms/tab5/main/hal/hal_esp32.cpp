@@ -9,6 +9,7 @@ extern "C" {
 }
 #include <algorithm>
 #include <initializer_list>
+#include <sys/time.h>
 #include <mooncake_log.h>
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
