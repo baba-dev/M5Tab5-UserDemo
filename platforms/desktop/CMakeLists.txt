@@ -90,6 +90,7 @@ set(ROOMS_PAGE_SHARED_SRCS
     custom/ui/widgets/ui_room_card.c
     custom/ui/ui_theme.c
     custom/ui/ui_wallpaper.c
+    custom/integration/rooms_provider.c
 )
 
 add_executable(rooms_page_test ${ROOMS_PAGE_SHARED_SRCS} tests/ui/rooms_page_test.c)

@@ -58,11 +58,16 @@ endif()
 # -----------------------------
 add_library(ui_rooms_under_test
   ${REPO_ROOT}/custom/ui/pages/ui_page_rooms.c
+  ${REPO_ROOT}/custom/ui/pages/ui_rooms_model.c
+  ${REPO_ROOT}/custom/ui/widgets/ui_room_card.c
+  ${REPO_ROOT}/custom/ui/ui_theme.c
   ${REPO_ROOT}/custom/ui/ui_wallpaper.c
+  ${REPO_ROOT}/custom/integration/rooms_provider.c
 )
 target_include_directories(ui_rooms_under_test PUBLIC
   ${REPO_ROOT}/custom/ui
   ${REPO_ROOT}/custom/ui/pages
+  ${REPO_ROOT}/custom/integration
 )
 target_link_libraries(ui_rooms_under_test PUBLIC lvgl::lvgl lvgl_config)
 

@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "../../integration/rooms_provider.h"
 #include "../ui_theme.h"
 #include "../ui_wallpaper.h"
 #include "../widgets/ui_room_card.h"
@@ -44,60 +45,6 @@ typedef struct
 } ui_page_rooms_ctx_t;
 
 static ui_page_rooms_ctx_t* s_ctx = NULL;
-
-static room_entity_t ENT_BAKERY_MAIN = {
-    .entity_id = "light.bakery_main",
-    .kind      = ROOM_ENTITY_LIGHT,
-    .available = true,
-    .on        = false,
-    .value     = -1,
-};
-
-static room_entity_t ENT_BEDROOM_MAIN = {
-    .entity_id = "light.bedroom_main",
-    .kind      = ROOM_ENTITY_LIGHT,
-    .available = true,
-    .on        = true,
-    .value     = 75,
-};
-
-static room_entity_t ENT_LIVING_MAIN = {
-    .entity_id = "light.living_main",
-    .kind      = ROOM_ENTITY_LIGHT,
-    .available = true,
-    .on        = false,
-    .value     = -1,
-};
-
-static room_entity_t* ROOM0_ENTS[] = {&ENT_BAKERY_MAIN};
-static room_entity_t* ROOM1_ENTS[] = {&ENT_BEDROOM_MAIN};
-static room_entity_t* ROOM2_ENTS[] = {&ENT_LIVING_MAIN};
-
-static room_t ROOMS[] = {
-    {.room_id      = "bakery",
-     .name         = "Bakery",
-     .entities     = (room_entity_t**)ROOM0_ENTS,
-     .entity_count = 1,
-     .temp_c       = 24,
-     .humidity     = 48},
-    {.room_id      = "bedroom",
-     .name         = "Bedroom",
-     .entities     = (room_entity_t**)ROOM1_ENTS,
-     .entity_count = 1,
-     .temp_c       = 23,
-     .humidity     = 50},
-    {.room_id      = "living",
-     .name         = "Living Room",
-     .entities     = (room_entity_t**)ROOM2_ENTS,
-     .entity_count = 1,
-     .temp_c       = 25,
-     .humidity     = 45},
-};
-
-static rooms_state_t INITIAL_STATE = {
-    .rooms      = ROOMS,
-    .room_count = sizeof(ROOMS) / sizeof(ROOMS[0]),
-};
 
 static void ui_page_rooms_delete_cb(lv_event_t* event)
 {
@@ -395,7 +342,7 @@ lv_obj_t* ui_page_rooms_create(lv_obj_t* parent)
 
     s_ctx = ctx;
 
-    ui_page_rooms_set_state(&INITIAL_STATE);
+    ui_page_rooms_set_state(rooms_provider_get_state());
     play_intro(ctx);
 
     return page;
