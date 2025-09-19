@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <array>
 
-#include "core/app_trace.h"
+#include "app_trace.h"
 
 namespace custom::integration
 {
