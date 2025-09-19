@@ -8,6 +8,7 @@ extern "C" {
 #include "utils/rx8130/rx8130.h"
 }
 #include <algorithm>
+#include <initializer_list>
 #include <mooncake_log.h>
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
@@ -127,51 +128,72 @@ void HalEsp32::init()
     bsp_display_unlock();
 }
 
-static const gpio_num_t _driver_gpios[] = {
-    // EXT I2C
-    GPIO_NUM_0,
-    GPIO_NUM_1,
-    // esp-hosted esp32c6
-    GPIO_NUM_8,
-    GPIO_NUM_9,
-    GPIO_NUM_10,
-    GPIO_NUM_11,
-    GPIO_NUM_12,
-    GPIO_NUM_13,
-    GPIO_NUM_15,
-    // Display
-    GPIO_NUM_22,
-    GPIO_NUM_23,
-    // Audio
-    GPIO_NUM_26,
-    GPIO_NUM_27,
-    GPIO_NUM_28,
-    GPIO_NUM_29,
-    GPIO_NUM_30,
-    // SYS I2C
-    GPIO_NUM_31,
-    GPIO_NUM_32,
-    // uSD card
-    GPIO_NUM_39,
-    GPIO_NUM_40,
-    GPIO_NUM_41,
-    GPIO_NUM_42,
-    GPIO_NUM_43,
-    GPIO_NUM_44,
-};
-
 void HalEsp32::set_gpio_output_capability()
 {
-    // gpio_set_drive_capability((gpio_num_t)48, GPIO_DRIVE_CAP_0);
-    for (int i = 0; i < sizeof(_driver_gpios) / sizeof(_driver_gpios[0]); i++) {
-        gpio_num_t gpio = _driver_gpios[i];
-        esp_err_t ret   = gpio_set_drive_capability(gpio, GPIO_DRIVE_CAP_0);
-        if (ret == ESP_OK) {
-            printf("GPIO %d drive capability set to GPIO_DRIVE_CAP_0\n", gpio);
-        } else {
-            printf("Failed to set GPIO %d drive capability: %s\n", gpio, esp_err_to_name(ret));
+    auto set_drive_cap = [](gpio_drive_cap_t cap, std::initializer_list<gpio_num_t> gpios) {
+        for (gpio_num_t gpio : gpios) {
+            esp_err_t ret = gpio_set_drive_capability(gpio, cap);
+            if (ret == ESP_OK) {
+                printf("GPIO %d drive capability set to %d\n", gpio, (int)cap);
+            } else {
+                printf("Failed to set GPIO %d drive capability: %s\n", gpio, esp_err_to_name(ret));
+            }
         }
-    }
+    };
+
+    // EXT I2C lines are open-drain; keep the weakest drive strength to limit ringing.
+    set_drive_cap(GPIO_DRIVE_CAP_0,
+                  {
+                      GPIO_NUM_0,
+                      GPIO_NUM_1,
+                  });
+
+    // Maintain strong edges on the esp-hosted ESP32-C6 SPI link.
+    set_drive_cap(GPIO_DRIVE_CAP_3,
+                  {
+                      GPIO_NUM_8,
+                      GPIO_NUM_9,
+                      GPIO_NUM_10,
+                      GPIO_NUM_11,
+                      GPIO_NUM_12,
+                      GPIO_NUM_13,
+                      GPIO_NUM_15,
+                  });
+
+    // Display RGB/8080 data lines toggle quickly; keep them at the maximum drive.
+    set_drive_cap(GPIO_DRIVE_CAP_3,
+                  {
+                      GPIO_NUM_22,
+                      GPIO_NUM_23,
+                  });
+
+    // I2S audio output requires high drive to avoid distortion on the codec bus.
+    set_drive_cap(GPIO_DRIVE_CAP_3,
+                  {
+                      GPIO_NUM_26,
+                      GPIO_NUM_27,
+                      GPIO_NUM_28,
+                      GPIO_NUM_29,
+                      GPIO_NUM_30,
+                  });
+
+    // SYS I2C bus shares peripherals on the baseboard; keep the weaker drive.
+    set_drive_cap(GPIO_DRIVE_CAP_0,
+                  {
+                      GPIO_NUM_31,
+                      GPIO_NUM_32,
+                  });
+
+    // microSD runs SDMMC mode at high frequency; retain a strong push-pull drive.
+    set_drive_cap(GPIO_DRIVE_CAP_3,
+                  {
+                      GPIO_NUM_39,
+                      GPIO_NUM_40,
+                      GPIO_NUM_41,
+                      GPIO_NUM_42,
+                      GPIO_NUM_43,
+                      GPIO_NUM_44,
+                  });
 }
 
 /* -------------------------------------------------------------------------- */
