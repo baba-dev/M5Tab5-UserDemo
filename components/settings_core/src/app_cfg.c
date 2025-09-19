@@ -3,9 +3,10 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "settings_core/app_cfg.h"
-
 #include <string.h>
+#include <nvs.h>
+
+#include "settings_core/app_cfg.h"
 
 #ifndef ESP_STATIC_ASSERT
 #    define ESP_STATIC_ASSERT(CONDITION, MESSAGE) _Static_assert((CONDITION), #MESSAGE)
