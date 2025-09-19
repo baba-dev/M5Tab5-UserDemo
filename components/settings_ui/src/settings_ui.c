@@ -73,6 +73,12 @@ esp_err_t settings_ui_schedule_dim(settings_ui_runtime_t* state, uint32_t timeou
         }
     }
 
+    esp_err_t err = esp_timer_set_arg(s_dim_timer, state);
+    if (err != ESP_OK)
+    {
+        return err;
+    }
+
     if (esp_timer_is_active(s_dim_timer))
     {
         esp_timer_stop(s_dim_timer);
