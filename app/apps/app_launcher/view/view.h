@@ -12,6 +12,8 @@
 #include <smooth_lvgl.h>
 #include <vector>
 
+#include "custom/integration/settings_controller.h"
+
 struct ui_root_t;
 
 namespace custom::integration {
