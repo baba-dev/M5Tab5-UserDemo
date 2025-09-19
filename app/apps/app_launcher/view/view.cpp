@@ -14,6 +14,7 @@
 #include <smooth_ui_toolkit.h>
 
 #include "integration/cctv_controller.h"
+#include "integration/media_controller.h"
 #include "integration/settings_controller.h"
 #include "ui/pages/ui_page_settings.h"
 #include "ui/ui_root.h"
@@ -21,6 +22,7 @@
 using namespace launcher_view;
 using namespace smooth_ui_toolkit;
 using namespace smooth_ui_toolkit::lvgl_cpp;
+using custom::integration::MediaController;
 using custom::integration::SettingsController;
 
 static const std::string _tag = "launcher-view";
@@ -66,6 +68,7 @@ void LauncherView::init()
 
     if (_ui_root != nullptr)
     {
+        _media_controller.reset();
         _cctv_controller.reset();
         _settings_controller.reset();
         ui_root_destroy(_ui_root);
@@ -75,6 +78,7 @@ void LauncherView::init()
     if (_ui_root != nullptr)
     {
         _settings_controller = std::make_unique<SettingsController>();
+        _media_controller    = std::make_unique<MediaController>();
         _cctv_controller     = std::make_unique<CctvController>();
 
         ui_page_settings_actions_t actions{};
@@ -185,6 +189,10 @@ void LauncherView::init()
 
         ui_page_settings_set_actions(&actions, _settings_controller.get());
         _settings_controller->PublishInitialState();
+        if (_media_controller != nullptr)
+        {
+            _media_controller->PublishInitialState();
+        }
         if (_cctv_controller != nullptr)
         {
             _cctv_controller->PublishInitialState();
@@ -204,6 +212,7 @@ void LauncherView::update()
 
 LauncherView::~LauncherView()
 {
+    _media_controller.reset();
     _cctv_controller.reset();
     _settings_controller.reset();
     if (_ui_root != nullptr)
