@@ -46,10 +46,15 @@ struct ui_page_settings_ctx_t
     lv_obj_t*                  backup_button;
     lv_obj_t*                  restore_button;
     lv_obj_t*                  ota_status_label;
+    lv_obj_t*                  diagnostics_status_label;
+    lv_obj_t*                  backup_status_label;
     ui_page_settings_actions_t actions;
     void*                      actions_user_data;
     bool                       actions_bound;
     bool                       suppress_events;
+    char                       ota_status_text[96];
+    char                       diagnostics_status_text[96];
+    char                       backup_status_text[96];
 };
 
 static ui_page_settings_ctx_t* s_settings_ctx = NULL;
@@ -87,9 +92,17 @@ typedef struct
     char                      message[64];
 } connection_status_async_payload_t;
 
+typedef enum
+{
+    STATUS_TARGET_UPDATES = 0,
+    STATUS_TARGET_DIAGNOSTICS,
+    STATUS_TARGET_BACKUP,
+} status_label_target_t;
+
 typedef struct
 {
-    char text[96];
+    status_label_target_t target;
+    char                  text[96];
 } status_label_async_payload_t;
 
 typedef struct
@@ -414,6 +427,7 @@ static void build_updates_section(ui_page_settings_ctx_t* ctx)
     lv_obj_set_style_text_font(ctx->ota_status_label, &lv_font_montserrat_18, LV_PART_MAIN);
     lv_obj_set_style_text_color(ctx->ota_status_label, ui_theme_color_muted(), LV_PART_MAIN);
     lv_obj_set_width(ctx->ota_status_label, LV_PCT(100));
+    lv_snprintf(ctx->ota_status_text, sizeof(ctx->ota_status_text), "%s", "Idle");
 
     lv_obj_t* row = lv_obj_create(card);
     lv_obj_remove_style_all(row);
@@ -438,6 +452,14 @@ static void build_diagnostics_section(ui_page_settings_ctx_t* ctx)
     lv_obj_t* card =
         create_section_card(ctx->content, "Diagnostics", "Capture logs and run system tests.");
 
+    ctx->diagnostics_status_label = lv_label_create(card);
+    lv_label_set_text(ctx->diagnostics_status_label, "Idle");
+    lv_obj_set_style_text_font(ctx->diagnostics_status_label, &lv_font_montserrat_18, LV_PART_MAIN);
+    lv_obj_set_style_text_color(
+        ctx->diagnostics_status_label, ui_theme_color_muted(), LV_PART_MAIN);
+    lv_obj_set_width(ctx->diagnostics_status_label, LV_PCT(100));
+    lv_snprintf(ctx->diagnostics_status_text, sizeof(ctx->diagnostics_status_text), "%s", "Idle");
+
     lv_obj_t* row = lv_obj_create(card);
     lv_obj_remove_style_all(row);
     lv_obj_set_width(row, LV_PCT(100));
@@ -460,6 +482,13 @@ static void build_backup_section(ui_page_settings_ctx_t* ctx)
 {
     lv_obj_t* card = create_section_card(
         ctx->content, "Backup & Restore", "Safeguard and recover your configuration.");
+
+    ctx->backup_status_label = lv_label_create(card);
+    lv_label_set_text(ctx->backup_status_label, "Idle");
+    lv_obj_set_style_text_font(ctx->backup_status_label, &lv_font_montserrat_18, LV_PART_MAIN);
+    lv_obj_set_style_text_color(ctx->backup_status_label, ui_theme_color_muted(), LV_PART_MAIN);
+    lv_obj_set_width(ctx->backup_status_label, LV_PCT(100));
+    lv_snprintf(ctx->backup_status_text, sizeof(ctx->backup_status_text), "%s", "Idle");
 
     lv_obj_t* row = lv_obj_create(card);
     lv_obj_remove_style_all(row);
@@ -509,8 +538,7 @@ static void status_label_async_cb(void* param)
 {
     status_label_async_payload_t* payload = (status_label_async_payload_t*)param;
     ui_page_settings_ctx_t*       ctx     = s_settings_ctx;
-    if (payload == NULL || ctx == NULL || ctx->ota_status_label == NULL || ctx->page == NULL
-        || !lv_obj_is_valid(ctx->page))
+    if (payload == NULL || ctx == NULL || ctx->page == NULL || !lv_obj_is_valid(ctx->page))
     {
         if (payload != NULL)
         {
@@ -519,7 +547,41 @@ static void status_label_async_cb(void* param)
         return;
     }
 
-    lv_label_set_text(ctx->ota_status_label, payload->text);
+    lv_obj_t* label     = NULL;
+    char*     cache     = NULL;
+    size_t    cache_len = 0U;
+
+    switch (payload->target)
+    {
+        case STATUS_TARGET_UPDATES:
+            label     = ctx->ota_status_label;
+            cache     = ctx->ota_status_text;
+            cache_len = sizeof(ctx->ota_status_text);
+            break;
+        case STATUS_TARGET_DIAGNOSTICS:
+            label     = ctx->diagnostics_status_label;
+            cache     = ctx->diagnostics_status_text;
+            cache_len = sizeof(ctx->diagnostics_status_text);
+            break;
+        case STATUS_TARGET_BACKUP:
+            label     = ctx->backup_status_label;
+            cache     = ctx->backup_status_text;
+            cache_len = sizeof(ctx->backup_status_text);
+            break;
+        default:
+            break;
+    }
+
+    if (label != NULL && lv_obj_is_valid(label))
+    {
+        lv_label_set_text(label, payload->text);
+    }
+
+    if (cache != NULL && cache_len > 0U)
+    {
+        lv_snprintf(cache, cache_len, "%s", payload->text);
+    }
+
     lv_free(payload);
 }
 
@@ -904,12 +966,81 @@ void ui_page_settings_set_update_status(const char* status_text)
     }
 
     lv_memset(payload, 0, sizeof(*payload));
+    payload->target = STATUS_TARGET_UPDATES;
     if (status_text != NULL)
     {
         lv_snprintf(payload->text, sizeof(payload->text), "%s", status_text);
     }
 
     lv_async_call(status_label_async_cb, payload);
+}
+
+void ui_page_settings_set_diagnostics_status(const char* status_text)
+{
+    status_label_async_payload_t* payload =
+        (status_label_async_payload_t*)lv_malloc(sizeof(status_label_async_payload_t));
+    if (payload == NULL)
+    {
+        return;
+    }
+
+    lv_memset(payload, 0, sizeof(*payload));
+    payload->target = STATUS_TARGET_DIAGNOSTICS;
+    if (status_text != NULL)
+    {
+        lv_snprintf(payload->text, sizeof(payload->text), "%s", status_text);
+    }
+
+    lv_async_call(status_label_async_cb, payload);
+}
+
+void ui_page_settings_set_backup_status(const char* status_text)
+{
+    status_label_async_payload_t* payload =
+        (status_label_async_payload_t*)lv_malloc(sizeof(status_label_async_payload_t));
+    if (payload == NULL)
+    {
+        return;
+    }
+
+    lv_memset(payload, 0, sizeof(*payload));
+    payload->target = STATUS_TARGET_BACKUP;
+    if (status_text != NULL)
+    {
+        lv_snprintf(payload->text, sizeof(payload->text), "%s", status_text);
+    }
+
+    lv_async_call(status_label_async_cb, payload);
+}
+
+const char* ui_page_settings_get_update_status(void)
+{
+    ui_page_settings_ctx_t* ctx = s_settings_ctx;
+    if (ctx == NULL)
+    {
+        return "";
+    }
+    return ctx->ota_status_text;
+}
+
+const char* ui_page_settings_get_diagnostics_status(void)
+{
+    ui_page_settings_ctx_t* ctx = s_settings_ctx;
+    if (ctx == NULL)
+    {
+        return "";
+    }
+    return ctx->diagnostics_status_text;
+}
+
+const char* ui_page_settings_get_backup_status(void)
+{
+    ui_page_settings_ctx_t* ctx = s_settings_ctx;
+    if (ctx == NULL)
+    {
+        return "";
+    }
+    return ctx->backup_status_text;
 }
 
 void ui_page_settings_apply_theme_state(bool dark_mode_enabled, const char* variant_id)

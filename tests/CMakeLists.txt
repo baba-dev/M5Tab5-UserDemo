@@ -11,6 +11,7 @@ add_compile_options(-w)
 
 # Build only Rooms Page tests when ON (CI sets this); when OFF we also build core unit tests
 option(ROMS_ONLY "Build only Rooms Page tests" ON)
+option(BUILD_ROOMS_TESTS "Build Rooms Page snapshot test" OFF)
 
 enable_testing()
 
@@ -27,6 +28,9 @@ target_include_directories(lvgl_config INTERFACE
   ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
+set(LV_BUILD_EXAMPLES 0 CACHE BOOL "" FORCE)
+set(CONFIG_LV_BUILD_EXAMPLES 0 CACHE BOOL "" FORCE)
+
 include(FetchContent)
 FetchContent_Declare(lvgl
   GIT_REPOSITORY https://github.com/lvgl/lvgl.git
@@ -34,9 +38,16 @@ FetchContent_Declare(lvgl
 )
 FetchContent_MakeAvailable(lvgl)
 if (TARGET lvgl)
+  target_compile_definitions(lvgl PUBLIC LV_BUILD_EXAMPLES=0)
   # Avoid Unity on third-party to keep compile sane
   set_property(TARGET lvgl PROPERTY UNITY_BUILD OFF)
   target_link_libraries(lvgl PUBLIC lvgl_config)
+endif()
+if (TARGET lvgl_examples)
+  set_target_properties(lvgl_examples PROPERTIES EXCLUDE_FROM_ALL TRUE EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+endif()
+if (TARGET lvgl_demos)
+  set_target_properties(lvgl_demos PROPERTIES EXCLUDE_FROM_ALL TRUE EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif()
 
 # -----------------------------
@@ -54,31 +65,73 @@ if (NOT GTest_FOUND)
 endif()
 
 # -----------------------------
-# Rooms page UI under test
+# UI asset stubs
 # -----------------------------
-add_library(ui_rooms_under_test
-  ${REPO_ROOT}/custom/ui/pages/ui_page_rooms.c
-  ${REPO_ROOT}/custom/ui/pages/ui_rooms_model.c
-  ${REPO_ROOT}/custom/ui/widgets/ui_room_card.c
-  ${REPO_ROOT}/custom/ui/ui_theme.c
-  ${REPO_ROOT}/custom/ui/ui_wallpaper.c
-  ${REPO_ROOT}/custom/integration/rooms_provider.c
+add_library(ui_assets_stub
+  ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs/assets/launcher_bg_stub.c
 )
-target_include_directories(ui_rooms_under_test PUBLIC
+target_include_directories(ui_assets_stub PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs
+)
+target_link_libraries(ui_assets_stub PUBLIC lvgl::lvgl lvgl_config)
+
+# -----------------------------
+# Rooms page UI under test (optional via BUILD_ROOMS_TESTS)
+# -----------------------------
+if (BUILD_ROOMS_TESTS)
+  add_library(ui_rooms_under_test
+    ${REPO_ROOT}/custom/ui/pages/ui_page_rooms.c
+    ${REPO_ROOT}/custom/ui/pages/ui_rooms_model.c
+    ${REPO_ROOT}/custom/ui/widgets/ui_room_card.c
+    ${REPO_ROOT}/custom/ui/ui_theme.c
+    ${REPO_ROOT}/custom/ui/ui_wallpaper.c
+    ${REPO_ROOT}/custom/integration/rooms_provider.c
+  )
+  target_include_directories(ui_rooms_under_test PUBLIC
+    ${REPO_ROOT}/custom/ui
+    ${REPO_ROOT}/custom/ui/pages
+    ${REPO_ROOT}/custom/ui/widgets
+    ${REPO_ROOT}/custom/integration
+    ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs
+  )
+  target_link_libraries(ui_rooms_under_test PUBLIC lvgl::lvgl lvgl_config ui_assets_stub)
+  # Some tests stub LVGL event bounds; keep compatible with our test doubles
+  target_compile_definitions(ui_rooms_under_test PUBLIC LV_EVENT_LAST=2000)
+
+  add_executable(rooms_page_test
+    ui/test_rooms_snapshot.cpp
+  )
+  target_link_libraries(rooms_page_test PRIVATE
+    ui_rooms_under_test
+    GTest::gtest GTest::gtest_main
+  )
+  add_test(NAME rooms_page_test COMMAND rooms_page_test)
+endif()
+
+# -----------------------------
+# Settings page UI under test (always built)
+# -----------------------------
+add_library(ui_settings_under_test
+  ${REPO_ROOT}/custom/ui/pages/ui_page_settings.c
+  ${REPO_ROOT}/custom/ui/ui_wallpaper.c
+  ${REPO_ROOT}/custom/ui/ui_theme.c
+)
+target_include_directories(ui_settings_under_test PUBLIC
   ${REPO_ROOT}/custom/ui
   ${REPO_ROOT}/custom/ui/pages
   ${REPO_ROOT}/custom/integration
+  ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs
 )
-target_link_libraries(ui_rooms_under_test PUBLIC lvgl::lvgl lvgl_config)
+target_link_libraries(ui_settings_under_test PUBLIC lvgl::lvgl lvgl_config ui_assets_stub)
 
-add_executable(rooms_page_test
-  ui/test_rooms_snapshot.cpp
+add_executable(settings_page_status_test
+  ui/test_settings_status.cpp
 )
-target_link_libraries(rooms_page_test PRIVATE
-  ui_rooms_under_test
+target_link_libraries(settings_page_status_test PRIVATE
+  ui_settings_under_test
   GTest::gtest GTest::gtest_main
 )
-add_test(NAME rooms_page_test COMMAND rooms_page_test)
+add_test(NAME settings_page_status_test COMMAND settings_page_status_test)
 
 # -----------------------------
 # Core library + unit tests (optional when ROMS_ONLY=OFF)
