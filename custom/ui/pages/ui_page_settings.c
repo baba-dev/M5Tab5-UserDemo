@@ -66,6 +66,8 @@ static const theme_option_t k_theme_options[] = {
     {"midnight", "Midnight"},
 };
 
+static const size_t kThemeOptionCount = sizeof(k_theme_options) / sizeof(k_theme_options[0]);
+
 static const char* k_theme_options_list = "System Default\nSolar\nMidnight";
 
 static const struct
@@ -550,7 +552,7 @@ static void theme_state_async_cb(void* param)
 
     if (ctx->theme_dropdown != NULL && payload->variant_id[0] != '\0')
     {
-        for (uint32_t i = 0; i < LV_ARRAY_SIZE(k_theme_options); i++)
+        for (uint32_t i = 0; i < kThemeOptionCount; i++)
         {
             if (strcmp(k_theme_options[i].id, payload->variant_id) == 0)
             {
@@ -678,7 +680,7 @@ static void theme_dropdown_cb(lv_event_t* event)
     if (ctx->actions_bound && ctx->actions.set_theme_variant != NULL)
     {
         uint16_t index = lv_dropdown_get_selected(lv_event_get_target(event));
-        if (index < LV_ARRAY_SIZE(k_theme_options))
+        if (index < kThemeOptionCount)
         {
             ctx->actions.set_theme_variant(k_theme_options[index].id, ctx->actions_user_data);
         }
