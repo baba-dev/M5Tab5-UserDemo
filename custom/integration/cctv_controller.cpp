@@ -133,16 +133,14 @@ namespace custom::integration
                 controller->HandleAction(*action);
             }
         }
-        +else if (code == UI_PAGE_CCTV_EVENT_OPEN_CLIP) +
+        else if (code == UI_PAGE_CCTV_EVENT_OPEN_CLIP)
         {
-            +const auto* clip =
+            const auto* clip =
                 static_cast<const ui_page_cctv_clip_event_t*>(lv_event_get_param(event));
-            +if (clip != nullptr) +
+            if (clip != nullptr)
             {
-                +controller->HandleClipRequest(*clip);
-                +
+                controller->HandleClipRequest(*clip);
             }
-            +
         }
     }
 
