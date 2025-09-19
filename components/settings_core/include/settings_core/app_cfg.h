@@ -41,25 +41,25 @@ extern "C"
     typedef struct
     {
         bool enabled;
-        char url[APP_CFG_MAX_URL_LEN];
-        char token[APP_CFG_MAX_TOKEN_LEN];
+        char url[APP_CFG_MAX_URL_LEN + 1U];
+        char token[APP_CFG_MAX_TOKEN_LEN + 1U];
     } app_cfg_home_assistant_t;
 
     typedef struct
     {
         bool enabled;
-        char url[APP_CFG_MAX_URL_LEN];
-        char camera_name[APP_CFG_MAX_NAME_LEN];
+        char url[APP_CFG_MAX_URL_LEN + 1U];
+        char camera_name[APP_CFG_MAX_NAME_LEN + 1U];
         bool snapshots_enabled;
     } app_cfg_frigate_t;
 
     typedef struct
     {
         bool enabled;
-        char broker_uri[APP_CFG_MAX_URL_LEN];
-        char client_id[APP_CFG_MAX_NAME_LEN];
-        char username[APP_CFG_MAX_USERNAME_LEN];
-        char password[APP_CFG_MAX_PASSWORD_LEN];
+        char broker_uri[APP_CFG_MAX_URL_LEN + 1U];
+        char client_id[APP_CFG_MAX_NAME_LEN + 1U];
+        char username[APP_CFG_MAX_USERNAME_LEN + 1U];
+        char password[APP_CFG_MAX_PASSWORD_LEN + 1U];
         bool use_tls;
         bool ha_discovery;
     } app_cfg_mqtt_t;
@@ -77,13 +77,13 @@ extern "C"
         char password[APP_CFG_MAX_WIFI_PASS_LEN + 1U];
         char hostname[APP_CFG_MAX_HOSTNAME_LEN + 1U];
         bool use_dhcp;
-        char static_ip[APP_CFG_MAX_IP_LEN];
-        char gateway[APP_CFG_MAX_IP_LEN];
-        char netmask[APP_CFG_MAX_IP_LEN];
-        char dns_primary[APP_CFG_MAX_IP_LEN];
-        char dns_secondary[APP_CFG_MAX_IP_LEN];
-        char timezone[APP_CFG_MAX_TIMEZONE_LEN];
-        char ntp_server[APP_CFG_MAX_NTP_SERVER_LEN];
+        char static_ip[APP_CFG_MAX_IP_LEN + 1U];
+        char gateway[APP_CFG_MAX_IP_LEN + 1U];
+        char netmask[APP_CFG_MAX_IP_LEN + 1U];
+        char dns_primary[APP_CFG_MAX_IP_LEN + 1U];
+        char dns_secondary[APP_CFG_MAX_IP_LEN + 1U];
+        char timezone[APP_CFG_MAX_TIMEZONE_LEN + 1U];
+        char ntp_server[APP_CFG_MAX_NTP_SERVER_LEN + 1U];
         bool sntp_sync_enabled;
     } app_cfg_network_t;
 
