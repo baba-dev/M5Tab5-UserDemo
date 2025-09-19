@@ -12,12 +12,9 @@
 #include <smooth_ui_toolkit.h>
 #include <vector>
 
-struct ui_root_t;
+#include "integration/settings_controller.h"
 
-namespace custom::integration
-{
-    class SettingsController;
-}
+struct ui_root_t;
 
 namespace launcher_view
 {
