@@ -97,11 +97,25 @@ if (NOT ROMS_ONLY)
     ${CMAKE_CURRENT_SOURCE_DIR}/unit/stubs
   )
 
+  add_library(weather_formatter_under_test
+    ${REPO_ROOT}/custom/integration/weather_formatter.cpp
+  )
+  target_include_directories(weather_formatter_under_test PUBLIC
+    ${REPO_ROOT}/custom
+  )
+
   add_executable(unit_tests
     unit/test_ringbuf.cpp
     unit/test_settings.cpp
     unit/test_app_cfg.cpp
+    unit/test_weather_formatter.cpp
   )
-  target_link_libraries(unit_tests PRIVATE app_core settings_core_under_test GTest::gtest GTest::gtest_main)
+  target_link_libraries(unit_tests PRIVATE
+    app_core
+    settings_core_under_test
+    weather_formatter_under_test
+    GTest::gtest
+    GTest::gtest_main
+  )
   add_test(NAME unit_tests COMMAND unit_tests)
 endif()
