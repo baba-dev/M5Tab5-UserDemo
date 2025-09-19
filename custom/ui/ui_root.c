@@ -8,6 +8,7 @@
 #include "pages/ui_page_cctv.h"
 #include "pages/ui_page_media.h"
 #include "pages/ui_page_rooms.h"
+#include "pages/ui_page_settings.h"
 #include "pages/ui_page_weather.h"
 
 struct ui_root_t {
@@ -247,7 +248,8 @@ static void ui_root_create_pages(ui_root_t *root)
     root->pages[UI_NAV_PAGE_ROOMS]   = ui_page_rooms_create(root->screen);
     root->pages[UI_NAV_PAGE_CCTV]    = ui_page_cctv_create(root->screen);
     root->pages[UI_NAV_PAGE_WEATHER] = ui_page_weather_create(root->screen);
-    root->pages[UI_NAV_PAGE_MEDIA]   = ui_page_media_create(root->screen);
+    root->pages[UI_NAV_PAGE_MEDIA]    = ui_page_media_create(root->screen);
+    root->pages[UI_NAV_PAGE_SETTINGS] = ui_page_settings_create(root->screen);
 
     for (uint32_t i = 0; i < UI_NAV_PAGE_COUNT; i++) {
         if (root->pages[i] == NULL) {
