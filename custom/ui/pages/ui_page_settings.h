@@ -58,8 +58,13 @@ extern "C"
                                                 ui_page_settings_status_t status,
                                                 const char*               message);
     void ui_page_settings_set_update_status(const char* status_text);
+    void ui_page_settings_set_diagnostics_status(const char* status_text);
+    void ui_page_settings_set_backup_status(const char* status_text);
     void ui_page_settings_apply_theme_state(bool dark_mode_enabled, const char* variant_id);
     void ui_page_settings_set_brightness(uint8_t percent);
+    const char* ui_page_settings_get_update_status(void);
+    const char* ui_page_settings_get_diagnostics_status(void);
+    const char* ui_page_settings_get_backup_status(void);
 
 #ifdef __cplusplus
 }

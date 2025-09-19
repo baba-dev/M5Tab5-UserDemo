@@ -7,12 +7,27 @@
 
 #include <stdio.h>
 
+#include "esp_err.h"
 #include "esp_log.h"
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "mdns.h"
 
 static const char* TAG = "diag";
+
+static void
+emit_diag_event(diag_event_cb_t callback, void* user_data, diag_event_type_t type, esp_err_t error)
+{
+    if (callback == NULL)
+    {
+        return;
+    }
+    diag_event_t event = {
+        .type  = type,
+        .error = error,
+    };
+    callback(&event, user_data);
+}
 
 static esp_err_t diag_register_mdns(const app_cfg_t* cfg)
 {
@@ -49,12 +64,15 @@ static esp_err_t health_handler(httpd_req_t* req)
     return httpd_resp_send(req, payload, HTTPD_RESP_USE_STRLEN);
 }
 
-esp_err_t diag_start(const app_cfg_t* cfg, diag_handles_t* handles)
+esp_err_t
+diag_start(const app_cfg_t* cfg, diag_handles_t* handles, diag_event_cb_t callback, void* user_data)
 {
     if (!cfg || !handles)
     {
         return ESP_ERR_INVALID_ARG;
     }
+
+    emit_diag_event(callback, user_data, DIAG_EVENT_STARTING, ESP_OK);
 
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.uri_match_fn   = httpd_uri_match_simple;
@@ -64,8 +82,11 @@ esp_err_t diag_start(const app_cfg_t* cfg, diag_handles_t* handles)
     {
         ESP_LOGE(TAG, "Failed to start diagnostics server: 0x%x", (unsigned int)err);
         handles->httpd = NULL;
+        emit_diag_event(callback, user_data, DIAG_EVENT_ERROR, err);
         return err;
     }
+
+    emit_diag_event(callback, user_data, DIAG_EVENT_HTTP_READY, ESP_OK);
 
     httpd_uri_t health_uri = {
         .uri      = "/health",
@@ -83,13 +104,25 @@ esp_err_t diag_start(const app_cfg_t* cfg, diag_handles_t* handles)
     handles->mqtt = esp_mqtt_client_init(&mqtt_config);
     if (handles->mqtt)
     {
-        esp_mqtt_client_start(handles->mqtt);
+        esp_err_t mqtt_err = esp_mqtt_client_start(handles->mqtt);
+        if (mqtt_err != ESP_OK)
+        {
+            ESP_LOGE(TAG, "MQTT start failed: 0x%x", (unsigned int)mqtt_err);
+            emit_diag_event(callback, user_data, DIAG_EVENT_ERROR, mqtt_err);
+            return mqtt_err;
+        }
+        emit_diag_event(callback, user_data, DIAG_EVENT_MQTT_STARTED, ESP_OK);
+    }
+    else
+    {
+        emit_diag_event(callback, user_data, DIAG_EVENT_WARNING, ESP_ERR_NO_MEM);
     }
 
     err = diag_register_mdns(cfg);
     if (err != ESP_OK)
     {
         ESP_LOGW(TAG, "mDNS registration failed: 0x%x", (unsigned int)err);
+        emit_diag_event(callback, user_data, DIAG_EVENT_WARNING, err);
     }
 
     ESP_LOGI(TAG, "Diagnostics server ready");

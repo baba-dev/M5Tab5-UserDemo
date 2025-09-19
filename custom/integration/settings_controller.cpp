@@ -125,6 +125,8 @@ namespace custom::integration
                                     ui_page_settings_status_t status,
                                     const std::string&        message);
         void post_update_status(const std::string& message);
+        void post_diagnostics_status(const std::string& message);
+        void post_backup_status(const std::string& message);
 
         std::string manifest_url() const;
         std::string firmware_url() const;
@@ -364,16 +366,60 @@ namespace custom::integration
                     post_update_status("No OTA endpoint configured");
                     return;
                 }
-                post_update_status("Starting OTA download...");
-                esp_err_t err = ota_update_perform(url.c_str(), true);
-                if (err == ESP_OK)
+                post_update_status("Preparing OTA...");
+                auto callback = [](const ota_update_event_t* event, void* context)
                 {
-                    post_update_status("OTA completed");
-                }
-                else
+                    auto* self = static_cast<SettingsController::Impl*>(context);
+                    if (self == nullptr || event == nullptr)
+                    {
+                        return;
+                    }
+                    switch (event->type)
+                    {
+                        case OTA_UPDATE_EVENT_START:
+                            self->post_update_status("Starting OTA download...");
+                            break;
+                        case OTA_UPDATE_EVENT_PROGRESS:
+                        {
+                            size_t   total      = event->image_size;
+                            size_t   downloaded = event->bytes_downloaded;
+                            uint32_t percent =
+                                (total > 0U) ? static_cast<uint32_t>((downloaded * 100ULL) / total)
+                                             : 0U;
+                            std::ostringstream status;
+                            if (total > 0U)
+                            {
+                                status << "Downloading " << percent << "%";
+                                if (total >= 1024U)
+                                {
+                                    status << " (" << (downloaded / 1024U) << '/' << (total / 1024U)
+                                           << " KiB)";
+                                }
+                            }
+                            else
+                            {
+                                status << "Downloading " << (downloaded / 1024U) << " KiB";
+                            }
+                            self->post_update_status(status.str());
+                            break;
+                        }
+                        case OTA_UPDATE_EVENT_COMPLETED:
+                            self->post_update_status("OTA completed");
+                            break;
+                        case OTA_UPDATE_EVENT_ERROR:
+                        default:
+                        {
+                            std::string reason = error_to_string(event->error);
+                            self->post_update_status("OTA failed: " + reason);
+                            break;
+                        }
+                    }
+                };
+                esp_err_t err = ota_update_perform_with_callback(
+                    url.c_str(), true, callback, static_cast<void*>(this));
+                if (err != ESP_OK)
                 {
                     APP_LOG_ERROR(kTag, "OTA failed: %s", error_to_string(err).c_str());
-                    post_update_status("OTA failed");
                 }
 #else
                 post_update_status("OTA not supported on host");
@@ -389,27 +435,56 @@ namespace custom::integration
 #if defined(ESP_PLATFORM)
                 if (!config_.safety.diagnostics_opt_in)
                 {
-                    post_update_status("Diagnostics disabled");
+                    post_diagnostics_status("Diagnostics disabled");
                     return;
                 }
                 if (diag_running_)
                 {
                     diag_stop(&diag_handles_);
                     diag_running_ = false;
+                    post_diagnostics_status("Restarting diagnostics...");
                 }
-                esp_err_t err = diag_start(&config_, &diag_handles_);
+                auto callback = [](const diag_event_t* event, void* context)
+                {
+                    auto* self = static_cast<SettingsController::Impl*>(context);
+                    if (self == nullptr || event == nullptr)
+                    {
+                        return;
+                    }
+                    switch (event->type)
+                    {
+                        case DIAG_EVENT_STARTING:
+                            self->post_diagnostics_status("Starting diagnostics...");
+                            break;
+                        case DIAG_EVENT_HTTP_READY:
+                            self->post_diagnostics_status("Diagnostics HTTP ready");
+                            break;
+                        case DIAG_EVENT_MQTT_STARTED:
+                            self->post_diagnostics_status("Diagnostics MQTT connected");
+                            break;
+                        case DIAG_EVENT_WARNING:
+                            self->post_diagnostics_status("Diagnostics warning: "
+                                                          + error_to_string(event->error));
+                            break;
+                        case DIAG_EVENT_ERROR:
+                        default:
+                            self->post_diagnostics_status("Diagnostics failed: "
+                                                          + error_to_string(event->error));
+                            break;
+                    }
+                };
+                esp_err_t err =
+                    diag_start(&config_, &diag_handles_, callback, static_cast<void*>(this));
                 if (err == ESP_OK)
                 {
                     diag_running_ = true;
-                    post_update_status("Diagnostics server running");
                 }
                 else
                 {
                     APP_LOG_ERROR(kTag, "Diagnostics failed: %s", error_to_string(err).c_str());
-                    post_update_status("Diagnostics failed");
                 }
 #else
-                post_update_status("Diagnostics not available on host");
+                post_diagnostics_status("Diagnostics not available on host");
 #endif
             });
     }
@@ -422,19 +497,19 @@ namespace custom::integration
 #if defined(ESP_PLATFORM)
                 if (!GetHAL()->isSdCardMounted())
                 {
-                    post_update_status("Insert SD card to export logs");
+                    post_diagnostics_status("Insert SD card to export logs");
                     return;
                 }
 #endif
                 std::ofstream stream(logs_path_, std::ios::app);
                 if (!stream.is_open())
                 {
-                    post_update_status("Failed to write logs");
+                    post_diagnostics_status("Failed to write logs");
                     return;
                 }
                 stream << '[' << timestamp_string() << "] Log export placeholder\n";
                 stream.close();
-                post_update_status("Logs saved to " + logs_path_);
+                post_diagnostics_status("Logs saved to " + logs_path_);
             });
     }
 
@@ -446,13 +521,14 @@ namespace custom::integration
 #if defined(ESP_PLATFORM)
                 if (!GetHAL()->isSdCardMounted())
                 {
-                    post_update_status("Insert SD card to backup");
+                    post_backup_status("Insert SD card to backup");
                     return;
                 }
+                post_backup_status("Preparing backup...");
                 size_t needed = backup_server_calculate_json_size(&config_);
                 if (needed == 0U)
                 {
-                    post_update_status("Backup failed");
+                    post_backup_status("Backup failed: invalid configuration");
                     return;
                 }
                 std::vector<char> buffer(needed);
@@ -460,20 +536,20 @@ namespace custom::integration
                 if (err != ESP_OK)
                 {
                     APP_LOG_ERROR(kTag, "Backup encode failed: %s", error_to_string(err).c_str());
-                    post_update_status("Backup encode failed");
+                    post_backup_status("Backup encode failed: " + error_to_string(err));
                     return;
                 }
                 std::ofstream output(backup_path_, std::ios::trunc);
                 if (!output.is_open())
                 {
-                    post_update_status("Cannot open backup file");
+                    post_backup_status("Cannot open backup file");
                     return;
                 }
                 output.write(buffer.data(), std::strlen(buffer.data()));
                 output.close();
-                post_update_status("Backup saved to " + backup_path_);
+                post_backup_status("Backup saved to " + backup_path_);
 #else
-                post_update_status("Backup not supported on host");
+                post_backup_status("Backup not supported on host");
 #endif
             });
     }
@@ -487,7 +563,7 @@ namespace custom::integration
                 std::ifstream input(backup_path_);
                 if (!input.is_open())
                 {
-                    post_update_status("Backup file missing");
+                    post_backup_status("Backup file missing");
                     return;
                 }
                 std::stringstream buffer;
@@ -496,12 +572,12 @@ namespace custom::integration
                 std::string json = buffer.str();
                 if (json.empty())
                 {
-                    post_update_status("Backup file empty");
+                    post_backup_status("Backup file empty");
                     return;
                 }
                 handle_restore_from_json(json);
 #else
-                post_update_status("Restore not supported on host");
+                post_backup_status("Restore not supported on host");
 #endif
             });
     }
@@ -707,6 +783,16 @@ namespace custom::integration
         ui_page_settings_set_update_status(message.c_str());
     }
 
+    void SettingsController::Impl::post_diagnostics_status(const std::string& message)
+    {
+        ui_page_settings_set_diagnostics_status(message.c_str());
+    }
+
+    void SettingsController::Impl::post_backup_status(const std::string& message)
+    {
+        ui_page_settings_set_backup_status(message.c_str());
+    }
+
     std::string SettingsController::Impl::manifest_url() const
     {
         std::string base;
@@ -794,7 +880,7 @@ namespace custom::integration
         cJSON* root = cJSON_Parse(json.c_str());
         if (root == nullptr)
         {
-            post_update_status("Invalid backup file");
+            post_backup_status("Invalid backup file");
             return;
         }
 
@@ -907,7 +993,7 @@ namespace custom::integration
 
         if (app_cfg_validate(&restored) != ESP_OK)
         {
-            post_update_status("Backup validation failed");
+            post_backup_status("Backup validation failed");
             return;
         }
 
@@ -917,7 +1003,7 @@ namespace custom::integration
         GetHAL()->setDisplayBrightness(config_.ui.brightness);
         ui_page_settings_set_brightness(config_.ui.brightness);
         refresh_all_connections();
-        post_update_status("Backup restored");
+        post_backup_status("Backup restored");
     }
 
 #endif
