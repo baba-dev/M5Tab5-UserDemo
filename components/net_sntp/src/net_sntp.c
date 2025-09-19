@@ -15,10 +15,11 @@ static const char* TAG = "net_sntp";
 
 esp_err_t net_sntp_start(const char* server, bool wait_for_sync)
 {
-    const char* servers[1] = {server ? server : "pool.ntp.org"};
+    const char* server_name = server ? server : "pool.ntp.org";
 
-    esp_sntp_config_t config = ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(servers);
-    config.sync_cb           = NULL;
+    esp_sntp_config_t config =
+        ESP_NETIF_SNTP_DEFAULT_CONFIG_MULTIPLE(1, ESP_SNTP_SERVER_LIST(server_name));
+    config.sync_cb = NULL;
 
     esp_err_t err = esp_netif_sntp_init(&config);
     if (err == ESP_ERR_INVALID_STATE)
@@ -54,6 +55,5 @@ esp_err_t net_sntp_start(const char* server, bool wait_for_sync)
 
 void net_sntp_stop(void)
 {
-    esp_netif_sntp_stop();
     esp_netif_sntp_deinit();
 }
