@@ -3,13 +3,19 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "hal/hal_esp32.h"
-#include <mooncake_log.h>
-#include <vector>
-#include <driver/gpio.h>
+#include <cstdlib>
+#include <cstring>
 #include <memory>
+#include <vector>
+
+#include <driver/gpio.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <mooncake_log.h>
+
 #include "driver/uart.h"
 #include "esp_log.h"
+#include "hal/hal_esp32.h"
 
 #define TAG "hal_rs485"
 
