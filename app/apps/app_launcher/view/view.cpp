@@ -4,16 +4,17 @@
  * SPDX-License-Identifier: MIT
  */
 #include "view.h"
-#include <lvgl.h>
-#include <hal/hal.h>
-#include <mooncake_log.h>
+
+#include <apps/utils/audio/audio.h>
 #include <assets/assets.h>
+#include <hal/hal.h>
+#include <lvgl.h>
+#include <mooncake_log.h>
 #include <smooth_lvgl.h>
 #include <smooth_ui_toolkit.h>
-#include <apps/utils/audio/audio.h>
 
-#include "custom/integration/settings_controller.h"
-#include "custom/ui/pages/ui_page_settings.h"
+#include "integration/settings_controller.h"
+#include "ui/pages/ui_page_settings.h"
 #include "ui/ui_root.h"
 
 using namespace launcher_view;
@@ -57,17 +58,20 @@ void LauncherView::init()
     _panels.push_back(std::make_unique<PanelMusic>());
     _panels.push_back(std::make_unique<PanelComMonitor>());
 
-    for (auto& panel : _panels) {
+    for (auto& panel : _panels)
+    {
         panel->init();
     }
 
-    if (_ui_root != nullptr) {
+    if (_ui_root != nullptr)
+    {
         _settings_controller.reset();
         ui_root_destroy(_ui_root);
         _ui_root = nullptr;
     }
     _ui_root = ui_root_create();
-    if (_ui_root != nullptr) {
+    if (_ui_root != nullptr)
+    {
         _settings_controller = std::make_unique<SettingsController>();
 
         ui_page_settings_actions_t actions{};
@@ -185,7 +189,8 @@ void LauncherView::update()
 {
     LvglLockGuard lock;
 
-    for (auto& panel : _panels) {
+    for (auto& panel : _panels)
+    {
         panel->update(_is_stacked);
     }
 }
@@ -193,7 +198,8 @@ void LauncherView::update()
 LauncherView::~LauncherView()
 {
     _settings_controller.reset();
-    if (_ui_root != nullptr) {
+    if (_ui_root != nullptr)
+    {
         ui_root_destroy(_ui_root);
         _ui_root = nullptr;
     }

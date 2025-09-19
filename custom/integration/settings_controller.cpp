@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "custom/integration/settings_controller.h"
+#include "integration/settings_controller.h"
 
 #include <algorithm>
 #include <chrono>
@@ -22,10 +22,10 @@
 #include <vector>
 
 #include "core/app_trace.h"
-#include "custom/ui/pages/ui_page_settings.h"
 #include "hal/hal.h"
 #include "settings_core/app_cfg.h"
 #include "settings_ui/settings_ui.h"
+#include "ui/pages/ui_page_settings.h"
 
 #if defined(ESP_PLATFORM)
 #    include "backup_server/backup_format.h"
