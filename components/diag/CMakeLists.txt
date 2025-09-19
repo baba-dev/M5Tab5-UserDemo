@@ -1,0 +1,14 @@
+idf_component_register(
+    SRCS
+        "src/diag.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        settings_core
+        esp_http_server
+        mdns
+        mqtt
+        esp_timer
+        esp_system
+        log
+)

@@ -87,10 +87,21 @@ if (NOT ROMS_ONLY)
     ${REPO_ROOT}/components/core/include
   )
 
+  add_library(settings_core_under_test
+    ${REPO_ROOT}/components/settings_core/src/app_cfg.c
+    ${REPO_ROOT}/components/backup_server/src/backup_format.c
+  )
+  target_include_directories(settings_core_under_test PUBLIC
+    ${REPO_ROOT}/components/settings_core/include
+    ${REPO_ROOT}/components/backup_server/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/unit/stubs
+  )
+
   add_executable(unit_tests
     unit/test_ringbuf.cpp
     unit/test_settings.cpp
+    unit/test_app_cfg.cpp
   )
-  target_link_libraries(unit_tests PRIVATE app_core GTest::gtest GTest::gtest_main)
+  target_link_libraries(unit_tests PRIVATE app_core settings_core_under_test GTest::gtest GTest::gtest_main)
   add_test(NAME unit_tests COMMAND unit_tests)
 endif()

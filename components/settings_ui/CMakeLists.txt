@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+        "src/settings_ui.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        settings_core
+        esp_timer
+        esp_system
+        log
+)

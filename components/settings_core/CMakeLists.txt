@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+        "src/app_cfg.c"
+        "src/app_cfg_nvs.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        nvs_flash
+        esp_system
+        log
+)
