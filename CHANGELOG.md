@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.3.0...v1.4.0) (2025-09-19)
+
+
+### Features
+
+* **ui:** refresh weather layout ([4bb1ae3](https://github.com/baba-dev/M5Tab5-UserDemo/commit/4bb1ae3fd406f6db520465844690b9d37332abc9))
+
+
+### Bug Fixes
+
+* **scripts:** handle findings outside root ([d2666e1](https://github.com/baba-dev/M5Tab5-UserDemo/commit/d2666e1c9082b39ebd7ada2dc42a0b82f76e00c5))
+* **ui:** store rooms content obj ([10a05ca](https://github.com/baba-dev/M5Tab5-UserDemo/commit/10a05ca7f7a819855670d58a5521eed858d2b406))
+
 ## [1.3.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.2.0...v1.3.0) (2025-09-18)
 
 
