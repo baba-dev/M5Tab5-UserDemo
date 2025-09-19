@@ -1,156 +1,193 @@
 # Tab5 Home Controller — Low-Fi Wireframes (AI Source of Truth)
 
-Target device: **M5Stack Tab5** (landscape 1280×720).  
-UI framework: **LVGL**.  
+Target device: **M5Stack Tab5** (landscape 1280×720).
+UI framework: **LVGL**.
 Primary integration: **Home Assistant (MQTT + Assist)**, **Frigate**.
 
-## Design Tokens (names AI should reuse)
+## Design tokens (names AI should reuse)
+
 - Spacing: `space-4=4px`, `space-8=8px`, `space-16=16px`, `space-24=24px`, `space-32=32px`
 - Radii: `radius-20=20px` (cards), `radius-12=12px` (chips)
 - Elevation: `elev-1` (small), `elev-2` (medium)
-- Colors: `surface-1=#0E1216`, `surface-2=#151B22`, `text=#E6EDF3`, `muted=#9AA6B2`, `accent=#22C55E`, `warn=#F59E0B`, `alert=#EF4444`
+- Colors: `surface-1=#0E1216`, `surface-2=#151B22`, `text=#E6EDF3`, `muted=#9AA6B2`, `accent=#22C55E`,
+  `warn=#F59E0B`, `alert=#EF4444`
 - Typography: `title-lg`, `title-md`, `body`, `caption`
 - Motion: `dur-fast=90ms`, `dur-med=200ms`, `dur-slow=300ms`, `ease-out`
 - Touch targets: **min 56×56 px**
 
-> **Rule:** Prefer **RGB565** assets sized for on-screen use; avoid per-frame allocations; cap ambient animations to 30 FPS; interaction animations target 60 FPS.
+> **Rule:** Prefer **RGB565** assets sized for on-screen use; avoid per-frame allocations; cap ambient
+> animations to 30 FPS; interaction animations target 60 FPS.
 
 ---
 
-## Global Structure (Navigation)
-- Tabs: **Home**, **Rooms**, **Security**, **Climate** (optional **Media**)
-- Left-side **nav rail** (implemented) with icon+label buttons for ESP32P4 demo, Rooms, Frigate Security, Local Climate Station, and TV Controls
-- Full-bleed background uses a warm gradient (`linear-gradient(90deg, #fcff9e 0%, #c67700 100%)`) on custom pages
-- **Control Center** opens as modal sheet (swipe down from header or tap status icons)
+## Global structure (navigation)
+
+- Left-side **nav rail** holds icon+label buttons for **ESP32P4**, **Rooms**, **Frigate Security**,
+  **Local Climate**, **Media**, and **Settings**.
+- Rail is hidden by default; a left-edge drag reveals it, and releasing past one-third of the travel
+  keeps it open. Nav buttons close the rail after changing screens.
+- A translucent scrim covers content while the rail is open; tapping the scrim or swiping the rail
+  left hides navigation and restores touch to the page.
+- Wallpapered backgrounds remain visible beneath the scrim so the reveal feels attached to the
+  surface layer.
 
 ```mermaid
 flowchart TD
-  Root[Tab Rail] --> Home
-  Root --> Rooms
-  Root --> Security
-  Root --> Climate
-  Root --> Media
-
-  Home --> CC[Control Center Sheet]
-  Security --> CamLive[Live View]
-  Security --> Events[Event Timeline]
-  Rooms --> RoomList
-  Rooms --> RoomDetail
+  Rail[Nav rail] --> ESP32P4
+  Rail --> Rooms
+  Rail --> Frigate
+  Rail --> Climate
+  Rail --> Media
+  Rail --> Settings
 ```
 
-## Screen 1 — Home
+## Screen 1 — Rooms
 
-### Layout
+### Layout — Rooms
 
-```
-Screen 1 — Home
---------------------------------------------------------  y=0
-| Time 10:24  | Weather 26°C | Battery 78% | Wi-Fi -53dB |  Header (56px)
---------------------------------------------------------  y=56
-| [Alarm: Armed] [Doors: 1 Open] [Cams: OK] [Presence: 2]|  Status Chips row (56px)
---------------------------------------------------------  y=112
-|   [ Lights ]     [ Climate ]     [ Security Snapshot ] |  3 Cards @ equal width
-|   - toggle       - setpoint      - last event thumb    |
-|   - dimmer       - humidity      - Live button         |
---------------------------------------------------------  y=424
-| Quick Actions: [Goodnight] [I'm Home] [Away Mode]      |  QA row (72px)
---------------------------------------------------------  y=496
-|                ( content spacer )                      |
---------------------------------------------------------  y=664
-|    Home | Rooms | Security | Climate | Media           |  Right-edge tab rail in code; shown here as bottom bar
---------------------------------------------------------  y=720
+```text
+Screen 1 — Rooms
++------------------------------------------------------+
+| Rooms                                                |
++------------------------------------------------------+
+| [Bakery]    [Bedroom]    [Living Room]               |
+|  toggle      toggle        toggle                    |
+|  temp/humidity badges update per room                |
++------------------------------------------------------+
 ```
 
-### Interactions
+### Interactions — Rooms
 
-- Tap card → expand to detail; animate scale 0.98 then expand (`dur-med`).
-- Long-press Quick Action → confirm sheet (show list of changes).
-- Status chip with anomaly uses `accent`/`warn`/`alert` tokens and navigates to source screen.
+- Tap the toggle on any card to fire the room power signal with haptic-style feedback.
+- Long-press anywhere on a card to request the detailed sheet for that room/entity pair.
+- On first entry, toolbar and cards animate into place (slide/fade, 40 ms stagger).
 
-### Acceptance
+### Acceptance — Rooms
 
-- From idle, key info readable in under 2 seconds.
-- All primary controls reachable with no more than two taps.
+- Three featured rooms remain above the fold with no scrolling.
+- Climate badges stay legible even when MQTT updates arrive every second.
 
-## Screen 2 — Rooms
+## Screen 2 — Frigate Security
 
-### Layout
+### Layout — Frigate Security
 
-```
-Screen 2 — Rooms
-+------------------+------------------------------------+
-| Rooms            | Living Room                        |
-| [Living Room] ●  | [Group Lights Dimmer 0—100%]       |
-| [Bedroom]        | [Light 1][Light 2][Lamp][Strip]    |
-| [Kitchen]        | [Fan: 0 1 2 3] [Osc ⟳]             |
-| [Office]         | Sensors: T 24.1°  H 48%  Lux 120   |
-| [Patio]          | Scenes: [Movie][Bright][Night]     |
-+------------------+------------------------------------+
-```
-
-### Interactions
-
-- Tap room → updates detail pane.
-- Two-finger swipe left/right → next/previous room.
-- Long-press a light → opens per-entity details.
-
-### Acceptance
-
-- Room switch provides visible response within 150 ms.
-- All per-room entities visible without scrolling for up to 8 devices; overflow uses wrap chips.
-
-## Screen 3 — Security (Frigate)
-
-### Layout
-
-```
-Screen 3 — Security (Frigate)
-Top Bar: [◀]  Camera 2/4  [▶]      [Quality: Auto] [Mute]
-
-+----------------------------------------------+
-|                 Live Video                   |  (auto preview; tap to go live)
-|         (PIP shows if navigating away)       |
-+----------------------------------------------+
-
-Recent Events (horizontal scroll):
-[Person@Door 2m] [Vehicle@Drive 8m] [Motion Back 12m] [...]
-
-Action row:
-[Open Gate] [Talk] [Snapshot] [Timeline ▾]
+```text
+Screen 2 — Frigate Security
++------------------------------------------------------+
+| Frigate Security                                    |
+| [◀ Prev]  Camera 2 of 6  [Next ▶]  [Quality ▾] [🔈 Mute]
++------------------------------------------------------+
+| Card: Backyard Camera                               |
+|  • Live feed placeholder fills card body            |
+|  • Status line: "Streaming · 1080p60"               |
++------------------------------------------------------+
+| Event cards row (wraps):                            |
+|  [Front Door · Person]  [Garage · Motion] ...       |
++------------------------------------------------------+
+| Actions row: [Open Gate] [Talk] [Snapshot] [Timeline]
++------------------------------------------------------+
 ```
 
-### Interactions
+### Interactions — Frigate Security
 
-- Event chip → opens clip viewer (PiP if live running).
-- Alert mode (priority Home Assistant event): whole screen frames in `warn`/`alert`, auto focus, haptic tick (audible click).
+- Prev/Next camera buttons are styled primary controls, ready to bind camera cycling.
+- Event cards hide toggles and reserve space for timestamps; tapping can route to clip playback.
+- Action buttons ship as large pills so gloves can trigger automations.
 
-### Acceptance
+### Acceptance — Frigate Security
 
-- Live start under 1.5 seconds on local network (fallback from HLS → MJPEG → snapshot).
-- Loss of stream shows “Low bandwidth” badge and retry call-to-action.
+- Live feed container supports 280 px tall video without layout shifts.
+- Four quick actions stay visible at 48 px minimum tap targets.
 
-## Screen 4 — Control Center (Modal Sheet)
+## Screen 3 — Local Climate
 
-### Layout
+### Layout — Local Climate
 
+```text
+Screen 3 — Local Climate
++------------------------------------------------------+
+| Local Climate Station                                |
++------------------------------------------------------+
+| Card: Living Room Climate                            |
+|  Indoor temperature / humidity / HVAC mode stack     |
++------------------------------------------------------+
+| Card: Outdoor Sensors                                |
+|  sensor.tab5_temperature / sensor.tab5_humidity      |
++------------------------------------------------------+
+| Forecast label + three-day chip row                  |
++------------------------------------------------------+
 ```
-Screen 4 — Control Center (Modal Sheet)
--------------------------------------------
-|  Control Center                         |
-|  Brightness [====------]  60%           |
-|  Volume     [===-------]  30%  [Mute]   |
-|  Toggles: [Do Not Disturb] [Auto Bright]|
-|  Network: MyWiFi_5G  RSSI -53 dB        |
-|  Power:   [Sleep Now] [Restart UI]      |
--------------------------------------------
+
+### Interactions — Local Climate
+
+- Cards are informational; toggles and spec rows are hidden to keep data dense.
+- Forecast chips flex to fill the row and respond to theme color shifts.
+
+### Acceptance — Local Climate
+
+- Both indoor and outdoor cards stay readable without scrolling.
+- Forecast row maintains equal spacing on 1280 px landscape.
+
+## Screen 4 — Media
+
+### Layout — Media
+
+```text
+Screen 4 — Media
++------------------------------------------------------+
+| Card: Now Playing                                    |
+|  [240×240 album art]  Track title / artist / source  |
+|  Transport row: [Prev][Play/Pause][Next] [Volume ▬▬] |
++------------------------------------------------------+
+| Card: Quick Scenes                                   |
+|  [Morning] [Movie] [Night] [Party]                   |
++------------------------------------------------------+
 ```
 
-### Interactions
+### Interactions — Media
 
-- Sheet appears via swipe-down from header or status tap; dismiss via swipe-down or background tap.
-- Brightness and volume sliders use `dur-fast` easing for thumb feedback; Mute toggles instantly.
+- Transport buttons use accent styling and stretch to equal widths for reliable taps.
+- Volume slider tracks 0–100 with immediate value updates.
+- Scene chips are pill buttons sized for one-thumb access.
 
-### Acceptance
+### Acceptance — Media
 
-- Controls remain operable without leaving current tab context.
-- Critical toggles accessible within one gesture from any screen.
+- Album art and metadata remain side-by-side without overlap at 48 px padding.
+- All transport controls sit within a single row to avoid reach shifts.
+
+## Screen 5 — Settings
+
+### Layout — Settings
+
+```text
+Screen 5 — Settings
++------------------------------------------------------+
+| Connectivity card: Wi-Fi / Home Assistant / Cloud    |
+|  • Each tester button with status pill               |
++------------------------------------------------------+
+| Theme & Display card: dark mode switch, palette      |
+|  dropdown, brightness slider with value label        |
++------------------------------------------------------+
+| Network & Time card: Wi-Fi settings / Sync clock /   |
+|  Display tools buttons (two-column layout)           |
++------------------------------------------------------+
+| Updates card: status label + (Check updates / Start  |
+|  OTA) buttons                                        |
++------------------------------------------------------+
+| Diagnostics card: Run diagnostics / Export logs      |
++------------------------------------------------------+
+| Backup & Restore card: Backup now / Restore backup   |
++------------------------------------------------------+
+```
+
+### Interactions — Settings
+
+- Connection tester buttons fire async callbacks and surface status through colored pills.
+- Dark mode switch, palette dropdown, and brightness slider emit events only when users interact
+  (not during state sync).
+- Action buttons are grouped per card and reuse the same callback dispatcher for analytics.
+
+### Acceptance — Settings
+
+- Every control maintains ≥45 px touch height despite dense cards.
+- Status labels update asynchronously without tearing hidden cards into view.

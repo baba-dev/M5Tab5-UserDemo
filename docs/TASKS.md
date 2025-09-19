@@ -30,64 +30,129 @@ prerequisites, and deliver a focused change.
   - Considerations: update `docs/ARCHITECTURE.md` with the decision.
 - **M0.3 — Mock providers** (status: ☐)
   - Dependencies: M0.1.
-  - Outcome: add mock data sources for Home, Rooms, and Security screens under
-    `custom/integration/` behind a build flag.
-  - Considerations: unblock UI work while MQTT is offline.
+  - Outcome: add mock data sources for Rooms, CCTV, Weather, Media, and
+    Settings pages under `custom/integration/` behind a build flag so each
+    module in `custom/ui/pages/` has sample data.
+  - Considerations: unblock UI work while MQTT is offline and document how to
+    switch between real and mock providers.
 
-### Milestone 1 — UI skeleton
+### Milestone 1 — Page scaffolding
 
-- **M1.1 — Screen scaffolding** (status: ☐)
+- **M1.1 — Rooms page scaffolding** (status: ☑)
   - Dependencies: M0.3.
-  - Outcome: create persistent LVGL objects for `ui_home.*`, `ui_rooms.*`,
-    `ui_security.*`, and `ui_control_center.*` that match the layout spec.
-  - Considerations: reuse placeholder widgets from `custom/ui/ui_components.*`.
-- **M1.2 — Shared components** (status: ☐)
-  - Dependencies: M1.1.
-  - Outcome: implement cards, chips, sliders, tabs, and confirm sheets styled
-    via `ui_theme.h`.
-  - Considerations: centralize styles so future screens stay consistent.
-- **M1.3 — Navigation and gestures** (status: ☐)
-  - Dependencies: M1.1.
-  - Outcome: wire the tab rail, edge swipes, and control center sheet
-    interactions.
-  - Considerations: include optimistic animations for taps and long presses.
+  - Outcome: create persistent LVGL layout for `ui_page_rooms.*`, including the
+    toolbar, wallpaper, and grid of `ui_room_card` widgets managed by
+    `ui_root.c`.
+  - Current state: `ui_page_rooms_create` renders three cards with static
+    descriptors, plays intro animations, and emits toggle/sheet events backed by
+    mock `rooms_state_t` data inside the module.
+  - Considerations: keep card gestures coordinated with
+    `custom/ui/pages/ui_rooms_model.*` when real data arrives.
+- **M1.2 — CCTV page scaffolding** (status: ☑)
+  - Dependencies: M0.3.
+  - Outcome: build the CCTV layout in `ui_page_cctv.*` with toolbar controls,
+    a `ui_room_card` wrapper for the live feed, and an events row prepared for
+    camera history chips.
+  - Current state: the page renders placeholder labels, hides unused toggles,
+    and shows a stub "Live feed" container without switching logic or data.
+  - Considerations: align toolbar button styles with shared assets from
+    `custom/ui/ui_theme.h`.
+- **M1.3 — Weather page scaffolding** (status: ☑)
+  - Dependencies: M0.3.
+  - Outcome: assemble the climate dashboard in `ui_page_weather.*`, featuring
+    indoor/outdoor cards and a flexible forecast row that can accept dynamic
+    metrics.
+  - Current state: static strings populate each metric block and forecast item,
+    and the card toggles/specs are hidden until bindings are available.
+  - Considerations: confirm copy and iconography match `docs/wireframes.md`.
+- **M1.4 — Media page scaffolding** (status: ☑)
+  - Dependencies: M0.3.
+  - Outcome: layout the media experience in `ui_page_media.*`, including now
+    playing metadata, transport controls, quick scenes, and volume slider ready
+    for callbacks.
+  - Current state: album art, track labels, and transport buttons display
+    placeholder content with no LVGL event handlers attached.
+  - Considerations: ensure button spacing matches the reusable metrics from
+    `custom/ui/ui_theme.h`.
+- **M1.5 — Settings page scaffolding** (status: ☑)
+  - Dependencies: M0.3.
+  - Outcome: implement the settings hierarchy in `ui_page_settings.*` with
+    connectivity tests, theme controls, network tools, OTA prompts, and backup
+    actions surfaced through `ui_page_settings_actions_t`.
+  - Current state: the page constructs all sections, exposes setters such as
+    `ui_page_settings_set_connection_status`, and binds actions via
+    `app_launcher/view`, but integration calls still return placeholder states
+    when hardware services are offline.
+  - Considerations: document the action wiring in `docs/ARCHITECTURE.md` when
+    integration matures.
 
-### Milestone 2 — Feature scaffolding
+### Milestone 2 — Data plumbing
 
-- **M2.1 — Home bindings** (status: ☐)
+- **M2.1 — Rooms state pipeline** (status: ☐)
+  - Dependencies: M1.1.
+  - Outcome: move the static room descriptors and `INITIAL_STATE` out of
+    `ui_page_rooms.c` into a provider so `ui_page_rooms_set_state` consumes data
+    supplied by `custom/integration/`.
+  - Current state: not started; the page seeds its own mock entities and ignores
+    external updates.
+  - Considerations: surface toggle events via a shared bus so integrations can
+    publish commands.
+- **M2.2 — CCTV event model** (status: ☐)
   - Dependencies: M1.2.
-  - Outcome: connect Home cards to mock providers with optimistic updates ready
-    for MQTT swap.
-  - Considerations: keep command helpers in `custom/integration/`.
-- **M2.2 — Rooms interactions** (status: ☐)
-  - Dependencies: M1.2.
-  - Outcome: implement room detail updates, two-finger swipe navigation, and
-    long-press sheets.
-  - Considerations: validate gestures on hardware for reliability.
-- **M2.3 — Security carousel** (status: ☐)
-  - Dependencies: M1.2.
-  - Outcome: build the camera carousel and event chips backed by mock Frigate
-    data.
-  - Considerations: respect the HLS → MJPEG → snapshot fallback described in
-    the AI guide.
+  - Outcome: define data structures for camera rotation and timeline chips,
+    exposing setters on `ui_page_cctv.*` so integrations can drive the view.
+  - Current state: not started; toolbar labels and chips are hard-coded.
+  - Considerations: plan for Frigate clip metadata and snapshot fallbacks.
+- **M2.3 — Weather and climate adapter** (status: ☐)
+  - Dependencies: M1.3.
+  - Outcome: add an adapter layer that formats indoor, outdoor, and forecast
+    data for `ui_page_weather.*`, including unit conversions and icon mapping.
+  - Current state: not started; the page renders placeholder Fahrenheit/Celsius
+    values without conversion helpers.
+  - Considerations: reuse formatting helpers across Settings where applicable.
+- **M2.4 — Media control hooks** (status: ☐)
+  - Dependencies: M1.4.
+  - Outcome: attach LVGL callbacks in `ui_page_media.*` that emit play/pause,
+    skip, volume, and quick-scene events to a media controller in
+    `custom/integration/`.
+  - Current state: not started; controls are visual only.
+  - Considerations: coordinate icon/text updates when playback state changes.
+- **M2.5 — Settings telemetry bridge** (status: ☐⚙)
+  - Dependencies: M1.5.
+  - Outcome: finish threading connection test results, OTA progress, and theme
+    persistence through `custom/integration/settings_controller.*` so UI status
+    pills stay in sync.
+  - Current state: partially implemented; `SettingsController` posts events but
+    lacks coverage for every action and has stubbed fallback messages when
+    platform services are unavailable.
+  - Considerations: audit async callbacks to ensure they survive suspend/resume
+    of the worker thread.
 
 ### Milestone 3 — Home Assistant integration
 
-- **M3.1 — MQTT for Home and Rooms** (status: ☐)
-  - Dependencies: M2.1 and M2.2.
-  - Outcome: replace mock providers with real MQTT subscriptions and publish
-    helpers.
-  - Considerations: extend `docs/mqtt_contract.md` with payload schemas.
-- **M3.2 — Frigate live view** (status: ☐)
-  - Dependencies: M2.3.
-  - Outcome: stream live video with fallback handling and update the event
-    timeline from Frigate.
-  - Considerations: measure frame times against `docs/PERFORMANCE.md`.
-- **M3.3 — Control center commands** (status: ☐)
+- **M3.1 — MQTT bindings for Rooms** (status: ☐)
   - Dependencies: M2.1.
-  - Outcome: publish brightness, volume, and toggle commands with rollback
-    timers.
-  - Considerations: log failures for debugging and expose status to the UI.
+  - Outcome: subscribe to room sensor and light topics defined in
+    `docs/mqtt_contract.md`, translate them into `rooms_state_t`, and publish
+    toggle commands emitted by `ui_page_rooms`.
+  - Current state: not started; Rooms still relies on compile-time mocks.
+  - Considerations: debounce slider updates so MQTT traffic stays bounded.
+- **M3.2 — Climate and weather ingestion** (status: ☐)
+  - Dependencies: M2.3.
+  - Outcome: map MQTT sensor payloads to the weather adapter and refresh indoor
+    metrics alongside settings-managed preferences like units and themes.
+  - Current state: not started; all weather values are placeholders.
+  - Considerations: document required topics and units in
+    `docs/mqtt_contract.md`.
+- **M3.3 — Media and Settings integration** (status: ☐)
+  - Dependencies: M2.4 and M2.5.
+  - Outcome: hook media control events into Assist/Home Assistant transports and
+    persist device settings (theme, brightness, updates) through MQTT or REST as
+    defined in `custom/integration/`.
+  - Current state: not started; media commands are local stubs and settings
+    persistence runs on in-memory defaults.
+  - Considerations: record integration quirks in `docs/ARCHITECTURE.md` and
+    expand `docs/mqtt_contract.md` when new topics are introduced.
 
 ### Milestone 4 — Quality and automation
 
