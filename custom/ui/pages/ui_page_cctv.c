@@ -171,7 +171,7 @@ static lv_obj_t* ui_page_create_content(lv_obj_t* page, const char* title_text)
         {"drive", "Driveway", "Vehicle Detected", "Today · 11:58"},
     };
 
-    for (size_t i = 0; i < LV_ARRAY_SIZE(k_event_cards); i++)
+    for (size_t i = 0; i < (sizeof(k_event_cards) / sizeof(k_event_cards[0])); i++)
     {
         ui_room_card_config_t event_config = {
             .room_id   = k_event_cards[i].room_id,
@@ -221,7 +221,7 @@ static lv_obj_t* ui_page_create_content(lv_obj_t* page, const char* title_text)
         "Timeline ▾",
     };
 
-    for (size_t i = 0; i < LV_ARRAY_SIZE(k_actions); i++)
+    for (size_t i = 0; i < (sizeof(k_actions) / sizeof(k_actions[0])); i++)
     {
         lv_obj_t* action_btn = lv_btn_create(actions_row);
         lv_obj_remove_style_all(action_btn);

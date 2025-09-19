@@ -141,7 +141,7 @@ lv_obj_t* ui_page_media_create(lv_obj_t* parent)
             lv_obj_clear_flag(transport_row, LV_OBJ_FLAG_SCROLLABLE);
 
             const char* button_labels[] = {"Prev", "Play/Pause", "Next"};
-            for (size_t i = 0; i < LV_ARRAY_SIZE(button_labels); i++)
+            for (size_t i = 0; i < (sizeof(button_labels) / sizeof(button_labels[0])); i++)
             {
                 lv_obj_t* control_btn = lv_btn_create(transport_row);
                 lv_obj_remove_style_all(control_btn);
@@ -214,7 +214,7 @@ lv_obj_t* ui_page_media_create(lv_obj_t* parent)
             lv_obj_clear_flag(scene_grid, LV_OBJ_FLAG_SCROLLABLE);
 
             const char* scene_labels[] = {"Morning", "Movie", "Night", "Party"};
-            for (size_t i = 0; i < LV_ARRAY_SIZE(scene_labels); i++)
+            for (size_t i = 0; i < (sizeof(scene_labels) / sizeof(scene_labels[0])); i++)
             {
                 lv_obj_t* scene_btn = lv_btn_create(scene_grid);
                 lv_obj_remove_style_all(scene_btn);
