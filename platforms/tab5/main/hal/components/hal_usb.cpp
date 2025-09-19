@@ -3,20 +3,24 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "hal/hal_esp32.h"
-#include <mooncake_log.h>
 #include <algorithm>
-#include <vector>
+#include <assets/assets.h>
 #include <driver/gpio.h>
-#include <memory>
-#include <mutex>
+#include <esp_log.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/task.h>
 #include <lvgl.h>
-#include <usb/usb_host.h>
+#include <memory>
+#include <mooncake_log.h>
+#include <mutex>
 #include <usb/hid_host.h>
 #include <usb/hid_usage_keyboard.h>
 #include <usb/hid_usage_mouse.h>
-#include <esp_log.h>
-#include <assets/assets.h>
+#include <usb/usb_host.h>
+#include <vector>
+
+#include "hal/hal_esp32.h"
 
 #define TAG "usba"
 
