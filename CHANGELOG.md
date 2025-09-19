@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.5.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.4.0...v1.5.0) (2025-09-19)
+
+
+### Features
+
+* **settings:** add threaded controller ([f13f0bf](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f13f0bf33f502caa5129f290eb9e2c1749df2baa))
+* **ui:** render wallpaper with launcher asset ([d9f9b37](https://github.com/baba-dev/M5Tab5-UserDemo/commit/d9f9b37a5c2874c83894f1195faa7e94e8434c8b))
+
+
+### Bug Fixes
+
+* **app:** include settings controller header ([273fb2a](https://github.com/baba-dev/M5Tab5-UserDemo/commit/273fb2ab731d5cdac69301434cdc9aeb073d0b71))
+* **build:** normalize settings includes ([cf01dcc](https://github.com/baba-dev/M5Tab5-UserDemo/commit/cf01dcc2dee5dd4dfbb82f17c71eda48b34cfd41))
+* **settings_ui:** refresh dim timer argument ([23c635d](https://github.com/baba-dev/M5Tab5-UserDemo/commit/23c635d93b1123968b9c8329c7ac5b4c45a6894a))
+* **ui:** cache theme option count ([43c5228](https://github.com/baba-dev/M5Tab5-UserDemo/commit/43c52283d812e9dadd75da3478cbc8f4caa7a4a8))
+* **ui:** include wallpaper assets from assets dir ([f205112](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f205112f495ce015df8897033c9b99820c666a6f))
+
 ## [1.4.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.3.0...v1.4.0) (2025-09-19)
 
 
