@@ -21,7 +21,7 @@
 #include <thread>
 #include <vector>
 
-#include "core/app_trace.h"
+#include "app_trace.h"
 #include "hal/hal.h"
 #include "settings_core/app_cfg.h"
 #include "settings_ui/settings_ui.h"

@@ -1,4 +1,5 @@
 set(PROJECT_COMPONENTS
+    core
     settings_core
     settings_ui
     connection_tester
