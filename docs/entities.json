@@ -1,74 +1,66 @@
 [
   {
-    "id": "light.living_room_lamp",
+    "id": "light.bakery_main",
+    "type": "light",
+    "area": "Bakery",
+    "ui_location": "Rooms page \u2192 Bakery card toggle",
+    "attributes": ["brightness"],
+    "notes": "Backs the Bakery card rendered by ui_page_rooms.c via ui_room_card."
+  },
+  {
+    "id": "light.bedroom_main",
+    "type": "light",
+    "area": "Bedroom",
+    "ui_location": "Rooms page \u2192 Bedroom card toggle",
+    "attributes": ["brightness"],
+    "notes": "Backs the Bedroom card rendered by ui_page_rooms.c via ui_room_card."
+  },
+  {
+    "id": "light.living_main",
     "type": "light",
     "area": "Living Room",
-    "ui_location": "Home dashboard hero tile",
+    "ui_location": "Rooms page \u2192 Living Room card toggle",
     "attributes": ["brightness"],
-    "notes": "Primary toggle used to validate light control plumbing."
-  },
-  {
-    "id": "light.kitchen_island",
-    "type": "light",
-    "area": "Kitchen",
-    "ui_location": "Home dashboard quick actions",
-    "attributes": ["brightness"],
-    "notes": "Displayed as a compact icon button."
-  },
-  {
-    "id": "switch.coffee_maker",
-    "type": "switch",
-    "area": "Kitchen",
-    "ui_location": "Automation shortcuts",
-    "attributes": [],
-    "notes": "Used for testing generic switch widgets."
+    "notes": "Backs the Living Room card rendered by ui_page_rooms.c via ui_room_card."
   },
   {
     "id": "climate.living_room",
     "type": "climate",
     "area": "Living Room",
-    "ui_location": "Climate panel",
+    "ui_location": "Weather page \u2192 Living Room Climate metrics",
     "attributes": ["temperature", "humidity", "hvac_mode"],
-    "notes": "Supports heat, cool, and auto modes."
-  },
-  {
-    "id": "media_player.living_room_display",
-    "type": "media_player",
-    "area": "Living Room",
-    "ui_location": "Media carousel",
-    "attributes": ["volume_level", "media_title", "media_artist"],
-    "notes": "Used to render album art and playback controls."
+    "notes": "Populates the Living Room Climate metrics assembled in ui_page_weather.c."
   },
   {
     "id": "sensor.tab5_temperature",
     "type": "sensor",
-    "area": "Tab5",
-    "ui_location": "Sensors page",
-    "attributes": ["unit_of_measurement:°C"],
-    "notes": "Reads local temperature from the board sensors."
+    "area": "Outdoor",
+    "ui_location": "Weather page \u2192 Outdoor Sensors card",
+    "attributes": ["unit_of_measurement:\u00B0C"],
+    "notes": "Displayed in the Outdoor Sensors metrics list inside ui_page_weather.c."
   },
   {
     "id": "sensor.tab5_humidity",
     "type": "sensor",
-    "area": "Tab5",
-    "ui_location": "Sensors page",
+    "area": "Outdoor",
+    "ui_location": "Weather page \u2192 Outdoor Sensors card",
     "attributes": ["unit_of_measurement:%"],
-    "notes": "Mirrors the humidity channel in telemetry charts."
+    "notes": "Displayed in the Outdoor Sensors metrics list inside ui_page_weather.c."
   },
   {
-    "id": "binary_sensor.tab5_motion",
-    "type": "binary_sensor",
-    "area": "Tab5",
-    "ui_location": "Security page",
-    "attributes": ["device_class:motion"],
-    "notes": "Backed by the IMU gesture detector."
+    "id": "media_player.now_playing",
+    "type": "media_player",
+    "area": "Living Room",
+    "ui_location": "Media page \u2192 Now Playing card",
+    "attributes": ["volume_level", "media_title", "media_artist"],
+    "notes": "Feeds the Now Playing ui_room_card layout created in ui_page_media.c."
   },
   {
-    "id": "button.tab5_sleep",
-    "type": "button",
+    "id": "light.tab5_backlight",
+    "type": "light",
     "area": "Tab5",
-    "ui_location": "Control center",
-    "attributes": [],
-    "notes": "Triggers low-power sleep mode from the UI."
+    "ui_location": "Settings page \u2192 Theme & Display brightness slider",
+    "attributes": ["brightness"],
+    "notes": "Controlled by the Theme & Display brightness slider built in ui_page_settings.c."
   }
 ]
