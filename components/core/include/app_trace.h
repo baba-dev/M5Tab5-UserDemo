@@ -110,6 +110,7 @@ inline void Trace(const char* section, const char* event, const char* fmt = null
 #define APP_LOG_WARN(tag, fmt, ...)  ::app_trace::Log(::app_trace::Level::kWarning, tag, fmt, ##__VA_ARGS__)
 #define APP_LOG_INFO(tag, fmt, ...)  ::app_trace::Log(::app_trace::Level::kInfo, tag, fmt, ##__VA_ARGS__)
 #define APP_LOG_DEBUG(tag, fmt, ...) ::app_trace::Log(::app_trace::Level::kDebug, tag, fmt, ##__VA_ARGS__)
+#define APP_TRACEI(tag, fmt, ...)    APP_LOG_INFO(tag, fmt, ##__VA_ARGS__)
 
 #define APP_ASSERT(expr)                                                                                     \
     do {                                                                                                     \
