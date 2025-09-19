@@ -340,7 +340,7 @@ static void event_card_clicked_cb(lv_event_t* event)
                 .event = &ctx->event_slots[i].event,
                 .index = i,
             };
-            lv_event_send(ctx->page, UI_PAGE_CCTV_EVENT_OPEN_CLIP, &clip);
+            lv_obj_send_event(ctx->page, UI_PAGE_CCTV_EVENT_OPEN_CLIP, &clip);
             break;
         }
     }
@@ -378,7 +378,7 @@ update_events(ui_page_cctv_ctx_t* ctx, const ui_page_cctv_event_t* events, size_
         ctx->event_count = 0;
         return;
     }
-    lv_memset_00(ctx->event_slots, sizeof(ui_page_cctv_event_slot_t) * event_count);
+    lv_memset(ctx->event_slots, 0, sizeof(ui_page_cctv_event_slot_t) * event_count);
 
     size_t created = 0;
 
@@ -527,7 +527,7 @@ static void toolbar_button_cb(lv_event_t* event)
         .muted         = ctx->muted,
     };
 
-    lv_event_send(ctx->page, UI_PAGE_CCTV_EVENT_ACTION, &data);
+    lv_obj_send_event(ctx->page, UI_PAGE_CCTV_EVENT_ACTION, &data);
 }
 
 static void action_button_cb(lv_event_t* event)
@@ -582,7 +582,7 @@ static void action_button_cb(lv_event_t* event)
         .muted         = ctx->muted,
     };
 
-    lv_event_send(ctx->page, UI_PAGE_CCTV_EVENT_ACTION, &data);
+    lv_obj_send_event(ctx->page, UI_PAGE_CCTV_EVENT_ACTION, &data);
 }
 
 static void hide_toggle(ui_room_card_t* card)
@@ -872,7 +872,7 @@ lv_obj_t* ui_page_cctv_create(lv_obj_t* parent)
     {
         return NULL;
     }
-    lv_memset_00(ctx, sizeof(ui_page_cctv_ctx_t));
+    lv_memset(ctx, 0, sizeof(ui_page_cctv_ctx_t));
 
     ctx->page = lv_obj_create(parent);
     if (ctx->page == NULL)
