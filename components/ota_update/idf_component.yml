@@ -1,0 +1,6 @@
+version: "0.1.0"
+description: Helpers for performing OTA firmware updates.
+targets:
+  - esp32p4
+dependencies:
+  idf: ">=5.3"

@@ -5,7 +5,7 @@ idf_component_register(
         "include"
     REQUIRES
         esp_http_client
-        esp_tls
+        esp-tls
         esp_wifi
         log
 )

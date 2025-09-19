@@ -1,4 +1,16 @@
 dependencies:
+  backup_server:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    - name: espressif/settings_core
+      version: ^0.1.0
+    source:
+      path: /workspace/M5Tab5-UserDemo/components/backup_server
+      type: local
+    targets:
+    - esp32p4
+    version: 0.1.0
   chmorgan/esp-audio-player:
     component_hash: c8ac1998e9af863bc41b57e592f88d1a5791a0f891485122336ddabbf7a65033
     dependencies:
@@ -33,6 +45,30 @@ dependencies:
       registry_url: https://components.espressif.com
       type: service
     version: 1.0.3
+  connection_tester:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    source:
+      path: /workspace/M5Tab5-UserDemo/components/connection_tester
+      type: local
+    targets:
+    - esp32p4
+    version: 0.1.0
+  diag:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    - name: espressif/settings_core
+      version: ^0.1.0
+    - name: espressif/mdns
+      version: ^1.8.0
+    source:
+      path: /workspace/M5Tab5-UserDemo/components/diag
+      type: local
+    targets:
+    - esp32p4
+    version: 0.1.0
   espressif/cmake_utilities:
     component_hash: 351350613ceafba240b761b4ea991e0f231ac7a9f59a9ee901f751bddc0bb18f
     dependencies:
@@ -44,7 +80,7 @@ dependencies:
       type: service
     version: 0.5.3
   espressif/eppp_link:
-    component_hash: 587abf150563ee0efeeba88e3c7cf46675ab5bd752a788f4b9c88a54649221dd
+    component_hash: 24fa36b363cbf5f9321817fca0be15777d59e24e947ece66092691c89a7cf1f1
     dependencies:
     - name: espressif/esp_serial_slave_link
       registry_url: https://components.espressif.com
@@ -56,7 +92,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 1.1.0
+    version: 1.1.2
   espressif/esp_codec_dev:
     component_hash: 18c22e1411224ba6103c4aca1b01bc740af33926756e9e106370a477d52bcba1
     dependencies:
@@ -158,7 +194,7 @@ dependencies:
       type: service
     version: 1.0.0
   espressif/esp_serial_slave_link:
-    component_hash: d8c13c033a7604e9333b5d8ea45e0d6fec908fd552df7db20d33dd8d6916528d
+    component_hash: 7cd3bae703cc6136b578ef521b2f9df3171d029775a3558f0efdb200a3b04f57
     dependencies:
     - name: idf
       require: private
@@ -166,7 +202,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 1.1.0~1
+    version: 1.1.1~1
   espressif/esp_wifi_remote:
     component_hash: f772731a8cc7361a3eb416eac94ac46cf85369cb996c5a5fc9245a07f241fee2
     dependencies:
@@ -197,6 +233,16 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 3.0.0
+  espressif/mdns:
+    component_hash: 3ec0af5f6bce310512e90f482388d21cc7c0e99668172d2f895356165fc6f7c5
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.8.2
   espressif/usb_host_hid:
     component_hash: eabf03fe3cb1bdb5325d2725f420c6324c3e150033d893ce3737222929455a55
     dependencies:
@@ -222,9 +268,54 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     version: 8.4.0
+  net_sntp:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    source:
+      path: /workspace/M5Tab5-UserDemo/components/net_sntp
+      type: local
+    targets:
+    - esp32p4
+    version: 0.1.0
+  ota_update:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    source:
+      path: /workspace/M5Tab5-UserDemo/components/ota_update
+      type: local
+    targets:
+    - esp32p4
+    version: 0.1.0
+  settings_core:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    source:
+      path: /workspace/M5Tab5-UserDemo/components/settings_core
+      type: local
+    targets:
+    - esp32p4
+    version: 0.1.0
+  settings_ui:
+    dependencies:
+    - name: idf
+      version: '>=5.3'
+    - name: espressif/settings_core
+      version: ^0.1.0
+    source:
+      path: /workspace/M5Tab5-UserDemo/components/settings_ui
+      type: local
+    targets:
+    - esp32p4
+    version: 0.1.0
 direct_dependencies:
+- backup_server
 - chmorgan/esp-audio-player
 - chmorgan/esp-file-iterator
+- connection_tester
+- diag
 - espressif/cmake_utilities
 - espressif/esp_codec_dev
 - espressif/esp_h264
@@ -238,6 +329,10 @@ direct_dependencies:
 - espressif/usb_host_hid
 - idf
 - lvgl/lvgl
-manifest_hash: e057e8886cf9f2347aa190584b841da208b81ce73a0b80bf5d12a7a22e4c9d58
+- net_sntp
+- ota_update
+- settings_core
+- settings_ui
+manifest_hash: 77e2c7de48ccb30ea8cf4c11dde6c1640f00f5dd023fc1e748d57d554cab933d
 target: esp32p4
 version: 2.0.0
