@@ -131,10 +131,10 @@ static void _rec_test_task(void* param)
 
     // Create buffers
     if (_rec_test_data.audio_buffer == nullptr) {
-        _rec_test_data.audio_buffer = new int16_t[audio_buffer_size](0);
+        _rec_test_data.audio_buffer = new int16_t[audio_buffer_size]();
     }
     if (_rec_test_data.read_buffer == nullptr) {
-        _rec_test_data.read_buffer = new int16_t[read_buffer_size](0);
+        _rec_test_data.read_buffer = new int16_t[read_buffer_size]();
     }
 
     const size_t sample_rate   = 48000;
