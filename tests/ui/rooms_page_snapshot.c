@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "custom/ui/pages/ui_page_rooms.h"
+#include "integration/rooms_provider.h"
 #include "lvgl.h"
 
 #define SNAP_SCREEN_WIDTH  1280
@@ -49,6 +50,8 @@ int main(void)
 
     lv_obj_t* screen = lv_screen_active();
     lv_obj_clean(screen);
+
+    rooms_provider_reset_state();
 
     lv_obj_t* page = ui_page_rooms_create(screen);
     if (page == NULL)

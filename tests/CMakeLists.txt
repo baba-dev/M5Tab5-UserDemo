@@ -76,21 +76,26 @@ target_include_directories(ui_assets_stub PUBLIC
 target_link_libraries(ui_assets_stub PUBLIC lvgl::lvgl lvgl_config)
 
 # -----------------------------
-# Rooms page UI under test
+# Rooms page UI under test (optional via BUILD_ROOMS_TESTS)
 # -----------------------------
 if (BUILD_ROOMS_TESTS)
   add_library(ui_rooms_under_test
     ${REPO_ROOT}/custom/ui/pages/ui_page_rooms.c
-    ${REPO_ROOT}/custom/ui/ui_wallpaper.c
+    ${REPO_ROOT}/custom/ui/pages/ui_rooms_model.c
     ${REPO_ROOT}/custom/ui/widgets/ui_room_card.c
+    ${REPO_ROOT}/custom/ui/ui_theme.c
+    ${REPO_ROOT}/custom/ui/ui_wallpaper.c
+    ${REPO_ROOT}/custom/integration/rooms_provider.c
   )
   target_include_directories(ui_rooms_under_test PUBLIC
     ${REPO_ROOT}/custom/ui
     ${REPO_ROOT}/custom/ui/pages
     ${REPO_ROOT}/custom/ui/widgets
+    ${REPO_ROOT}/custom/integration
     ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs
   )
   target_link_libraries(ui_rooms_under_test PUBLIC lvgl::lvgl lvgl_config ui_assets_stub)
+  # Some tests stub LVGL event bounds; keep compatible with our test doubles
   target_compile_definitions(ui_rooms_under_test PUBLIC LV_EVENT_LAST=2000)
 
   add_executable(rooms_page_test
@@ -104,7 +109,7 @@ if (BUILD_ROOMS_TESTS)
 endif()
 
 # -----------------------------
-# Settings page UI under test
+# Settings page UI under test (always built)
 # -----------------------------
 add_library(ui_settings_under_test
   ${REPO_ROOT}/custom/ui/pages/ui_page_settings.c
@@ -114,6 +119,7 @@ add_library(ui_settings_under_test
 target_include_directories(ui_settings_under_test PUBLIC
   ${REPO_ROOT}/custom/ui
   ${REPO_ROOT}/custom/ui/pages
+  ${REPO_ROOT}/custom/integration
   ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs
 )
 target_link_libraries(ui_settings_under_test PUBLIC lvgl::lvgl lvgl_config ui_assets_stub)
@@ -149,11 +155,25 @@ if (NOT ROMS_ONLY)
     ${CMAKE_CURRENT_SOURCE_DIR}/unit/stubs
   )
 
+  add_library(weather_formatter_under_test
+    ${REPO_ROOT}/custom/integration/weather_formatter.cpp
+  )
+  target_include_directories(weather_formatter_under_test PUBLIC
+    ${REPO_ROOT}/custom
+  )
+
   add_executable(unit_tests
     unit/test_ringbuf.cpp
     unit/test_settings.cpp
     unit/test_app_cfg.cpp
+    unit/test_weather_formatter.cpp
   )
-  target_link_libraries(unit_tests PRIVATE app_core settings_core_under_test GTest::gtest GTest::gtest_main)
+  target_link_libraries(unit_tests PRIVATE
+    app_core
+    settings_core_under_test
+    weather_formatter_under_test
+    GTest::gtest
+    GTest::gtest_main
+  )
   add_test(NAME unit_tests COMMAND unit_tests)
 endif()

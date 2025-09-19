@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "custom/ui/pages/ui_page_rooms.h"
+#include "integration/rooms_provider.h"
 #include "lvgl.h"
 
 #define TEST_SCREEN_WIDTH  1280
@@ -101,6 +102,8 @@ int main(void)
     lv_obj_t* screen = lv_screen_active();
     lv_obj_clean(screen);
 
+    rooms_provider_reset_state();
+
     lv_obj_t* page = ui_page_rooms_create(screen);
     if (page == NULL)
     {
@@ -141,6 +144,76 @@ int main(void)
             return 1;
         }
     }
+
+    room_entity_t bakery_main = {
+        .entity_id = "light.bakery_main",
+        .kind      = ROOM_ENTITY_LIGHT,
+        .available = true,
+        .on        = true,
+        .value     = 10,
+    };
+    room_entity_t bedroom_main = {
+        .entity_id = "light.bedroom_main",
+        .kind      = ROOM_ENTITY_LIGHT,
+        .available = true,
+        .on        = false,
+        .value     = -1,
+    };
+    room_entity_t living_scene = {
+        .entity_id = "switch.living_scene",
+        .kind      = ROOM_ENTITY_SWITCH,
+        .available = true,
+        .on        = true,
+        .value     = -1,
+    };
+
+    room_entity_t* bakery_entities[]  = {&bakery_main};
+    room_entity_t* bedroom_entities[] = {&bedroom_main};
+    room_entity_t* living_entities[]  = {&living_scene};
+
+    room_t updated_rooms[] = {
+        {.room_id      = "bakery",
+         .name         = "Bakery",
+         .entities     = bakery_entities,
+         .entity_count = 1,
+         .temp_c       = 22,
+         .humidity     = 41},
+        {.room_id      = "bedroom",
+         .name         = "Bedroom",
+         .entities     = bedroom_entities,
+         .entity_count = 1,
+         .temp_c       = 21,
+         .humidity     = 46},
+        {.room_id      = "living",
+         .name         = "Living Room",
+         .entities     = living_entities,
+         .entity_count = 1,
+         .temp_c       = 24,
+         .humidity     = 44},
+    };
+
+    rooms_state_t updated_state = {
+        .rooms      = updated_rooms,
+        .room_count = sizeof(updated_rooms) / sizeof(updated_rooms[0]),
+    };
+
+    rooms_provider_set_state(&updated_state);
+    ui_page_rooms_set_state(rooms_provider_get_state());
+
+    lv_obj_t* living_toggle = ui_page_rooms_get_toggle("living");
+    if (!ensure(living_toggle != NULL, "Living toggle missing after update"))
+    {
+        return 1;
+    }
+    lv_obj_send_event(living_toggle, LV_EVENT_CLICKED, NULL);
+    if (!ensure(capture.last_entity != NULL
+                    && strcmp(capture.last_entity, "switch.living_scene") == 0,
+                "Updated entity id not reflected"))
+    {
+        return 1;
+    }
+
+    rooms_provider_reset_state();
 
     for (size_t i = 0; i < k_room_count; i++)
     {

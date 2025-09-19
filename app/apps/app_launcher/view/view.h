@@ -14,6 +14,11 @@
 
 #include "integration/settings_controller.h"
 
+namespace custom::integration
+{
+    class CctvController;
+}
+
 struct ui_root_t;
 
 namespace launcher_view
@@ -319,6 +324,7 @@ namespace launcher_view
         std::vector<std::unique_ptr<PanelBase>>                  _panels;
         ui_root_t*                                               _ui_root = nullptr;
         std::unique_ptr<custom::integration::SettingsController> _settings_controller;
+        std::unique_ptr<custom::integration::CctvController>     _cctv_controller;
 
         void update_anim();
     };
