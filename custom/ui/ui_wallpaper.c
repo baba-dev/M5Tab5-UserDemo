@@ -5,7 +5,7 @@
  */
 #include "ui_wallpaper.h"
 
-#include "app/assets/assets.h"
+#include "assets/assets.h"
 
 ui_wallpaper_t* ui_wallpaper_attach(lv_obj_t* parent)
 {
