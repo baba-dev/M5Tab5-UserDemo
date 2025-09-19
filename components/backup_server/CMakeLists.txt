@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+        "src/backup_server.c"
+        "src/backup_format.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        settings_core
+        esp_http_server
+        log
+)

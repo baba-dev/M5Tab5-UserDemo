@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+        "src/net_sntp.c"
+    INCLUDE_DIRS
+        "include"
+    REQUIRES
+        esp_netif
+        esp_wifi
+        esp_timer
+        log
+)
