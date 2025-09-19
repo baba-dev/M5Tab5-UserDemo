@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.2](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.1...v1.6.2) (2025-09-19)
+
+
+### Bug Fixes
+
+* **integration:** include correct app trace header ([ee155a7](https://github.com/baba-dev/M5Tab5-UserDemo/commit/ee155a7da500b6e010dc18e687c6616e98e2f9a0))
+* **ui:** update cctv page events ([b025af8](https://github.com/baba-dev/M5Tab5-UserDemo/commit/b025af8afd399b8989cd907f30023e1bc0e32bc9))
+
 ## [1.6.1](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.0...v1.6.1) (2025-09-19)
 
 
