@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.1](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.0...v1.6.1) (2025-09-19)
+
+
+### Bug Fixes
+
+* **app_launcher:** add cctv controller using ([a52a239](https://github.com/baba-dev/M5Tab5-UserDemo/commit/a52a2398a262eca271a5282069cc50479f8b50a9))
+* **app_launcher:** include integration headers ([f5fbc9e](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f5fbc9e452224c32adeff8f1159f7d77ee91cb9e))
+* **core:** add APP_TRACEI alias ([8a128e2](https://github.com/baba-dev/M5Tab5-UserDemo/commit/8a128e2f7189e86f4c08fb129d728e93d8ba66f1))
+* **integration:** clean clip event handler ([367937b](https://github.com/baba-dev/M5Tab5-UserDemo/commit/367937b9c88ddee6a9d3b1f104e7c4c07e012d79))
+
 ## [1.6.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.5.0...v1.6.0) (2025-09-19)
 
 
