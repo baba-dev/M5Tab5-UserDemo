@@ -18,12 +18,22 @@ struct ui_nav_rail_t {
     lv_coord_t hidden_offset;
 };
 
-static const char *k_nav_icons[UI_NAV_PAGE_COUNT] = {
-    LV_SYMBOL_DRIVE, LV_SYMBOL_HOME, LV_SYMBOL_VIDEO, LV_SYMBOL_GPS, LV_SYMBOL_AUDIO,
+static const char* k_nav_icons[UI_NAV_PAGE_COUNT] = {
+    LV_SYMBOL_DRIVE,
+    LV_SYMBOL_HOME,
+    LV_SYMBOL_VIDEO,
+    LV_SYMBOL_GPS,
+    LV_SYMBOL_AUDIO,
+    LV_SYMBOL_SETTINGS,
 };
 
-static const char *k_nav_labels[UI_NAV_PAGE_COUNT] = {
-    "ESP32P4", "Rooms", "Frigate Security", "Local Climate", "Media",
+static const char* k_nav_labels[UI_NAV_PAGE_COUNT] = {
+    "ESP32P4",
+    "Rooms",
+    "Frigate Security",
+    "Local Climate",
+    "Media",
+    "Settings",
 };
 
 static void ui_nav_button_event_cb(lv_event_t *event)

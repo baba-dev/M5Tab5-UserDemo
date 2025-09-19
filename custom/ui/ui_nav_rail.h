@@ -31,6 +31,7 @@ typedef enum {
     UI_NAV_PAGE_CCTV,
     UI_NAV_PAGE_WEATHER,
     UI_NAV_PAGE_MEDIA,
+    UI_NAV_PAGE_SETTINGS,
     UI_NAV_PAGE_COUNT
 } ui_nav_page_t;
 
