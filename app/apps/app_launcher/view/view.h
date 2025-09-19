@@ -12,6 +12,8 @@
 #include <smooth_ui_toolkit.h>
 #include <vector>
 
+#include "integration/cctv_controller.h"
+#include "integration/media_controller.h"
 #include "integration/settings_controller.h"
 
 namespace custom::integration
