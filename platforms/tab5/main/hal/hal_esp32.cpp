@@ -7,6 +7,7 @@
 extern "C" {
 #include "utils/rx8130/rx8130.h"
 }
+#include <algorithm>
 #include <mooncake_log.h>
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>

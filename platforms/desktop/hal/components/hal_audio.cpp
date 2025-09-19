@@ -7,6 +7,7 @@
 #include "hal/hal.h"
 #include <cmath>
 #include <mooncake_log.h>
+#include <algorithm>
 #include <SDL2/SDL.h>
 #include <thread>
 #include <iostream>

@@ -6,6 +6,7 @@
 #include "hal_desktop.h"
 #include <SDL2/SDL.h>
 #include <mooncake_log.h>
+#include <algorithm>
 #include <random>
 #include <filesystem>
 #include <thread>
