@@ -22,7 +22,8 @@ idf_component_register(
     SRCS "app_main.cpp" ${APP_LAYER_SRCS} ${MY_HAL_SRCS}
     INCLUDE_DIRS "." ${APP_LAYER_INCS}
     REQUIRES backup_server connection_tester diag net_sntp ota_update settings_core
-             settings_ui
+             settings_ui m5stack_tab5 esp_wifi esp_netif esp_event nvs_flash
+             esp_http_server
     EMBED_TXTFILES "../audio/canon_in_d.mp3" "../audio/startup_sfx.mp3" "../audio/shutdown_sfx.mp3")
 
 set(CUSTOM_ASSETS_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../custom/assets")
