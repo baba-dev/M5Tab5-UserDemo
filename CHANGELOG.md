@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.5.0...v1.6.0) (2025-09-19)
+
+
+### Features
+
+* **cctv:** add model and frigate glue ([81e208d](https://github.com/baba-dev/M5Tab5-UserDemo/commit/81e208d21be17d26ecb66e02ca6fc08a1bc5c750))
+* **integration:** add weather formatter ([1ddf8c9](https://github.com/baba-dev/M5Tab5-UserDemo/commit/1ddf8c9adaebc8ec8c8f42074af35d17233e656c))
+* **rooms:** add integration rooms provider ([3188438](https://github.com/baba-dev/M5Tab5-UserDemo/commit/31884380fb305a089da52b7badb28f1fe34f951b))
+* **settings:** surface live action status ([ea36c9b](https://github.com/baba-dev/M5Tab5-UserDemo/commit/ea36c9b7d81e7c105fee39840172fdf5a0cde7c3))
+
 ## [1.5.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.4.0...v1.5.0) (2025-09-19)
 
 
