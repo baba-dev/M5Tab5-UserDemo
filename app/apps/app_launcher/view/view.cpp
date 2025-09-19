@@ -13,6 +13,7 @@
 #include <smooth_lvgl.h>
 #include <smooth_ui_toolkit.h>
 
+#include "integration/cctv_controller.h"
 #include "integration/settings_controller.h"
 #include "ui/pages/ui_page_settings.h"
 #include "ui/ui_root.h"
@@ -65,6 +66,7 @@ void LauncherView::init()
 
     if (_ui_root != nullptr)
     {
+        _cctv_controller.reset();
         _settings_controller.reset();
         ui_root_destroy(_ui_root);
         _ui_root = nullptr;
@@ -73,6 +75,7 @@ void LauncherView::init()
     if (_ui_root != nullptr)
     {
         _settings_controller = std::make_unique<SettingsController>();
+        _cctv_controller     = std::make_unique<CctvController>();
 
         ui_page_settings_actions_t actions{};
         actions.run_connection_test = [](const char* tester_id, void* user_data)
@@ -182,6 +185,10 @@ void LauncherView::init()
 
         ui_page_settings_set_actions(&actions, _settings_controller.get());
         _settings_controller->PublishInitialState();
+        if (_cctv_controller != nullptr)
+        {
+            _cctv_controller->PublishInitialState();
+        }
     }
 }
 
@@ -197,6 +204,7 @@ void LauncherView::update()
 
 LauncherView::~LauncherView()
 {
+    _cctv_controller.reset();
     _settings_controller.reset();
     if (_ui_root != nullptr)
     {
