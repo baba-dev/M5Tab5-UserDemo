@@ -31,7 +31,6 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "hal/hal_esp32.h"
-#include "imlib.h"
 #include "linux/videodev2.h"
 
 #define CAMERA_WIDTH  1280
