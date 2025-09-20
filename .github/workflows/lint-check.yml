@@ -40,6 +40,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
 
       - name: Setup C++ tooling
         uses: aminya/setup-cpp@v1

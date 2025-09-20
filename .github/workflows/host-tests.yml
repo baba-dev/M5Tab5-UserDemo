@@ -12,6 +12,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
 
       # Install build tools and GTest
       - name: Install deps

@@ -50,6 +50,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          lfs: false
+          submodules: recursive
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Run clang-format style check for C/C++/Protobuf programs.

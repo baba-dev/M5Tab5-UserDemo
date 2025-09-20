@@ -10,6 +10,9 @@ jobs:
     permissions: { security-events: write, contents: read }
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
       - uses: github/codeql-action/init@v3
         with: { languages: 'cpp' }
       - uses: github/codeql-action/autobuild@v3
