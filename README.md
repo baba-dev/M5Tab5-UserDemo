@@ -113,6 +113,8 @@ Our custom data is in the following folders:
 - **ESP-IDF v5.4.2** (tested with the ESP32-P4 target)
 - **Python 3.8+** (for build scripts)
 - Toolchain installed per [Espressif instructions](https://docs.espressif.com/projects/esp-idf/en/latest/esp32p4/get-started/)
+- **libusb-1.0 runtime** (required by OpenOCD). On Debian/Ubuntu install via
+  `sudo apt-get install libusb-1.0-0`; on macOS use `brew install libusb`.
 
 > Tested with ESP-IDF v5.4.2 for esp32p4; newer releases may require additional fixes.
 
