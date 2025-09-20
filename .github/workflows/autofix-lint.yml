@@ -23,6 +23,8 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
         with:
+          lfs: false
+          submodules: recursive
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}

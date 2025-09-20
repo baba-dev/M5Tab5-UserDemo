@@ -4,6 +4,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+import base64
+import textwrap
 import os
 import shutil
 import struct
@@ -18,7 +20,8 @@ OUTPUT_DIR = PROJECT_ROOT / "tests" / "ui" / "output"
 GOLDEN_DIR = PROJECT_ROOT / "tests" / "ui" / "golden"
 RAW_SNAPSHOT = OUTPUT_DIR / "rooms_three_cards.raw"
 PNG_SNAPSHOT = OUTPUT_DIR / "rooms_three_cards.png"
-GOLDEN_SNAPSHOT = GOLDEN_DIR / "rooms_three_cards.png"
+GOLDEN_SNAPSHOT_B64 = GOLDEN_DIR / "rooms_three_cards.png.base64"
+GOLDEN_PREVIEW = GOLDEN_DIR / "rooms_three_cards.png"
 
 WIDTH = 1280
 HEIGHT = 720
@@ -95,18 +98,25 @@ class RoomsPageTests(unittest.TestCase):
         self.assertTrue(RAW_SNAPSHOT.exists(), "Snapshot generator did not create raw output")
 
         _rgb565_to_png(RAW_SNAPSHOT, PNG_SNAPSHOT)
+        generated = PNG_SNAPSHOT.read_bytes()
 
         if os.getenv("UPDATE_GOLDEN"):
-            GOLDEN_SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(PNG_SNAPSHOT, GOLDEN_SNAPSHOT)
+            GOLDEN_SNAPSHOT_B64.parent.mkdir(parents=True, exist_ok=True)
+            encoded = base64.b64encode(generated).decode("ascii")
+            wrapped = "\n".join(textwrap.wrap(encoded, 76))
+            GOLDEN_SNAPSHOT_B64.write_text(wrapped + "\n", encoding="ascii")
+            shutil.copy2(PNG_SNAPSHOT, GOLDEN_PREVIEW)
 
-        if not GOLDEN_SNAPSHOT.exists():
+        if not GOLDEN_SNAPSHOT_B64.exists():
             self.fail(
                 "Golden snapshot missing. Run scripts/update_goldens.sh to refresh the reference image."
             )
 
-        generated = PNG_SNAPSHOT.read_bytes()
-        golden = GOLDEN_SNAPSHOT.read_bytes()
+        golden = base64.b64decode(GOLDEN_SNAPSHOT_B64.read_text(encoding="ascii"))
+        try:
+            GOLDEN_PREVIEW.write_bytes(golden)
+        except OSError:
+            pass
         self.assertEqual(golden, generated, "Snapshot PNG does not match golden reference")
 
 
