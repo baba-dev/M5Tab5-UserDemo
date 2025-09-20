@@ -9,8 +9,8 @@ dependencies:
   espressif/led_strip: 3.0.0
   espressif/esp_lcd_ili9881c: ^1.0.1
   espressif/cjson: '*'
-  settings_core:
-    path: ../../../components/settings_core
+  espressif/settings_core:
+    override_path: ../../../components/settings_core
   settings_ui:
     path: ../../../components/settings_ui
   connection_tester:
