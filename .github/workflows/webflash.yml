@@ -20,7 +20,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           # We named the artifact with the build run_id in the IDF workflow
-          name: tab5-build-${{ github.event.workflow_run.id }}
+          name: tab5-build
           # v5 supports cross-run downloads when given run-id & token/permissions
           run-id: ${{ github.event.workflow_run.id }}
           path: _dl
