@@ -11,15 +11,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: false
+          lfs: true            # if you track any assets with Git LFS
+
+      - name: Set up Python (for fetch script)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python deps (if any)
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Fetch external repos (matches your local step)
+        run: python ./fetch_repos.py
+        # runs in repo root, same as your local flow
 
       - name: Build with ESP-IDF 5.4.2 for ESP32-P4
         uses: espressif/esp-idf-ci-action@v1
         with:
           esp_idf_version: v5.4.2
           target: esp32p4
-          command: |
-            . /opt/esp/idf/export.sh
-            cd platforms/tab5
-            idf.py set-target esp32p4
-            idf.py build
+          path: platforms/tab5
+          command: idf.py build
+        # The CI action already sets up the IDF environment. :contentReference[oaicite:2]{index=2}
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tab5-firmware-${{ github.sha }}
+          path: |
+            platforms/tab5/build/**/*.bin
+            platforms/tab5/build/**/*.elf
+            platforms/tab5/build/**/*.map
