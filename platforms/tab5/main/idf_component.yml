@@ -8,11 +8,10 @@ dependencies:
   chmorgan/esp-file-iterator: 1.0.0
   espressif/led_strip: 3.0.0
   espressif/esp_lcd_ili9881c: ^1.0.1
-  espressif/cJSON: '*'
-  settings_core:
-    path: ../../../components/settings_core
-  settings_ui:
-    path: ../../../components/settings_ui
+  espressif/settings_core:
+    override_path: ../../../components/settings_core
+  espressif/settings_ui:
+    override_path: ../../../components/settings_ui
   connection_tester:
     path: ../../../components/connection_tester
   net_sntp:
