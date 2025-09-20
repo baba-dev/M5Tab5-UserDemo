@@ -45,6 +45,9 @@ jobs:
       - name: Build rooms_page_test
         run: cmake --build tests/build --target rooms_page_test -j
 
+      - name: List golden assets
+        run: ls -la tests/ui/golden
+
       - name: Run tests
         run: ctest --test-dir tests/build --output-on-failure --timeout 60
 
