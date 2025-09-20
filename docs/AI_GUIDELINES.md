@@ -31,6 +31,7 @@ safety rails, and formatting rules for automated contributions.
 
 - Run `idf.py build` before finalizing a change. Resolve compiler warnings
   rather than silencing them.
+- Run `bash scripts/preflight.sh` and ensure it exits 0 before opening a PR.
 - Execute `idf.py lint` when modifying integration metadata or component
   manifests.
 - Run `npx markdownlint docs` after editing Markdown. Fix or justify any

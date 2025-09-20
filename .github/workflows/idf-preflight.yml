@@ -1,0 +1,47 @@
+name: IDF Preflight (esp32p4)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install Python deps (pytest-embedded optional; enables on-target tests when HW is present)
+      - name: Python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pyserial pytest pytest-embedded pytest-embedded-idf
+        shell: bash
+
+      # Install ESP-IDF using official action (respects Linux runners)
+      - name: Install ESP-IDF
+        uses: espressif/install-esp-idf-action@v1
+        with:
+          version: latest
+      # Alternatively, to match your repo script exactly, source your installer:
+      # - run: bash tools/install_idf.sh
+
+      - name: Preflight
+        shell: bash
+        run: |
+          bash scripts/preflight.sh
+
+      # Upload build artifacts & logs for debugging
+      - name: Archive build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tab5-build
+          path: |
+            platforms/tab5/build/**
+            **/build/tests/**
+          if-no-files-found: ignore

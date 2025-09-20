@@ -21,6 +21,7 @@ Run these from the repository root unless noted otherwise.
 | --- | --- | --- |
 | `idf.py set-target esp32p4` | First build in a fresh checkout | Only needed once per workspace unless you clean the build folder.
 | `idf.py build` | Every PR | Must succeed; catches most integration issues.
+| `bash scripts/preflight.sh` | Before requesting review | Runs repo installer, fetches deps, builds Tab5, runs tests, and checks for boot loops when SERIAL_PORT is set. |
 | `idf.py clang-format` <br>or `clang-format -style=file -i <files>` | Whenever C/C++ is touched | Uses the repo's `.clang-format` (clang-format 13). Stage formatted files.
 | `idf.py lint` | When modifying components or build metadata | Ensures `idf_component.yml` metadata stays valid; safe to run even if no changes were made.
 | `ctags -R` / IDE index refresh | Optional but recommended | Keeps symbol navigation accurate after large refactors.
