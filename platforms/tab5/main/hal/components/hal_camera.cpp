@@ -296,8 +296,8 @@ void app_camera_display(void* arg)
     constexpr uint32_t kRgb565BytesPerPixel = 2;
     uint32_t           img_show_size        = screen_width * screen_height * kRgb565BytesPerPixel;
     // uint32_t img_offset = 280 * 720 * 2;
-        heap_caps_free(img_show);
-        img_show = NULL;
+    heap_caps_free(img_show_data);
+    img_show_data = NULL;
     }
     // close(camera->fd);
 
