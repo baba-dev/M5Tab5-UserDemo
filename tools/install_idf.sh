@@ -26,12 +26,14 @@ fi
 
 if [ ! -d "${IDF_PATH}/.git" ]; then
   echo "Cloning ESP-IDF ${ESP_IDF_VERSION} into ${IDF_PATH}"
-  git clone --depth 1 --branch "${ESP_IDF_VERSION}" "${REPO_URL}" "${IDF_PATH}"
+  git clone --depth 1 --branch "${ESP_IDF_VERSION}" --recurse-submodules "${REPO_URL}" "${IDF_PATH}"
 else
   echo "Updating existing ESP-IDF checkout at ${IDF_PATH}"
   git -C "${IDF_PATH}" fetch --depth 1 origin "${ESP_IDF_VERSION}"
   git -C "${IDF_PATH}" reset --hard FETCH_HEAD
 fi
+
+git -C "${IDF_PATH}" submodule update --init --recursive --depth 1
 
 if [ ! -x "${IDF_PATH}/install.sh" ]; then
   echo "Error: install.sh not found or not executable in ${IDF_PATH}." >&2
