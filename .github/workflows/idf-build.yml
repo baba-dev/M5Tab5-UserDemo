@@ -42,7 +42,9 @@ jobs:
       - name: Upload build artifacts (entire build dir)
         uses: actions/upload-artifact@v4
         with:
-          name: tab5-build-${{ github.run_id }}
+          name: tab5-build
           path: |
             platforms/tab5/build/**
-          retention-days: 7
+          retention-days: 7         
+          
+          
