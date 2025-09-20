@@ -16,6 +16,45 @@ for cmd in git python3 bash; do
   fi
 done
 
+check_libusb() {
+  python3 - <<'PY'
+import ctypes
+import sys
+
+NAMES = (
+    "libusb-1.0.so.0",
+    "libusb-1.0.dylib",
+    "libusb-1.0.dll",
+)
+
+for name in NAMES:
+    try:
+        ctypes.CDLL(name)
+    except OSError:
+        continue
+    else:
+        sys.exit(0)
+
+sys.exit(1)
+PY
+}
+
+if ! check_libusb; then
+  case "$(uname -s)" in
+    Linux)
+      echo "Error: libusb-1.0 runtime not found. Install it with 'sudo apt-get install libusb-1.0-0'" \
+        "or the equivalent package for your distribution." >&2
+      ;;
+    Darwin)
+      echo "Error: libusb runtime not found. Install it with 'brew install libusb'." >&2
+      ;;
+    *)
+      echo "Error: libusb runtime not found. Please install libusb-1.0 for your platform." >&2
+      ;;
+  esac
+  exit 1
+fi
+
 mkdir -p "${ESP_IDF_ROOT}"
 
 if [ -d "${IDF_PATH}" ] && [ ! -d "${IDF_PATH}/.git" ]; then
