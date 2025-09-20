@@ -698,7 +698,11 @@ CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"
 CONFIG_PARTITION_TABLE_OFFSET=0x8000
 CONFIG_PARTITION_TABLE_MD5=y
 # end of Partition Table
-
+#
+# Tab5 application
+#
+CONFIG_APP_LOG_LEVEL=3
+# end of Tab5 application
 #
 # Compiler options
 #
