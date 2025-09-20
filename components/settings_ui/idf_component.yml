@@ -3,5 +3,5 @@ description: UI for configuring application settings.
 targets:
   - esp32p4
 dependencies:
-  esp-idf: "~5.4"
+  idf: "~5.4"
   settings_core: "^0.1.0"

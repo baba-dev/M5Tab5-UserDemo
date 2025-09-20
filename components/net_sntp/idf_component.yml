@@ -3,4 +3,4 @@ description: SNTP client wrapper for maintaining network time.
 targets:
   - esp32p4
 dependencies:
-  esp-idf: "~5.4"
+  idf: "~5.4"
