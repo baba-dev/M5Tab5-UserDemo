@@ -5,6 +5,7 @@
  */
 #include <driver/gpio.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <memory>
 #include <mutex>
 #include <mooncake_log.h>
@@ -80,6 +81,31 @@ typedef enum
     EXAMPLE_VIDEO_FMT_YUV422 = V4L2_PIX_FMT_YUV422P,
     EXAMPLE_VIDEO_FMT_YUV420 = V4L2_PIX_FMT_YUV420,
 } example_fmt_t;
+
+static bool set_sensor_control(int fd, uint32_t control_id, int32_t value, const char* control_name)
+{
+    struct v4l2_control control = {};
+    control.id                  = control_id;
+    control.value               = value;
+
+    if (ioctl(fd, VIDIOC_S_CTRL, &control) == 0)
+    {
+        ESP_LOGI(TAG,
+                 "Set %s (0x%08" PRIx32 ") to %" PRId32,
+                 control_name != NULL ? control_name : "control",
+                 control_id,
+                 value);
+        return true;
+    }
+
+    ESP_LOGW(TAG,
+             "Failed to set %s (0x%08" PRIx32 ") to %" PRId32 ": %s",
+             control_name != NULL ? control_name : "control",
+             control_id,
+             value,
+             strerror(errno));
+    return false;
+}
 
 /**
  * @brief   Open the video device and initialize the video device to use `init_fmt` as the output
