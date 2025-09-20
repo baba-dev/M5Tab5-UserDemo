@@ -1,24 +1,4 @@
-# For more information about build system see
-# https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html
-# The following five lines of boilerplate have to be in your project's
-# CMakeLists in this exact order for cmake to work correctly
-cmake_minimum_required(VERSION 3.5)
-
-set(_extra_component_dirs
-    "${CMAKE_CURRENT_LIST_DIR}/../../dependencies"
-    "${CMAKE_CURRENT_LIST_DIR}/../../components"
-)
-
-set(EXTRA_COMPONENT_DIRS "")
-foreach(_dir IN LISTS _extra_component_dirs)
-    get_filename_component(_resolved "${_dir}" REALPATH)
-    list(APPEND EXTRA_COMPONENT_DIRS "${_resolved}")
-endforeach()
-
-unset(_resolved)
-unset(_dir)
-unset(_extra_component_dirs)
-
+cmake_minimum_required(VERSION 3.16)
+set(EXTRA_COMPONENT_DIRS ${CMAKE_CURRENT_LIST_DIR}/../../components)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-
-project(m5stack_tab5)
+project(m5tab5_userdemo)
