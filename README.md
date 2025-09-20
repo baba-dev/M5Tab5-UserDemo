@@ -177,6 +177,22 @@ Monitor logs:
 
 Exit with Ctrl+].
 
+### Wi-Fi remote firmware
+
+ESP-IDF 5.4.2 bundles the supported ESP32 Wi-Fi remote under
+`$IDF_PATH/components/espressif__esp_hosted/slave`. Flash that image once per
+Tab5 so the SDIO link comes up reliably:
+
+1. `cd $IDF_PATH/components/espressif__esp_hosted/slave`
+2. `idf.py set-target esp32`
+3. `idf.py build`
+4. `idf.py -p <remote_port> flash`
+
+The build output produces `build/network_adapter.bin` if you prefer to flash via
+`esptool.py`. Shipping units use `CONFIG_SLAVE_IDF_TARGET_ESP32`, so the ESP32-C6
+firmware is no longer stored in this repository. Host any experimental C6 image
+as an external download and link it from the docs instead of committing binaries.
+
 
 ------------
 

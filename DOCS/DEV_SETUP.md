@@ -18,12 +18,22 @@
 4. If you touch component metadata, run `idf.py lint` to validate the manifest
    files.
 
-## Audio assets
+### Wi-Fi remote firmware
 
-- The long-form Canon in D demo track is disabled by default to keep CI and
-  release builds small. Enable `CONFIG_HAL_AUDIO_ENABLE_LONG_DEMO` through
-  `idf.py menuconfig` or by setting the symbol in `sdkconfig.defaults` when you
-  need the extended audio demo for manual testing.
+ESP-IDF 5.4.2 ships the ESP32 Wi-Fi remote project in
+`$IDF_PATH/components/espressif__esp_hosted/slave`. Build and flash it once so
+the Tab5 SDIO link negotiates correctly:
+
+```bash
+cd "$IDF_PATH/components/espressif__esp_hosted/slave"
+idf.py set-target esp32
+idf.py build
+idf.py -p <remote_port> flash
+```
+
+The build drops `build/network_adapter.bin` if you prefer flashing with
+`esptool.py`. Future ESP32-C6 variants should publish their binaries as external
+artifacts instead of committing them to the repo.
 
 ## Component manager notes
 
