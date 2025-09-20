@@ -1,53 +1,25 @@
 name: IDF Build (ESP32-P4)
 
 on:
-  pull_request:
   push:
-    branches: [main]
+  pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout (with submodules)
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          lfs: false
 
-      - name: Fetch third-party dependencies
-        run: python fetch_repos.py
-
-      # Optional: speed up repeated builds (ccache)
-      - name: Prepare ccache dir
-        run: mkdir -p .ccache
-
-      - name: Restore ccache
-        uses: actions/cache@v4
-        with:
-          path: .ccache
-          # ✅ FIX: pass multiple patterns as separate args to hashFiles()
-          key: ccache-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('**/CMakeLists.txt', '**/*.c', '**/*.cpp', 'sdkconfig*') }}
-          restore-keys: |
-            ccache-${{ runner.os }}-${{ github.ref_name }}-
-            ccache-${{ runner.os }}-
-
-      - name: Build with ESP-IDF 5.4.x (esp32p4)
+      - name: Build with ESP-IDF 5.4.2 for ESP32-P4
         uses: espressif/esp-idf-ci-action@v1
-        env:
-          IDF_TARGET: esp32p4
         with:
           esp_idf_version: v5.4.2
           target: esp32p4
-          path: platforms/tab5
-          # mount ccache dir inside the container
-          extra_docker_args: "-v ${{ github.workspace }}/.ccache:/root/.ccache -e CCACHE_DIR=/root/.ccache"
-
-      - name: Upload firmware
-        uses: actions/upload-artifact@v4
-        with:
-          name: m5tab5-firmware
-          path: |
-            platforms/tab5/build/**/*.bin
-            platforms/tab5/build/**/*.elf
-            platforms/tab5/build/**/*.map
+          command: |
+            . /opt/esp/idf/export.sh
+            cd platforms/tab5
+            idf.py set-target esp32p4
+            idf.py build
