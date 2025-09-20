@@ -18,6 +18,13 @@
 4. If you touch component metadata, run `idf.py lint` to validate the manifest
    files.
 
+## Audio assets
+
+- The long-form Canon in D demo track is disabled by default to keep CI and
+  release builds small. Enable `CONFIG_HAL_AUDIO_ENABLE_LONG_DEMO` through
+  `idf.py menuconfig` or by setting the symbol in `sdkconfig.defaults` when you
+  need the extended audio demo for manual testing.
+
 ## Component manager notes
 
 - Managed component revisions are pinned in
