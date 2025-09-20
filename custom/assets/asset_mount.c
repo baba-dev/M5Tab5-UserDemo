@@ -170,7 +170,13 @@ static void lv_fs_if_init(void)
 #include "driver/sdmmc_host.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#if defined(__has_include)
+#if __has_include("esp_vfs_fat.h")
 #include "esp_vfs_fat.h"
+#endif
+#else
+#include "esp_vfs_fat.h"
+#endif
 #include "sdmmc_cmd.h"
 #endif
 
