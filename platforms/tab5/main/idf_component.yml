@@ -1,7 +1,7 @@
 ## IDF Component Manager Manifest File
 dependencies:
   ## Required IDF version
-  idf: '>=5.3'
+  esp-idf: "~5.4"
   espressif/esp_hosted: 1.4.0
   espressif/esp_wifi_remote: 0.8.5
   chmorgan/esp-audio-player: 1.0.7

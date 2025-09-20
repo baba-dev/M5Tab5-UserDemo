@@ -3,4 +3,4 @@ description: Persistent application configuration helpers.
 targets:
   - esp32p4
 dependencies:
-  idf: ">=5.3"
+  esp-idf: "~5.4"
