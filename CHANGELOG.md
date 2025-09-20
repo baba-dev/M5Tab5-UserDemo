@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.4](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.3...v1.6.4) (2025-09-20)
+
+
+### Bug Fixes
+
+* **build:** use idf alias for esp-idf dependency ([0ec897b](https://github.com/baba-dev/M5Tab5-UserDemo/commit/0ec897b3d758abd0bd5b1cde1ba1817513e03206))
+* **platform:** set esp-hosted slave target ([36a2d36](https://github.com/baba-dev/M5Tab5-UserDemo/commit/36a2d365eb6131f0d9ddf8e9bb1792ee06663e6f))
+* **platforms:** override settings core path ([15a56a7](https://github.com/baba-dev/M5Tab5-UserDemo/commit/15a56a7dfeb71d1721747b6d7a5de7ff22b618c3))
+* **tab5:** auto-fetch managed dependencies ([128e0c4](https://github.com/baba-dev/M5Tab5-UserDemo/commit/128e0c43fee8a5d730f9ae5b8083f97e62ba5474))
+* **tooling:** validate libusb dependency ([260f5ba](https://github.com/baba-dev/M5Tab5-UserDemo/commit/260f5ba47f582022d43b01cd32dc8df048b5581c))
+* **tools:** sync esp-idf submodules ([b28a910](https://github.com/baba-dev/M5Tab5-UserDemo/commit/b28a910029a7507f02d58bdc421d7cf1554250f2))
+
 ## [1.6.3](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.2...v1.6.3) (2025-09-20)
 
 
