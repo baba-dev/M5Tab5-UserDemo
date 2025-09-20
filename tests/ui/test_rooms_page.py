@@ -4,10 +4,12 @@
 #
 # SPDX-License-Identifier: MIT
 
+import os
+import shutil
+import struct
 import subprocess
 import unittest
 from pathlib import Path
-import struct
 import zlib
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -93,7 +95,15 @@ class RoomsPageTests(unittest.TestCase):
         self.assertTrue(RAW_SNAPSHOT.exists(), "Snapshot generator did not create raw output")
 
         _rgb565_to_png(RAW_SNAPSHOT, PNG_SNAPSHOT)
-        self.assertTrue(GOLDEN_SNAPSHOT.exists(), "Golden snapshot missing")
+
+        if os.getenv("UPDATE_GOLDEN"):
+            GOLDEN_SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(PNG_SNAPSHOT, GOLDEN_SNAPSHOT)
+
+        if not GOLDEN_SNAPSHOT.exists():
+            self.fail(
+                "Golden snapshot missing. Run scripts/update_goldens.sh to refresh the reference image."
+            )
 
         generated = PNG_SNAPSHOT.read_bytes()
         golden = GOLDEN_SNAPSHOT.read_bytes()
