@@ -251,24 +251,36 @@ hal::HalBase::MicTestState_t HalEsp32::getHeadphoneMicRecordTestState()
 /* -------------------------------------------------------------------------- */
 /*                               Music play test                              */
 /* -------------------------------------------------------------------------- */
+#if CONFIG_HAL_AUDIO_ENABLE_LONG_DEMO
 extern const uint8_t canon_in_d_mp3_start[] asm("_binary_canon_in_d_mp3_start");
 extern const uint8_t canon_in_d_mp3_end[] asm("_binary_canon_in_d_mp3_end");
+#endif
 extern const uint8_t startup_sfx_mp3_start[] asm("_binary_startup_sfx_mp3_start");
 extern const uint8_t startup_sfx_mp3_end[] asm("_binary_startup_sfx_mp3_end");
 extern const uint8_t shutdown_sfx_mp3_start[] asm("_binary_shutdown_sfx_mp3_start");
 extern const uint8_t shutdown_sfx_mp3_end[] asm("_binary_shutdown_sfx_mp3_end");
 
-enum Mp3PlayTarget_t {
+enum Mp3PlayTarget_t
+{
+#if CONFIG_HAL_AUDIO_ENABLE_LONG_DEMO
     MP3_PLAY_TARGET_CANON_IN_D,
+#endif
     MP3_PLAY_TARGET_STARTUP_SFX,
     MP3_PLAY_TARGET_SHUTDOWN_SFX,
 };
 
-struct MusicTestData_t {
-    std::mutex mutex;
-    bool killSignal                      = false;
-    hal::HalBase::MusicPlayState_t state = hal::HalBase::MUSIC_PLAY_IDLE;
-    Mp3PlayTarget_t target               = MP3_PLAY_TARGET_CANON_IN_D;
+#if CONFIG_HAL_AUDIO_ENABLE_LONG_DEMO
+static constexpr Mp3PlayTarget_t kDefaultMusicTarget = MP3_PLAY_TARGET_CANON_IN_D;
+#else
+static constexpr Mp3PlayTarget_t kDefaultMusicTarget = MP3_PLAY_TARGET_STARTUP_SFX;
+#endif
+
+struct MusicTestData_t
+{
+    std::mutex                     mutex;
+    bool                           killSignal = false;
+    hal::HalBase::MusicPlayState_t state      = hal::HalBase::MUSIC_PLAY_IDLE;
+    Mp3PlayTarget_t                target     = kDefaultMusicTarget;
 };
 static MusicTestData_t _music_test_data;
 
@@ -286,7 +298,8 @@ static void audio_player_callback(audio_player_cb_ctx_t* ctx)
     audio_player_state_t state = audio_player_get_state();
     mclog::tagInfo(TAG, "audio state: {}", (int)state);
 
-    if (state == AUDIO_PLAYER_STATE_IDLE) {
+    if (state == AUDIO_PLAYER_STATE_IDLE)
+    {
         GetHAL()->stopPlayMusicTest();
     }
 }
@@ -308,12 +321,15 @@ static void _music_play_task(void* param)
     audio_player_callback_register(audio_player_callback, NULL);
 
     size_t mp3_size = 0;
-    FILE* fp        = nullptr;
-    switch (_music_test_data.target) {
+    FILE*  fp       = nullptr;
+    switch (_music_test_data.target)
+    {
+#if CONFIG_HAL_AUDIO_ENABLE_LONG_DEMO
         case MP3_PLAY_TARGET_CANON_IN_D:
             mp3_size = (canon_in_d_mp3_end - canon_in_d_mp3_start) - 1;
             fp       = fmemopen((void*)canon_in_d_mp3_start, mp3_size, "rb");
             break;
+#endif
         case MP3_PLAY_TARGET_STARTUP_SFX:
             mp3_size = (startup_sfx_mp3_end - startup_sfx_mp3_start) - 1;
             fp       = fmemopen((void*)startup_sfx_mp3_start, mp3_size, "rb");
@@ -325,7 +341,8 @@ static void _music_play_task(void* param)
     }
 
     esp_err_t ret = audio_player_play(fp);
-    if (ret != ESP_OK) {
+    if (ret != ESP_OK)
+    {
         mclog::tagError(TAG, "audio play failed");
         vTaskDelete(NULL);
         return;
@@ -355,12 +372,15 @@ static void _music_play_task(void* param)
 
 void try_create_music_play_task(Mp3PlayTarget_t target)
 {
-    if (_music_test_data.state == hal::HalBase::MUSIC_PLAY_IDLE) {
+    if (_music_test_data.state == hal::HalBase::MUSIC_PLAY_IDLE)
+    {
         _music_test_data.state      = hal::HalBase::MUSIC_PLAY_PLAYING;
         _music_test_data.target     = target;
         _music_test_data.killSignal = false;
         xTaskCreate(_music_play_task, "music", 3000, nullptr, 5, nullptr);
-    } else {
+    }
+    else
+    {
         mclog::tagWarn(TAG, "music play is running");
     }
 }
@@ -368,7 +388,7 @@ void try_create_music_play_task(Mp3PlayTarget_t target)
 void HalEsp32::startPlayMusicTest()
 {
     std::lock_guard<std::mutex> lock(_music_test_data.mutex);
-    try_create_music_play_task(MP3_PLAY_TARGET_CANON_IN_D);
+    try_create_music_play_task(kDefaultMusicTarget);
 }
 
 hal::HalBase::MusicPlayState_t HalEsp32::getMusicPlayTestState()

@@ -17,3 +17,20 @@
    `clang-format` manually).
 4. If you touch component metadata, run `idf.py lint` to validate the manifest
    files.
+
+### Wi-Fi remote firmware
+
+ESP-IDF 5.4.2 ships the ESP32 Wi-Fi remote project in
+`$IDF_PATH/components/espressif__esp_hosted/slave`. Build and flash it once so
+the Tab5 SDIO link negotiates correctly:
+
+```bash
+cd "$IDF_PATH/components/espressif__esp_hosted/slave"
+idf.py set-target esp32
+idf.py build
+idf.py -p <remote_port> flash
+```
+
+The build drops `build/network_adapter.bin` if you prefer flashing with
+`esptool.py`. Future ESP32-C6 variants should publish their binaries as external
+artifacts instead of committing them to the repo.

@@ -31,6 +31,7 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 #include "hal/hal_esp32.h"
+#include "imlib.h"
 #include "linux/videodev2.h"
 
 #define CAMERA_WIDTH  1280
@@ -277,6 +278,13 @@ void app_camera_display(void* arg)
             return;
         }
         ESP_ERROR_CHECK(new_cam(video_cam_fd, &camera));
+        bool sensor_hflip_enabled =
+            set_sensor_control(video_cam_fd, V4L2_CID_HFLIP, 1, "sensor horizontal flip");
+        if (!sensor_hflip_enabled)
+        {
+            ESP_LOGW(TAG, "Sensor horizontal flip unsupported; the preview may remain mirrored");
+        }
+        set_sensor_control(video_cam_fd, V4L2_CID_VFLIP, 0, "sensor vertical flip");
     }
 
     struct v4l2_buffer buf;
@@ -288,122 +296,7 @@ void app_camera_display(void* arg)
     constexpr uint32_t kRgb565BytesPerPixel = 2;
     uint32_t           img_show_size        = screen_width * screen_height * kRgb565BytesPerPixel;
     // uint32_t img_offset = 280 * 720 * 2;
-    uint32_t            img_offset = 0;
-    static FrameBuffer* img_show;  // 初始化静态变量时不能使用非常量表达式
-    if (img_show == NULL)
-    {
-        img_show = static_cast<FrameBuffer*>(malloc(sizeof(FrameBuffer)));
-        if (img_show == NULL)
-        {
-            ESP_LOGE(TAG, "malloc for FrameBuffer failed");
-            return;
-        }
-        img_show->width           = 720;   // screen_width;
-        img_show->height          = 1280;  // screen_height;
-        img_show->bytes_per_pixel = kRgb565BytesPerPixel;
-        img_show->size            = img_show->width * img_show->height * img_show->bytes_per_pixel;
-        img_show_data             = static_cast<uint8_t*>(
-            heap_caps_calloc(img_show_size, 1, MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM));
-        img_show->data = (img_show_data != NULL) ? img_show_data + img_offset : NULL;
-        if (img_show->data == NULL)
-        {
-            ESP_LOGE(TAG, "malloc for img_show->data failed");
-        }
-    }
-    else
-    {
-        img_show_data = (img_show->data != NULL) ? img_show->data - img_offset : NULL;
-    }
-
-    ppa_client_handle_t ppa_srm_handle = NULL;
-    ppa_client_config_t ppa_srm_config = {
-        .oper_type             = PPA_OPERATION_SRM,
-        .max_pending_trans_num = 1,
-    };
-    ESP_ERROR_CHECK(ppa_register_client(&ppa_srm_config, &ppa_srm_handle));
-
-    int task_control = 0;
-    while (1)
-    {
-        memset(&buf, 0, sizeof(buf));
-        buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory = MEMORY_TYPE;
-        if (ioctl(camera->fd, VIDIOC_DQBUF, &buf) != 0)
-        {
-            ESP_LOGE(TAG, "failed to receive video frame");
-            break;
-        }
-
-        ppa_srm_oper_config_t srm_config = {.in             = {.buffer         = camera->buffer[buf.index],
-                                                               .pic_w          = 1280,
-                                                               .pic_h          = 720,
-                                                               .block_w        = 1280,
-                                                               .block_h        = 720,
-                                                               .block_offset_x = 0,
-                                                               .block_offset_y = 0,
-                                                               .srm_cm         = PPA_SRM_COLOR_MODE_RGB565},
-                                            .out            = {.buffer         = img_show_data,
-                                                               .buffer_size    = img_show_size,
-                                                               .pic_w          = 1280,
-                                                               .pic_h          = 720,
-                                                               .block_offset_x = 0,
-                                                               .block_offset_y = 0,
-                                                               .srm_cm         = PPA_SRM_COLOR_MODE_RGB565},
-                                            .rotation_angle = PPA_SRM_ROTATION_ANGLE_0,
-                                            .scale_x        = 1,
-                                            .scale_y        = 1,
-                                            .mirror_x       = true,
-                                            .mirror_y       = false,
-                                            .rgb_swap       = false,
-                                            .byte_swap      = false,
-                                            .mode           = PPA_TRANS_MODE_BLOCKING};
-        ppa_do_scale_rotate_mirror(ppa_srm_handle, &srm_config);
-
-        // auto detect_results = human_face_detector->run(dl_img); // format: hwc
-
-        bsp_display_lock(0);
-        lv_canvas_set_buffer(
-            camera_canvas, img_show->data, CAMERA_WIDTH, CAMERA_HEIGHT, LV_COLOR_FORMAT_RGB565);
-        bsp_display_unlock();
-
-        if (ioctl(camera->fd, VIDIOC_QBUF, &buf) != 0)
-        {
-            ESP_LOGE(TAG, "failed to free video frame");
-        }
-
-        if (xQueueReceive(queue_camera_ctrl, &task_control, 0) == pdPASS)
-        {
-            if (task_control == TASK_CONTROL_PAUSE)
-            {
-                ESP_LOGI(TAG, "task pause");
-                if (xQueueReceive(queue_camera_ctrl, &task_control, portMAX_DELAY) == pdPASS)
-                {
-                    if (task_control == TASK_CONTROL_EXIT)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        ESP_LOGI(TAG, "task resume");
-                    }
-                }
-            }
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-
-    ESP_LOGI(TAG, "task exit");
-    ppa_unregister_client(ppa_srm_handle);
-    // delete human_face_detector;
-    if (img_show_data)
-    {
-        heap_caps_free(img_show_data);
-        img_show_data = NULL;
-    }
-    if (img_show)
-    {
-        free(img_show);
+        heap_caps_free(img_show);
         img_show = NULL;
     }
     // close(camera->fd);

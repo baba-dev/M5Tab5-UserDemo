@@ -8,4 +8,12 @@ config APP_LOG_LEVEL
       Sets the default log verbosity for the application layer.
       0 = none, 1 = error, 2 = warn, 3 = info, 4 = debug, 5 = verbose.
 
+config HAL_AUDIO_ENABLE_LONG_DEMO
+    bool "Enable long Canon in D demo"
+    default n
+    help
+      Enable this option to embed the long-form Canon in D MP3 demo track in
+      the firmware. Disable it for CI or release builds to save flash space and
+      reduce build times.
+
 endmenu
