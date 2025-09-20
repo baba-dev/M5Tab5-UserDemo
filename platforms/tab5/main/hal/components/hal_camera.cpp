@@ -272,6 +272,13 @@ void app_camera_display(void* arg)
         if (img_show->data == NULL) {
             ESP_LOGE(TAG, "malloc for img_show->data failed");
         }
+
+        if ((img_show->data != NULL) && (camera_canvas != NULL)) {
+            bsp_display_lock(0);
+            lv_canvas_set_buffer(
+                camera_canvas, img_show->data, CAMERA_WIDTH, CAMERA_HEIGHT, LV_COLOR_FORMAT_RGB565);
+            bsp_display_unlock();
+        }
     }
 
     ppa_client_handle_t ppa_srm_handle = NULL;
@@ -318,9 +325,11 @@ void app_camera_display(void* arg)
 
         // auto detect_results = human_face_detector->run(dl_img); // format: hwc
 
-        bsp_display_lock(0);
-        lv_canvas_set_buffer(camera_canvas, img_show->data, CAMERA_WIDTH, CAMERA_HEIGHT, LV_COLOR_FORMAT_RGB565);
-        bsp_display_unlock();
+        if (camera_canvas != NULL) {
+            bsp_display_lock(0);
+            lv_obj_invalidate(camera_canvas);
+            bsp_display_unlock();
+        }
 
         if (ioctl(camera->fd, VIDIOC_QBUF, &buf) != 0) {
             ESP_LOGE(TAG, "failed to free video frame");
