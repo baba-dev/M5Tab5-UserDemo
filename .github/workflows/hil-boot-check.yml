@@ -1,0 +1,57 @@
+name: HIL Boot Check (No-Sentinel)
+
+on:
+  workflow_run:
+    workflows: ["IDF Build (ESP32-P4)"]
+    types: [completed]
+
+jobs:
+  hil:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: [self-hosted, esp32]   # self-hosted runner with the Tab5 on USB
+    permissions:
+      contents: read
+      actions: read
+
+    env:
+      ESPPORT: /dev/ttyUSB0         # adjust for your runner
+      ESPBAUD: "460800"
+
+    steps:
+      - name: Checkout tests
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
+
+      - name: Download build artifact from the triggering run
+        uses: actions/download-artifact@v5
+        with:
+          name: tab5-build
+          run-id: ${{ github.event.workflow_run.id }}
+          repository: ${{ github.repository }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: _dl
+
+      - name: Python & deps
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-embedded pytest-embedded-serial pytest-embedded-idf esptool
+
+      # Optional: if your runner needs udev/dialout prep, do it out-of-band.
+
+      - name: Run boot-loop check
+        working-directory: _dl/platforms/tab5/build
+        env:
+          ESPPORT: ${{ env.ESPPORT }}
+          ESPBAUD: ${{ env.ESPBAUD }}
+        run: |
+          # pytest-embedded can detect ports automatically via esptool,
+          # but we pass explicit port/baud for reliability.
+          pytest -q \
+            --embedded-services esp,idf,serial \
+            --port "$ESPPORT" --baud "$ESPBAUD" \
+            ../../../tests/hil
