@@ -1,116 +1,67 @@
-name: Web Flash (Pages) - ESP Web Tools
+name: Web Flash (from IDF Build artifact)
 
 on:
-  push:
-    tags: [ "v*" ]
-  release:
-    types: [published]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+  workflow_run:
+    workflows: ["IDF Build (ESP32-P4)"]
+    types: [completed]
 
 jobs:
-  build-and-publish:
+  publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
 
     steps:
-      - name: Checkout (with submodules)
-        uses: actions/checkout@v4
+      - name: Download build artifact from triggering run
+        uses: actions/download-artifact@v5
         with:
-          submodules: recursive
+          # We named the artifact with the build run_id in the IDF workflow
+          name: tab5-build-${{ github.event.workflow_run.id }}
+          # v5 supports cross-run downloads when given run-id & token/permissions
+          run-id: ${{ github.event.workflow_run.id }}
+          path: _dl
 
-      - name: Prepare ccache
-        run: mkdir -p .ccache
-
-      - name: Restore ccache
-        uses: actions/cache@v4
+      - name: Set up Python and install esptool
+        uses: actions/setup-python@v5
         with:
-          path: .ccache
-          key: ccache-${{ runner.os }}-${{ github.ref_name }}-${{ hashFiles('**/CMakeLists.txt', 'sdkconfig*', '**/*.[ch]', '**/*.cpp') }}
-          restore-keys: |
-            ccache-${{ runner.os }}-${{ github.ref_name }}-
-            ccache-${{ runner.os }}-
+          python-version: '3.x'
+      - run: python -m pip install --upgrade pip esptool
 
-      - name: Build firmware (ESP-IDF 5.4.x / esp32p4)
-        uses: espressif/esp-idf-ci-action@v1
-        env:
-          IDF_TARGET: esp32p4
-        with:
-          esp_idf_version: v5.4.2
-          target: esp32p4
-          path: .
-          extra_docker_args: "-v ${{ github.workspace }}/.ccache:/root/.ccache -e CCACHE_DIR=/root/.ccache"
-
-      - name: Collect firmware
-        id: fw
+      - name: Merge firmware (ESP-IDF v4+ requires single merged file for Web Tools)
+        working-directory: _dl/platforms/tab5/build
         run: |
-          mkdir -p site
-          FWBIN="$(ls build/*.bin | head -n1)"
-          test -n "$FWBIN"
-          cp "$FWBIN" site/firmware.bin
-          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            VER="${GITHUB_REF_NAME}"
-          else
-            VER="$(git rev-parse --short HEAD)"
-          fi
-          echo "ver=$VER" >> $GITHUB_OUTPUT
+          mkdir -p ../../../site
+          # Use the exact flash layout created by the build:
+          python -m esptool --chip esp32p4 merge_bin \
+            -o ../../../site/firmware-merged.bin \
+            "@flash_args"
 
-      - name: Create manifest.json for ESP Web Tools
+      - name: Create ESP Web Tools manifest
+        working-directory: _dl/site
         run: |
-          cat > site/manifest.json << JSON
+          VER="${{ github.event.workflow_run.run_number }}"
+          cat > manifest.json << 'JSON'
           {
             "name": "M5Tab5 User Demo",
-            "version": "${{ steps.fw.outputs.ver }}",
+            "version": "R${{ github.event.workflow_run.run_number }}",
             "builds": [{
               "chipFamily": "ESP32",
               "parts": [
-                { "path": "firmware.bin", "offset": 0 }
+                { "path": "firmware-merged.bin", "offset": 0 }
               ]
             }]
           }
           JSON
 
-      - name: Create flash.html (install button)
-        run: |
-          cat > site/flash.html << 'HTML'
-          <!doctype html>
-          <html lang="en">
-            <head>
-              <meta charset="utf-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1" />
-              <title>M5Tab5 – Web Flash</title>
-              <!-- Load ESP Web Tools button -->
-              <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
-              <style>
-                body{font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-                     display:grid; place-items:center; min-height:100dvh; margin:0; background:#0b0c10;}
-                .card{background:#121418; color:#e6e6e6; padding:24px; border-radius:16px; box-shadow:0 10px 30px #0008;}
-                h1{margin:0 0 8px}
-                p{opacity:.8; margin:0 0 16px}
-                esp-web-install-button{--mdc-theme-primary:#38bdf8}
-              </style>
-            </head>
-            <body>
-              <div class="card">
-                <h1>M5Tab5 – Web Flash</h1>
-                <p>Connect your Tab5 (ESP32-P4), then click Install.</p>
-                <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
-              </div>
-            </body>
-          </html>
-          HTML
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _dl/site
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
