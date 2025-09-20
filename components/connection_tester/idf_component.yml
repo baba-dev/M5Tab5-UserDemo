@@ -3,4 +3,4 @@ description: Connectivity test utilities for network diagnostics.
 targets:
   - esp32p4
 dependencies:
-  esp-idf: "~5.4"
+  idf: "~5.4"

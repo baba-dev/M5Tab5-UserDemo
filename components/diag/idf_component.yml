@@ -3,6 +3,6 @@ description: Diagnostic HTTP endpoints and telemetry helpers.
 targets:
   - esp32p4
 dependencies:
-  esp-idf: "~5.4"
+  idf: "~5.4"
   settings_core: "^0.1.0"
   espressif/mdns: "^1.8.0"

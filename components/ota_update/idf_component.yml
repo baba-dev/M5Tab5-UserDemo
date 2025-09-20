@@ -3,4 +3,4 @@ description: Helpers for performing OTA firmware updates.
 targets:
   - esp32p4
 dependencies:
-  esp-idf: "~5.4"
+  idf: "~5.4"
