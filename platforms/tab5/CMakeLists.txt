@@ -49,3 +49,8 @@ set(EXTRA_COMPONENT_DIRS
 )
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(m5tab5_userdemo)
+
+# Disable the linker flag added for non-contiguous SRAM regions to avoid
+# discarding large .bss sections from the C++ runtime when linking the
+# oversized factory app image.
+idf_build_set_property(LINK_OPTIONS "-Wl,--no-enable-non-contiguous-regions" APPEND)

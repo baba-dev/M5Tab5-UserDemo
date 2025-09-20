@@ -33,6 +33,15 @@ jobs:
           path: platforms/tab5
           command: idf.py build
 
+      - name: Size report
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.4.2
+          target: esp32p4
+          path: platforms/tab5
+          command: >-
+            bash -lc "idf.py size && idf.py size-components && (idf.py size-files || true)"
+
       # Optional: show the auto-generated flash args for reference in logs
       - name: Show flash args
         if: always()
