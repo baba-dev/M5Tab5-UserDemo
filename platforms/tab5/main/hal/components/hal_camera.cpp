@@ -3,32 +3,35 @@
  *
  * SPDX-License-Identifier: MIT
  */
-#include "hal/hal_esp32.h"
-#include "../utils/task_controller/task_controller.h"
-#include <mooncake_log.h>
-#include <vector>
 #include <driver/gpio.h>
-#include <memory>
-#include "bsp/esp-bsp.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_event.h"
-#include "esp_err.h"
-#include "esp_log.h"
-#include "esp_timer.h"
-#include <string.h>
 #include <fcntl.h>
+#include <memory>
+#include <mooncake_log.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/errno.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/param.h>
-#include <sys/errno.h>
-#include "linux/videodev2.h"
-#include "esp_video_init.h"
-#include "esp_video_device.h"
+#include <vector>
+
+#include "../utils/task_controller/task_controller.h"
+#include "bsp/esp-bsp.h"
 #include "driver/i2c_master.h"
 #include "driver/ppa.h"
-#include "imlib.h"
+#include "esp_err.h"
+#include "esp_event.h"
+#include "esp_heap_caps.h"
+#include "esp_log.h"
+#include "esp_timer.h"
+#include "esp_video_device.h"
+#include "esp_video_init.h"
+#include "frame_buffer.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
+#include "freertos/task.h"
+#include "hal/hal_esp32.h"
+#include "linux/videodev2.h"
 
 #define CAMERA_WIDTH  1280
 #define CAMERA_HEIGHT 720
@@ -41,7 +44,7 @@ static QueueHandle_t queue_camera_ctrl = NULL;
 #define TASK_CONTROL_RESUME 1
 #define TASK_CONTROL_EXIT   2
 
-static bool is_camera_capturing = false;
+static bool       is_camera_capturing = false;
 static std::mutex camera_mutex;
 
 static const char* TAG = "camera";
@@ -50,11 +53,12 @@ static const char* TAG = "camera";
 #define MEMORY_TYPE                V4L2_MEMORY_MMAP
 #define CAM_DEV_PATH               ESP_VIDEO_MIPI_CSI_DEVICE_NAME
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+#    define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 #endif
 
-typedef struct cam {
-    int fd;
+typedef struct cam
+{
+    int      fd;
     uint32_t width;
     uint32_t height;
     uint32_t pixel_format;
@@ -64,7 +68,8 @@ typedef struct cam {
 /*
  * The image format type definition used in the example.
  */
-typedef enum {
+typedef enum
+{
     EXAMPLE_VIDEO_FMT_RAW8   = V4L2_PIX_FMT_SBGGR8,
     EXAMPLE_VIDEO_FMT_RAW10  = V4L2_PIX_FMT_SBGGR10,
     EXAMPLE_VIDEO_FMT_GREY   = V4L2_PIX_FMT_GREY,
@@ -75,9 +80,11 @@ typedef enum {
 } example_fmt_t;
 
 /**
- * @brief   Open the video device and initialize the video device to use `init_fmt` as the output format.
- * @note    When the sensor outputs data in RAW format, the ISP module can interpolate its data into RGB or YUV format.
- *          However, when the sensor works in RGB or YUV format, the output data can only be in RGB or YUV format.
+ * @brief   Open the video device and initialize the video device to use `init_fmt` as the output
+ * format.
+ * @note    When the sensor outputs data in RAW format, the ISP module can interpolate its data into
+ * RGB or YUV format. However, when the sensor works in RGB or YUV format, the output data can only
+ * be in RGB or YUV format.
  * @param dev device name(eg, "/dev/video0")
  * @param init_fmt output format.
  *
@@ -87,22 +94,27 @@ typedef enum {
  */
 int app_video_open(char* dev, example_fmt_t init_fmt)
 {
-    struct v4l2_format default_format;
+    struct v4l2_format     default_format;
     struct v4l2_capability capability;
-    const int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    const int              type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     int fd = open(dev, O_RDONLY);
-    if (fd < 0) {
+    if (fd < 0)
+    {
         ESP_LOGE(TAG, "Open video failed");
         return -1;
     }
 
-    if (ioctl(fd, VIDIOC_QUERYCAP, &capability)) {
+    if (ioctl(fd, VIDIOC_QUERYCAP, &capability))
+    {
         ESP_LOGE(TAG, "failed to get capability");
         goto exit_0;
     }
 
-    ESP_LOGI(TAG, "version: %d.%d.%d", (uint16_t)(capability.version >> 16), (uint8_t)(capability.version >> 8),
+    ESP_LOGI(TAG,
+             "version: %d.%d.%d",
+             (uint16_t)(capability.version >> 16),
+             (uint8_t)(capability.version >> 8),
              (uint8_t)capability.version);
     ESP_LOGI(TAG, "driver:  %s", capability.driver);
     ESP_LOGI(TAG, "card:    %s", capability.card);
@@ -110,20 +122,26 @@ int app_video_open(char* dev, example_fmt_t init_fmt)
 
     memset(&default_format, 0, sizeof(struct v4l2_format));
     default_format.type = type;
-    if (ioctl(fd, VIDIOC_G_FMT, &default_format) != 0) {
+    if (ioctl(fd, VIDIOC_G_FMT, &default_format) != 0)
+    {
         ESP_LOGE(TAG, "failed to get format");
         goto exit_0;
     }
 
-    ESP_LOGI(TAG, "width=%" PRIu32 " height=%" PRIu32, default_format.fmt.pix.width, default_format.fmt.pix.height);
+    ESP_LOGI(TAG,
+             "width=%" PRIu32 " height=%" PRIu32,
+             default_format.fmt.pix.width,
+             default_format.fmt.pix.height);
 
-    if (default_format.fmt.pix.pixelformat != init_fmt) {
+    if (default_format.fmt.pix.pixelformat != init_fmt)
+    {
         struct v4l2_format format = {.type = type,
                                      .fmt  = {.pix = {.width       = default_format.fmt.pix.width,
                                                       .height      = default_format.fmt.pix.height,
                                                       .pixelformat = init_fmt}}};
 
-        if (ioctl(fd, VIDIOC_S_FMT, &format) != 0) {
+        if (ioctl(fd, VIDIOC_S_FMT, &format) != 0)
+        {
             ESP_LOGE(TAG, "failed to set format");
             goto exit_0;
         }
@@ -137,21 +155,23 @@ exit_0:
 
 static esp_err_t new_cam(int cam_fd, cam_t** ret_wc)
 {
-    int ret;
-    struct v4l2_format format;
-    int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    int                        ret;
+    struct v4l2_format         format;
+    int                        type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     struct v4l2_requestbuffers req;
-    cam_t* wc;
+    cam_t*                     wc;
 
     memset(&format, 0, sizeof(struct v4l2_format));
     format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (ioctl(cam_fd, VIDIOC_G_FMT, &format) != 0) {
+    if (ioctl(cam_fd, VIDIOC_G_FMT, &format) != 0)
+    {
         ESP_LOGE(TAG, "Failed get fmt");
         return ESP_FAIL;
     }
 
     wc = (cam_t*)malloc(sizeof(cam_t));
-    if (!wc) {
+    if (!wc)
+    {
         return ESP_ERR_NO_MEM;
     }
 
@@ -164,40 +184,47 @@ static esp_err_t new_cam(int cam_fd, cam_t** ret_wc)
     req.count  = ARRAY_SIZE(wc->buffer);
     req.type   = type;
     req.memory = MEMORY_TYPE;
-    if (ioctl(wc->fd, VIDIOC_REQBUFS, &req) != 0) {
+    if (ioctl(wc->fd, VIDIOC_REQBUFS, &req) != 0)
+    {
         ESP_LOGE(TAG, "failed to req buffers");
         ret = ESP_FAIL;
         goto errout;
     }
 
-    for (int i = 0; i < ARRAY_SIZE(wc->buffer); i++) {
+    for (int i = 0; i < ARRAY_SIZE(wc->buffer); i++)
+    {
         struct v4l2_buffer buf;
 
         memset(&buf, 0, sizeof(buf));
         buf.type   = type;
         buf.memory = MEMORY_TYPE;
         buf.index  = i;
-        if (ioctl(wc->fd, VIDIOC_QUERYBUF, &buf) != 0) {
+        if (ioctl(wc->fd, VIDIOC_QUERYBUF, &buf) != 0)
+        {
             ESP_LOGE(TAG, "failed to query buffer");
             ret = ESP_FAIL;
             goto errout;
         }
 
-        wc->buffer[i] = (uint8_t*)mmap(NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, wc->fd, buf.m.offset);
-        if (!wc->buffer[i]) {
+        wc->buffer[i] = (uint8_t*)mmap(
+            NULL, buf.length, PROT_READ | PROT_WRITE, MAP_SHARED, wc->fd, buf.m.offset);
+        if (!wc->buffer[i])
+        {
             ESP_LOGE(TAG, "failed to map buffer");
             ret = ESP_FAIL;
             goto errout;
         }
 
-        if (ioctl(wc->fd, VIDIOC_QBUF, &buf) != 0) {
+        if (ioctl(wc->fd, VIDIOC_QBUF, &buf) != 0)
+        {
             ESP_LOGE(TAG, "failed to queue frame buffer");
             ret = ESP_FAIL;
             goto errout;
         }
     }
 
-    if (ioctl(wc->fd, VIDIOC_STREAMON, &type)) {
+    if (ioctl(wc->fd, VIDIOC_STREAMON, &type))
+    {
         ESP_LOGE(TAG, "failed to start stream");
         ret = ESP_FAIL;
         goto errout;
@@ -212,8 +239,8 @@ errout:
 }
 
 // static HumanFaceDetect* human_face_detector;
-static bool cam_is_initial = false;
-static cam_t* camera       = NULL;
+static bool   cam_is_initial = false;
+static cam_t* camera         = NULL;
 
 void app_camera_display(void* arg)
 {
@@ -236,14 +263,16 @@ void app_camera_display(void* arg)
         .jpeg = NULL,         // No JPEG configuration
     };
 
-    if (!cam_is_initial) {
+    if (!cam_is_initial)
+    {
         camera = (cam_t*)malloc(sizeof(cam_t));
         printf("\n============= video init ==============\n");
         cam_is_initial = true;
         ESP_ERROR_CHECK(esp_video_init(&cam_config));
         printf("\n============= video open ==============\n");
         int video_cam_fd = app_video_open(CAM_DEV_PATH, EXAMPLE_VIDEO_FMT_RGB565);
-        if (video_cam_fd < 0) {
+        if (video_cam_fd < 0)
+        {
             ESP_LOGE(TAG, "video cam open failed");
             return;
         }
@@ -253,25 +282,37 @@ void app_camera_display(void* arg)
     struct v4l2_buffer buf;
 
     /* */
-    uint16_t screen_width  = 1280;  // 640;//lcd_height();
-    uint16_t screen_height = 720;   // 480;//lcd_width();
-    uint8_t* img_show_data = NULL;
-    uint32_t img_show_size = screen_width * screen_height * 2;
+    uint16_t           screen_width         = 1280;  // 640;//lcd_height();
+    uint16_t           screen_height        = 720;   // 480;//lcd_width();
+    uint8_t*           img_show_data        = NULL;
+    constexpr uint32_t kRgb565BytesPerPixel = 2;
+    uint32_t           img_show_size        = screen_width * screen_height * kRgb565BytesPerPixel;
     // uint32_t img_offset = 280 * 720 * 2;
-    uint32_t img_offset = 0;
-    static image_t* img_show;  // 初始化静态变量时不能使用非常量表达式
-    if (img_show == NULL) {
-        img_show    = (image_t*)malloc(sizeof(image_t));
-        img_show->w = 720,            // screen_width;
-                                      // img_show->h = 720, // screen_height;
-            img_show->h      = 1280,  // screen_height;
-            img_show->pixfmt = PIXFORMAT_RGB565;
-        img_show->size       = img_show->w * img_show->h * img_show->bpp;
-        img_show_data        = (uint8_t*)heap_caps_calloc(img_show_size, 1, MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
-        img_show->data       = img_show_data + img_offset;
-        if (img_show->data == NULL) {
+    uint32_t            img_offset = 0;
+    static FrameBuffer* img_show;  // 初始化静态变量时不能使用非常量表达式
+    if (img_show == NULL)
+    {
+        img_show = static_cast<FrameBuffer*>(malloc(sizeof(FrameBuffer)));
+        if (img_show == NULL)
+        {
+            ESP_LOGE(TAG, "malloc for FrameBuffer failed");
+            return;
+        }
+        img_show->width           = 720;   // screen_width;
+        img_show->height          = 1280;  // screen_height;
+        img_show->bytes_per_pixel = kRgb565BytesPerPixel;
+        img_show->size            = img_show->width * img_show->height * img_show->bytes_per_pixel;
+        img_show_data             = static_cast<uint8_t*>(
+            heap_caps_calloc(img_show_size, 1, MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM));
+        img_show->data = (img_show_data != NULL) ? img_show_data + img_offset : NULL;
+        if (img_show->data == NULL)
+        {
             ESP_LOGE(TAG, "malloc for img_show->data failed");
         }
+    }
+    else
+    {
+        img_show_data = (img_show->data != NULL) ? img_show->data - img_offset : NULL;
     }
 
     ppa_client_handle_t ppa_srm_handle = NULL;
@@ -282,11 +323,13 @@ void app_camera_display(void* arg)
     ESP_ERROR_CHECK(ppa_register_client(&ppa_srm_config, &ppa_srm_handle));
 
     int task_control = 0;
-    while (1) {
+    while (1)
+    {
         memset(&buf, 0, sizeof(buf));
         buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buf.memory = MEMORY_TYPE;
-        if (ioctl(camera->fd, VIDIOC_DQBUF, &buf) != 0) {
+        if (ioctl(camera->fd, VIDIOC_DQBUF, &buf) != 0)
+        {
             ESP_LOGE(TAG, "failed to receive video frame");
             break;
         }
@@ -319,20 +362,28 @@ void app_camera_display(void* arg)
         // auto detect_results = human_face_detector->run(dl_img); // format: hwc
 
         bsp_display_lock(0);
-        lv_canvas_set_buffer(camera_canvas, img_show->data, CAMERA_WIDTH, CAMERA_HEIGHT, LV_COLOR_FORMAT_RGB565);
+        lv_canvas_set_buffer(
+            camera_canvas, img_show->data, CAMERA_WIDTH, CAMERA_HEIGHT, LV_COLOR_FORMAT_RGB565);
         bsp_display_unlock();
 
-        if (ioctl(camera->fd, VIDIOC_QBUF, &buf) != 0) {
+        if (ioctl(camera->fd, VIDIOC_QBUF, &buf) != 0)
+        {
             ESP_LOGE(TAG, "failed to free video frame");
         }
 
-        if (xQueueReceive(queue_camera_ctrl, &task_control, 0) == pdPASS) {
-            if (task_control == TASK_CONTROL_PAUSE) {
+        if (xQueueReceive(queue_camera_ctrl, &task_control, 0) == pdPASS)
+        {
+            if (task_control == TASK_CONTROL_PAUSE)
+            {
                 ESP_LOGI(TAG, "task pause");
-                if (xQueueReceive(queue_camera_ctrl, &task_control, portMAX_DELAY) == pdPASS) {
-                    if (task_control == TASK_CONTROL_EXIT) {
+                if (xQueueReceive(queue_camera_ctrl, &task_control, portMAX_DELAY) == pdPASS)
+                {
+                    if (task_control == TASK_CONTROL_EXIT)
+                    {
                         break;
-                    } else {
+                    }
+                    else
+                    {
                         ESP_LOGI(TAG, "task resume");
                     }
                 }
@@ -345,12 +396,14 @@ void app_camera_display(void* arg)
     ESP_LOGI(TAG, "task exit");
     ppa_unregister_client(ppa_srm_handle);
     // delete human_face_detector;
-    if (img_show_data) {
+    if (img_show_data)
+    {
         heap_caps_free(img_show_data);
         img_show_data = NULL;
     }
-    if (img_show) {
-        heap_caps_free(img_show);
+    if (img_show)
+    {
+        free(img_show);
         img_show = NULL;
     }
     // close(camera->fd);
@@ -369,7 +422,8 @@ void HalEsp32::startCameraCapture(lv_obj_t* imgCanvas)
     camera_canvas = imgCanvas;
 
     queue_camera_ctrl = xQueueCreate(10, sizeof(int));
-    if (queue_camera_ctrl == NULL) {
+    if (queue_camera_ctrl == NULL)
+    {
         ESP_LOGD(TAG, "Failed to create semaphore\n");
     }
 
