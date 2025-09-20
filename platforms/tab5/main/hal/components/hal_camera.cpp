@@ -6,6 +6,7 @@
 #include <driver/gpio.h>
 #include <fcntl.h>
 #include <memory>
+#include <mutex>
 #include <mooncake_log.h>
 #include <stdlib.h>
 #include <string.h>
