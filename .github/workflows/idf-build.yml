@@ -11,7 +11,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          lfs: true            # if you track any assets with Git LFS
+          lfs: false            # if you track any assets with Git LFS
 
       - name: Set up Python (for fetch script)
         uses: actions/setup-python@v5
