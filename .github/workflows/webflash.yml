@@ -38,10 +38,12 @@ jobs:
             ccache-${{ runner.os }}-${{ github.ref_name }}-
             ccache-${{ runner.os }}-
 
-      - name: Build firmware (ESP-IDF 5.5.x / esp32p4)
+      - name: Build firmware (ESP-IDF 5.4.x / esp32p4)
         uses: espressif/esp-idf-ci-action@v1
+        env:
+          IDF_TARGET: esp32p4
         with:
-          esp_idf_version: v5.5.1
+          esp_idf_version: v5.4.2
           target: esp32p4
           path: .
           extra_docker_args: "-v ${{ github.workspace }}/.ccache:/root/.ccache -e CCACHE_DIR=/root/.ccache"
