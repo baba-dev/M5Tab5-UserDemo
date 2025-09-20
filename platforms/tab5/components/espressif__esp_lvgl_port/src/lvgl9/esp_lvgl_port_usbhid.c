@@ -17,9 +17,6 @@
 #include "usb/hid_usage_keyboard.h"
 #include "usb/hid_usage_mouse.h"
 
-/* LVGL image of cursor */
-LV_IMG_DECLARE(img_cursor)
-
 static const char *TAG = "LVGL";
 
 /*******************************************************************************
@@ -103,13 +100,10 @@ lv_indev_t *lvgl_port_add_usb_hid_mouse_input(const lvgl_port_hid_mouse_cfg_t *m
     hid_ctx->mouse.indev = indev;
     lvgl_port_unlock();
 
-    /* Set image of cursor */
-    lv_obj_t *cursor = mouse_cfg->cursor_img;
-    if (cursor == NULL) {
-        cursor = lv_img_create(lv_scr_act());
-        lv_img_set_src(cursor, &img_cursor);
+    /* Apply user supplied cursor, if any */
+    if (mouse_cfg->cursor_img != NULL) {
+        lv_indev_set_cursor(indev, mouse_cfg->cursor_img);
     }
-    lv_indev_set_cursor(indev, cursor);
 
     return indev;
 }
