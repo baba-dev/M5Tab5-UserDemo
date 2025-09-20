@@ -1,16 +1,86 @@
-name: CodeQL
+name: CodeQL (ESP-IDF C/C++)
+
 on:
-  push: { branches: [main] }
+  push:
+    branches: [ "main" ]
   pull_request:
-  schedule: [{cron: '0 3 * * 1'}]
+    branches: [ "main" ]
+  schedule:
+    - cron: "0 6 * * 1" # weekly
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
 
 jobs:
-  analyze:
+  analyze-espidf:
     runs-on: ubuntu-latest
-    permissions: { security-events: write, contents: read }
+    env:
+      IDF_VERSION: v5.4.2
+      IDF_PATH: ${{ github.workspace }}/esp-idf   # where we clone IDF
+      IDF_TARGET: esp32p4
+      IDF_CCACHE_ENABLE: "0"                      # ensure CodeQL sees real compilations
     steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
-        with: { languages: 'cpp' }
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
+      - name: Checkout (no LFS, with submodules)
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
+
+      # ---- CodeQL init in MANUAL BUILD mode ----
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: cpp
+          build-mode: manual
+
+      # ---- Install ESP-IDF toolchain (Linux) ----
+      - name: Install system prerequisites for ESP-IDF
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git wget flex bison gperf cmake ninja-build ccache libffi-dev \
+            libssl-dev dfu-util python3 python3-pip python3-venv
+
+      - name: Fetch ESP-IDF ${{ env.IDF_VERSION }}
+        run: |
+          git clone -b "${IDF_VERSION}" --recursive https://github.com/espressif/esp-idf.git "${IDF_PATH}"
+
+      - name: Install ESP-IDF tools (esp32p4)
+        working-directory: ${{ env.IDF_PATH }}
+        run: |
+          ./install.sh esp32p4
+
+      - name: Export ESP-IDF environment
+        shell: bash
+        run: |
+          set -e
+          source "${IDF_PATH}/export.sh"
+          idf.py --version
+          python --version
+          echo "ESP-IDF exported."
+
+      # ---- Project dependencies (your helper) ----
+      - name: Fetch external repos (project script)
+        run: |
+          python ./fetch_repos.py
+
+      # ---- Build the ESP-IDF app so CodeQL can observe compilation ----
+      - name: Build (ESP-IDF, esp32p4)
+        shell: bash
+        working-directory: platforms/tab5
+        run: |
+          set -e
+          source "${IDF_PATH}/export.sh"
+          idf.py fullclean
+          idf.py set-target "${IDF_TARGET}"
+          # Ensure ccache is disabled via env; print config for logs
+          echo "IDF_CCACHE_ENABLE=${IDF_CCACHE_ENABLE}"
+          idf.py build
+
+      # ---- Run the analysis after the observed build ----
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:cpp"
