@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.6.3](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.2...v1.6.3) (2025-09-20)
+
+
+### Bug Fixes
+
+* **assets:** guard esp vfs fat include ([91621eb](https://github.com/baba-dev/M5Tab5-UserDemo/commit/91621ebc024d1909786f310e5b484fb2b6bf8508))
+* **components:** use esp-tls requires name ([f855545](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f855545f1bbc30b5c30ab32c7510bdea17144651))
+* **hal:** add freertos and c headers for rs485 driver ([e3d78b9](https://github.com/baba-dev/M5Tab5-UserDemo/commit/e3d78b9ca48dd5e048e922370a5f703d1d5e1be0))
+* **hal:** include algorithm for clamp ([7b2471e](https://github.com/baba-dev/M5Tab5-UserDemo/commit/7b2471e84e5c45bffbb082d1cc602c18ac4999c9))
+* **hal:** include freertos headers ([306afda](https://github.com/baba-dev/M5Tab5-UserDemo/commit/306afda89f73597db83303d28371b6dddc83463c))
+* **hal:** tune gpio drive strengths ([1f6cdd6](https://github.com/baba-dev/M5Tab5-UserDemo/commit/1f6cdd6dbff0f4c0a5433cff679fdaa79c79f1f9))
+* **hal:** zero-init record buffers ([e49188f](https://github.com/baba-dev/M5Tab5-UserDemo/commit/e49188f5d34994284d353769cbd91c4890967e19))
+* **platform:** adapt sntp and diag to idf 5.5 ([4b56d7a](https://github.com/baba-dev/M5Tab5-UserDemo/commit/4b56d7aac83f876622b32fd0cb78eee3a28d4362))
+* **platform:** namespace cjson dependency ([2a6cc95](https://github.com/baba-dev/M5Tab5-UserDemo/commit/2a6cc952f0cb1ac22a2c4660bebd3de39f416ab8))
+* **platforms:** depend on json component ([fc26989](https://github.com/baba-dev/M5Tab5-UserDemo/commit/fc26989b6ff84c33e6b50b94f7fb48e297cd841e))
+* **settings_core:** add string terminator slack ([8a9b4a8](https://github.com/baba-dev/M5Tab5-UserDemo/commit/8a9b4a83aade7ca39feb92fcb081d5e2b801546d))
+* **settings_core:** include nvs header ([f2ab524](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f2ab524767d228926a166513ea2ca5f6797f44b9))
+* **settings_ui:** drop esp_timer_set_arg use ([b47880d](https://github.com/baba-dev/M5Tab5-UserDemo/commit/b47880df8dec526b7050965c191bd7cd3532c72c))
+* **tab5:** add hal esp-idf dependencies ([eb8a294](https://github.com/baba-dev/M5Tab5-UserDemo/commit/eb8a2944b7e01222d5b8f6de03b96ca931e02498))
+* **tab5:** add missing app requires ([5c586a1](https://github.com/baba-dev/M5Tab5-UserDemo/commit/5c586a1694a267e9d9c828094bb27ebcf5b757f9))
+* **tab5:** declare local components for build ([f48e125](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f48e1252f17731f63b7e4d9051a95d8d182446e1))
+* **tab5:** include sys time header ([337c6c1](https://github.com/baba-dev/M5Tab5-UserDemo/commit/337c6c1b3e20e0305c44af61cd737acb124d1a46))
+* **tab5:** resolve extra component dirs ([e85c3de](https://github.com/baba-dev/M5Tab5-UserDemo/commit/e85c3dec6520122edcc4416ca8827ac943c77dce))
+* **tab5:** set extra components before project include ([7bbf1f9](https://github.com/baba-dev/M5Tab5-UserDemo/commit/7bbf1f9bd283cc347682e06562c76a1d77b5b24e))
+
 ## [1.6.2](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.1...v1.6.2) (2025-09-19)
 
 
