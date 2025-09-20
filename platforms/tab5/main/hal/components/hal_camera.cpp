@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <memory>
 #include <mooncake_log.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/errno.h>
 #include <sys/ioctl.h>
@@ -20,10 +21,12 @@
 #include "driver/ppa.h"
 #include "esp_err.h"
 #include "esp_event.h"
+#include "esp_heap_caps.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "esp_video_device.h"
 #include "esp_video_init.h"
+#include "frame_buffer.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
@@ -240,23 +243,6 @@ errout:
 static bool   cam_is_initial = false;
 static cam_t* camera         = NULL;
 
-static bool set_sensor_control(int fd, __u32 id, int value, const char* label)
-{
-    struct v4l2_control ctrl;
-    memset(&ctrl, 0, sizeof(ctrl));
-    ctrl.id    = id;
-    ctrl.value = value;
-
-    if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) != 0)
-    {
-        ESP_LOGW(TAG, "Failed to set %s (0x%X) to %d: %s", label, id, value, strerror(errno));
-        return false;
-    }
-
-    ESP_LOGI(TAG, "Set %s to %d", label, value);
-    return true;
-}
-
 void app_camera_display(void* arg)
 {
     /* camera config */
@@ -304,137 +290,12 @@ void app_camera_display(void* arg)
     struct v4l2_buffer buf;
 
     /* */
-    uint16_t screen_width  = 1280;  // 640;//lcd_height();
-    uint16_t screen_height = 720;   // 480;//lcd_width();
-    uint8_t* img_show_data = NULL;
-    uint32_t img_show_size = screen_width * screen_height * 2;
+    uint16_t           screen_width         = 1280;  // 640;//lcd_height();
+    uint16_t           screen_height        = 720;   // 480;//lcd_width();
+    uint8_t*           img_show_data        = NULL;
+    constexpr uint32_t kRgb565BytesPerPixel = 2;
+    uint32_t           img_show_size        = screen_width * screen_height * kRgb565BytesPerPixel;
     // uint32_t img_offset = 280 * 720 * 2;
-    uint32_t        img_offset = 0;
-    static image_t* img_show;  // 初始化静态变量时不能使用非常量表达式
-    if (img_show == NULL)
-    {
-        img_show    = (image_t*)malloc(sizeof(image_t));
-        img_show->w = 720,            // screen_width;
-                                      // img_show->h = 720, // screen_height;
-            img_show->h      = 1280,  // screen_height;
-            img_show->pixfmt = PIXFORMAT_RGB565;
-        img_show->size       = img_show->w * img_show->h * img_show->bpp;
-        img_show_data =
-            (uint8_t*)heap_caps_calloc(img_show_size, 1, MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
-        img_show->data = img_show_data + img_offset;
-        if (img_show->data == NULL)
-        {
-            ESP_LOGE(TAG, "malloc for img_show->data failed");
-        }
-
-        if ((img_show->data != NULL) && (camera_canvas != NULL)) {
-            bsp_display_lock(0);
-            lv_canvas_set_buffer(
-                camera_canvas, img_show->data, CAMERA_WIDTH, CAMERA_HEIGHT, LV_COLOR_FORMAT_RGB565);
-            bsp_display_unlock();
-        }
-    }
-
-    ppa_client_handle_t ppa_srm_handle = NULL;
-    ppa_client_config_t ppa_srm_config = {
-        .oper_type             = PPA_OPERATION_SRM,
-        .max_pending_trans_num = 1,
-    };
-    ESP_ERROR_CHECK(ppa_register_client(&ppa_srm_config, &ppa_srm_handle));
-
-    int      task_control  = 0;
-    uint32_t frame_counter = 0;
-    while (1)
-    {
-        memset(&buf, 0, sizeof(buf));
-        buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory = MEMORY_TYPE;
-        if (ioctl(camera->fd, VIDIOC_DQBUF, &buf) != 0)
-        {
-            ESP_LOGE(TAG, "failed to receive video frame");
-            break;
-        }
-
-        ppa_srm_oper_config_t srm_config = {.in             = {.buffer         = camera->buffer[buf.index],
-                                                               .pic_w          = 1280,
-                                                               .pic_h          = 720,
-                                                               .block_w        = 1280,
-                                                               .block_h        = 720,
-                                                               .block_offset_x = 0,
-                                                               .block_offset_y = 0,
-                                                               .srm_cm         = PPA_SRM_COLOR_MODE_RGB565},
-                                            .out            = {.buffer         = img_show_data,
-                                                               .buffer_size    = img_show_size,
-                                                               .pic_w          = 1280,
-                                                               .pic_h          = 720,
-                                                               .block_offset_x = 0,
-                                                               .block_offset_y = 0,
-                                                               .srm_cm         = PPA_SRM_COLOR_MODE_RGB565},
-                                            .rotation_angle = PPA_SRM_ROTATION_ANGLE_0,
-                                            .scale_x        = 1,
-                                            .scale_y        = 1,
-                                            .mirror_x       = false,
-                                            .mirror_y       = false,
-                                            .rgb_swap       = false,
-                                            .byte_swap      = false,
-                                            .mode           = PPA_TRANS_MODE_BLOCKING};
-        const int64_t         ppa_start  = esp_timer_get_time();
-        esp_err_t             ppa_result = ppa_do_scale_rotate_mirror(ppa_srm_handle, &srm_config);
-        const int64_t         ppa_time   = esp_timer_get_time() - ppa_start;
-        frame_counter++;
-        if (ppa_result != ESP_OK)
-        {
-            ESP_LOGE(TAG, "PPA transfer failed: %s", esp_err_to_name(ppa_result));
-        }
-        else if ((frame_counter % 60) == 0)
-        {
-            ESP_LOGD(TAG, "PPA transfer took %lld us", (long long)ppa_time);
-        }
-
-        // auto detect_results = human_face_detector->run(dl_img); // format: hwc
-
-        if (camera_canvas != NULL) {
-            bsp_display_lock(0);
-            lv_obj_invalidate(camera_canvas);
-            bsp_display_unlock();
-        }
-        if (ioctl(camera->fd, VIDIOC_QBUF, &buf) != 0)
-        {
-            ESP_LOGE(TAG, "failed to free video frame");
-        }
-
-        if (xQueueReceive(queue_camera_ctrl, &task_control, 0) == pdPASS)
-        {
-            if (task_control == TASK_CONTROL_PAUSE)
-            {
-                ESP_LOGI(TAG, "task pause");
-                if (xQueueReceive(queue_camera_ctrl, &task_control, portMAX_DELAY) == pdPASS)
-                {
-                    if (task_control == TASK_CONTROL_EXIT)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        ESP_LOGI(TAG, "task resume");
-                    }
-                }
-            }
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-
-    ESP_LOGI(TAG, "task exit");
-    ppa_unregister_client(ppa_srm_handle);
-    // delete human_face_detector;
-    if (img_show_data)
-    {
-        heap_caps_free(img_show_data);
-        img_show_data = NULL;
-    }
-    if (img_show)
-    {
         heap_caps_free(img_show);
         img_show = NULL;
     }
