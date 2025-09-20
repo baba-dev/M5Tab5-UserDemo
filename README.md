@@ -110,9 +110,11 @@ Our custom data is in the following folders:
 
 ## 🔧 Prerequisites
 
-- **ESP-IDF 5.x** (P4 target support required)
+- **ESP-IDF v5.4.2** (tested with the ESP32-P4 target)
 - **Python 3.8+** (for build scripts)
 - Toolchain installed per [Espressif instructions](https://docs.espressif.com/projects/esp-idf/en/latest/esp32p4/get-started/)
+
+> Tested with ESP-IDF v5.4.2 for esp32p4; newer releases may require additional fixes.
 
 Optional:
 - Mosquitto broker + Home Assistant for end-to-end testing
@@ -122,17 +124,26 @@ Optional:
 
 ## 🛠️ Build Instructions
 
-1. **Clone repo & submodules**
+1. **Clone the repo**
 
         git clone https://github.com/baba-dev/M5Tab5-UserDemo.git
-   cd M5Tab5-UserDemo
-   python fetch_repos.py  # fetch or update M5 & LVGL components
+        cd M5Tab5-UserDemo
 
-2. **Set ESP32-P4 target**
+2. **Select the Tab5 platform**
+
+        cd platforms/tab5
+
+3. **Set ESP32-P4 target**
 
         idf.py set-target esp32p4
 
-3. **Configure (optional)**
+        Only required once per build directory unless you clean the build output.
+
+4. **Build firmware**
+
+        idf.py build
+
+5. **Configure (optional)**
 
         idf.py menuconfig
 
@@ -150,7 +161,7 @@ This uses **ESP Web Tools** to flash `firmware.bin` described by `manifest.json`
 
 ## 🚀 Flash & Monitor
 
-Connect Tab5 over USB-C.
+Connect Tab5 over USB-C. Run the following from `platforms/tab5/`.
 
 Flash:
 
@@ -188,25 +199,8 @@ Exit with Ctrl+].
 
 - Test camera performance with multiple stream types; pick best one for latency.
 
-### Devcontainer (ESP-IDF v5.5)
-This repo includes a Docker-based devcontainer using `espressif/idf:release-v5.5`.
-- Rebuild/Reload Dev Container in VS Code.
-- Inside the container, the ESP-IDF environment is auto-loaded via `${IDF_PATH}/export.sh`.
-- Verify: `bash scripts/check_idf_env.sh`
-- Build: `idf.py build`
-- Format: `idf.py clang-format` (or `bash scripts/format.sh`)
-
-### CI builds (ESP-IDF v5.5.x, ESP32-P4)
-GitHub Actions uses Espressif’s Docker-based builder to compile this repo.
-- IDF: `v5.5.1`
-- Target: `esp32p4`
-- Submodules: checked out recursively
-- Cache: ccache
-
-Locally, the devcontainer auto-exports the IDF env, so `idf.py` works in any shell:
-- Check: `bash -lc 'idf.py --version'`
-- Build: `scripts/build.sh`
-- Format: `scripts/format.sh`
+### UI golden snapshots
+Run `scripts/update_goldens.sh` after UI changes to refresh the LVGL golden screenshots used by snapshot tests.
 
 ------------
 
