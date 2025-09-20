@@ -6,7 +6,7 @@ dependencies:
     - name: espressif/settings_core
       version: ^0.1.0
     source:
-      path: /workspace/M5Tab5-UserDemo/components/backup_server
+      path: ../../components/backup_server
       type: local
     targets:
     - esp32p4
@@ -50,7 +50,7 @@ dependencies:
     - name: idf
       version: ~5.4
     source:
-      path: /workspace/M5Tab5-UserDemo/components/connection_tester
+      path: ../../components/connection_tester
       type: local
     targets:
     - esp32p4
@@ -64,7 +64,7 @@ dependencies:
     - name: espressif/mdns
       version: ^1.8.0
     source:
-      path: /workspace/M5Tab5-UserDemo/components/diag
+      path: ../../components/diag
       type: local
     targets:
     - esp32p4
@@ -251,7 +251,7 @@ dependencies:
     - name: idf
       version: ~5.4
     source:
-      path: /workspace/M5Tab5-UserDemo/components/settings_core
+      path: ../../components/settings_core
       type: local
     targets:
     - esp32p4
@@ -263,7 +263,7 @@ dependencies:
     - name: espressif/settings_core
       version: ^0.1.0
     source:
-      path: /workspace/M5Tab5-UserDemo/components/settings_ui
+      path: ../../components/settings_ui
       type: local
     targets:
     - esp32p4
@@ -298,7 +298,7 @@ dependencies:
     - name: idf
       version: ~5.4
     source:
-      path: /workspace/M5Tab5-UserDemo/components/net_sntp
+      path: ../../components/net_sntp
       type: local
     targets:
     - esp32p4
@@ -308,7 +308,7 @@ dependencies:
     - name: idf
       version: ~5.4
     source:
-      path: /workspace/M5Tab5-UserDemo/components/ota_update
+      path: ../../components/ota_update
       type: local
     targets:
     - esp32p4
