@@ -24,7 +24,7 @@ idf_component_register(
     REQUIRES backup_server connection_tester diag net_sntp ota_update settings_core
              settings_ui m5stack_tab5 esp_wifi esp_netif esp_event nvs_flash
              esp_http_server chmorgan__esp-audio-player mooncake mooncake_log
-             smooth_ui_toolkit power_monitor_ina226 esp_video imlib
+             smooth_ui_toolkit power_monitor_ina226 esp_video imlib cjson
     EMBED_TXTFILES "../audio/canon_in_d.mp3" "../audio/startup_sfx.mp3" "../audio/shutdown_sfx.mp3")
 
 set(CUSTOM_ASSETS_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../custom/assets")
