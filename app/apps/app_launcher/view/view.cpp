@@ -6,7 +6,6 @@
 #include "view.h"
 
 #include <apps/utils/audio/audio.h>
-#include <assets/assets.h>
 #include <hal/hal.h>
 #include <lvgl.h>
 #include <mooncake_log.h>
@@ -38,12 +37,10 @@ void LauncherView::init()
     LvglLockGuard lock;
 
     // Base screen
-    lv_obj_remove_flag(lv_screen_active(), LV_OBJ_FLAG_SCROLLABLE);
-
-    // Background image
-    _img_bg = std::make_unique<Image>(lv_screen_active());
-    _img_bg->setAlign(LV_ALIGN_CENTER);
-    _img_bg->setSrc(&launcher_bg);
+    lv_obj_t* screen = lv_screen_active();
+    lv_obj_remove_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(screen, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
 
     // Install panels
     _panels.push_back(std::make_unique<PanelRtc>());

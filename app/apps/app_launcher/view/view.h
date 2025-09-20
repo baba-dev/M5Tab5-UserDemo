@@ -323,7 +323,6 @@ namespace launcher_view
 
     private:
         bool                                                     _is_stacked = false;
-        std::unique_ptr<smooth_ui_toolkit::lvgl_cpp::Image>      _img_bg;
         std::vector<std::unique_ptr<PanelBase>>                  _panels;
         ui_root_t*                                               _ui_root = nullptr;
         std::unique_ptr<custom::integration::SettingsController> _settings_controller;
