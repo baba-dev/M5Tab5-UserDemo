@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.7.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.3...v1.7.0) (2025-09-21)
+
+
+### Features
+
+* **audio:** gate long demo track ([b3836a7](https://github.com/baba-dev/M5Tab5-UserDemo/commit/b3836a757a94687eabdf4ef1e70ea66054d0f5c2))
+
+
+### Bug Fixes
+
+* **build:** use idf alias for esp-idf dependency ([0ec897b](https://github.com/baba-dev/M5Tab5-UserDemo/commit/0ec897b3d758abd0bd5b1cde1ba1817513e03206))
+* **camera:** drop unused imlib include ([491fcf5](https://github.com/baba-dev/M5Tab5-UserDemo/commit/491fcf51f659af2be5e79b318ce683c1664fec71))
+* **camera:** flip sensor stream via v4l2 ([2dc2154](https://github.com/baba-dev/M5Tab5-UserDemo/commit/2dc2154d17dfa6ea60b57412098963aff44d5ae8))
+* **camera:** free img_show_data pointer ([b90f94d](https://github.com/baba-dev/M5Tab5-UserDemo/commit/b90f94d6c7cfc25e8cc47d018fa9f62265518efc))
+* **camera:** include mutex header ([5412c05](https://github.com/baba-dev/M5Tab5-UserDemo/commit/5412c057be6881406be520e0fac955d76abfc886))
+* **hal:** add v4l2 control helper ([655528f](https://github.com/baba-dev/M5Tab5-UserDemo/commit/655528ff8a08b34ab20cf512f20330fd2037f5b5))
+* **lvgl:** use libc allocator for ui heap ([d782030](https://github.com/baba-dev/M5Tab5-UserDemo/commit/d78203034b70f849c99bac2f56a66e4a2bc26b06))
+* **platform:** set esp-hosted slave target ([36a2d36](https://github.com/baba-dev/M5Tab5-UserDemo/commit/36a2d365eb6131f0d9ddf8e9bb1792ee06663e6f))
+* **platforms:** override settings core path ([15a56a7](https://github.com/baba-dev/M5Tab5-UserDemo/commit/15a56a7dfeb71d1721747b6d7a5de7ff22b618c3))
+* **tab5:** align hosted config for esp32c6 ([5bbf257](https://github.com/baba-dev/M5Tab5-UserDemo/commit/5bbf257c0fc84515173afa909521b5d464518aa5))
+* **tab5:** auto-fetch managed dependencies ([128e0c4](https://github.com/baba-dev/M5Tab5-UserDemo/commit/128e0c43fee8a5d730f9ae5b8083f97e62ba5474))
+* **tab5:** select 16mb no-ota partition ([2df6096](https://github.com/baba-dev/M5Tab5-UserDemo/commit/2df6096578658cb17cab8f53d24c08e2b610ea36))
+* **tooling:** validate libusb dependency ([260f5ba](https://github.com/baba-dev/M5Tab5-UserDemo/commit/260f5ba47f582022d43b01cd32dc8df048b5581c))
+* **tools:** sync esp-idf submodules ([b28a910](https://github.com/baba-dev/M5Tab5-UserDemo/commit/b28a910029a7507f02d58bdc421d7cf1554250f2))
+* **ui:** render white wallpaper without images ([521410a](https://github.com/baba-dev/M5Tab5-UserDemo/commit/521410ad385036562b8d1308577931ca704f24cb))
+
+
+### Performance Improvements
+
+* **camera:** cache canvas buffer binding ([86a2b8d](https://github.com/baba-dev/M5Tab5-UserDemo/commit/86a2b8d55fc14a58cf9fef21163b9d148b6ef0f9))
+* **tab5:** remove usb cursor images ([5fcf18b](https://github.com/baba-dev/M5Tab5-UserDemo/commit/5fcf18bda46b482e13e9691d47f5d8089e9a6331))
+
 ## [1.6.3](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.2...v1.6.3) (2025-09-20)
 
 
