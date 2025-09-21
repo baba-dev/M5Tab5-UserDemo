@@ -1,0 +1,104 @@
+name: Lint
+
+on:
+  pull_request:
+    paths:
+      - "**/*.c"
+      - "**/*.C"
+      - "**/*.cc"
+      - "**/*.cpp"
+      - "**/*.cxx"
+      - "**/*.c++"
+      - "**/*.h"
+      - "**/*.H"
+      - "**/*.hh"
+      - "**/*.hpp"
+      - "**/*.hxx"
+      - "**/*.h++"
+      - "**/*.yml"
+      - "**/*.yaml"
+      - "**/*.md"
+      - ".github/workflows/**"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # 1) clang-format: strict formatting check for C/C++
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
+
+      - name: Setup clang-format
+        uses: aminya/setup-cpp@v1
+        with:
+          clang-format: true  # installs clang-format (uses latest unless pinned)
+          # You can pin via 'compiler: llvm-17' if you want a specific toolchain
+
+      - name: Verify formatting
+        shell: bash
+        run: |
+          mapfile -t files < <(git ls-files \
+            '*.c' '*.C' '*.cc' '*.cpp' '*.cxx' '*.c++' \
+            '*.h' '*.H' '*.hh' '*.hpp' '*.hxx' '*.h++' \
+            | grep -Ev '^(platforms/.*/build/|platforms/tab5/build/|external/|components/.*/third_party/)')
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo 'No tracked C/C++ files to check.'
+            exit 0
+          fi
+          clang-format --version
+          clang-format --dry-run --Werror "${files[@]}"
+
+  # 2) yamllint: uses your .yamllint.yml (note: correct input key is "config")
+  yamllint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
+      - name: Guard against Git LFS usage
+        run: |
+          if git grep -n "filter=lfs" -- .gitattributes; then
+            echo "Refusing to proceed: LFS filters detected in .gitattributes"
+            exit 1
+          fi
+      - name: Run yamllint
+        uses: frenck/action-yamllint@v1
+        with:
+          config: .yamllint.yml   # <- your previous workflow used "config_file", which is not a valid input
+
+  # 3) Super-Linter: limit to YAML/Markdown/Actions; exclude generated/third_party
+  superlinter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
+      - name: Super-Linter (light)
+        uses: super-linter/super-linter@v8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          # Only run these linters via Super-Linter
+          VALIDATE_YAML: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_GITHUB_ACTIONS: true
+          # Turn OFF C/C++ here (clang-format job already enforces style)
+          VALIDATE_C: false
+          VALIDATE_CPP: false
+          # Avoid checking generated or third-party content
+          FILTER_REGEX_EXCLUDE: >-
+            ^(platforms/.*/build/|platforms/tab5/build/|external/|components/.*/third_party/|tests/ui/stubs/assets/)
+          # Use configs from repo when applicable
+          LINTER_RULES_PATH: .
