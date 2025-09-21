@@ -65,17 +65,6 @@ if (NOT GTest_FOUND)
 endif()
 
 # -----------------------------
-# UI asset stubs
-# -----------------------------
-add_library(ui_assets_stub
-  ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs/assets/launcher_bg_stub.c
-)
-target_include_directories(ui_assets_stub PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs
-)
-target_link_libraries(ui_assets_stub PUBLIC lvgl::lvgl lvgl_config)
-
-# -----------------------------
 # Rooms page UI under test (optional via BUILD_ROOMS_TESTS)
 # -----------------------------
 if (BUILD_ROOMS_TESTS)
@@ -94,7 +83,7 @@ if (BUILD_ROOMS_TESTS)
     ${REPO_ROOT}/custom/integration
     ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs
   )
-  target_link_libraries(ui_rooms_under_test PUBLIC lvgl::lvgl lvgl_config ui_assets_stub)
+  target_link_libraries(ui_rooms_under_test PUBLIC lvgl::lvgl lvgl_config)
   # Some tests stub LVGL event bounds; keep compatible with our test doubles
   target_compile_definitions(ui_rooms_under_test PUBLIC LV_EVENT_LAST=2000)
 
@@ -122,7 +111,7 @@ target_include_directories(ui_settings_under_test PUBLIC
   ${REPO_ROOT}/custom/integration
   ${CMAKE_CURRENT_SOURCE_DIR}/ui/stubs
 )
-target_link_libraries(ui_settings_under_test PUBLIC lvgl::lvgl lvgl_config ui_assets_stub)
+target_link_libraries(ui_settings_under_test PUBLIC lvgl::lvgl lvgl_config)
 
 add_executable(settings_page_status_test
   ui/test_settings_status.cpp
@@ -147,7 +136,7 @@ target_include_directories(ui_media_under_test PUBLIC
   ${REPO_ROOT}/custom/ui/pages
 )
 target_compile_definitions(ui_media_under_test PUBLIC LV_EVENT_LAST=2000)
-target_link_libraries(ui_media_under_test PUBLIC lvgl::lvgl lvgl_config ui_assets_stub)
+target_link_libraries(ui_media_under_test PUBLIC lvgl::lvgl lvgl_config)
 
 add_executable(media_page_test
   ui/media_page_test.c
