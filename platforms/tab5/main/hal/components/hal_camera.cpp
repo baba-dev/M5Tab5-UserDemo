@@ -324,7 +324,7 @@ void app_camera_display(void* arg)
     // uint32_t img_offset = 280 * 720 * 2;
     heap_caps_free(img_show_data);
     img_show_data = NULL;
-    }
+
     // close(camera->fd);
 
     camera_mutex.lock();
