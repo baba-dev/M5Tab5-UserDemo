@@ -1,0 +1,75 @@
+name: IDF Build + Web Flash Deploy
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build (ESP-IDF 5.4.2)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (no LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Fetch external repos
+        run: python ./fetch_repos.py
+
+      - name: Build with ESP-IDF 5.4.2 (esp32p4)
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.4.2
+          target: esp32p4
+          path: platforms/tab5
+          command: idf.py build
+
+      - name: Merge firmware for ESP Web Tools
+        working-directory: platforms/tab5/build
+        run: |
+          python -m pip install --upgrade esptool
+          mkdir -p ../../site
+          python -m esptool --chip esp32p4 merge_bin \
+            -o ../../site/firmware-merged.bin \
+            "@flash_args"
+
+      - name: Create manifest.json
+        working-directory: platforms/tab5/site
+        run: |
+          cat > manifest.json << 'JSON'
+          {
+            "name": "M5Tab5 User Demo",
+            "version": "${{ github.run_number }}",
+            "builds": [{
+              "chipFamily": "ESP32",
+              "parts": [{ "path": "firmware-merged.bin", "offset": 0 }]
+            }]
+          }
+          JSON
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: platforms/tab5/site
+
+  publish:
+    name: Deploy Web Flash
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
