@@ -6,7 +6,7 @@ firmware consumes at startup.
 
 | id | Source file | Mounted path |
 | --- | --- | --- |
-| *(example)* `bg_default` | `bg/default.png` | `/spiffs/custom/assets/bg/default.png` |
+| *(example)* `icon_play` | `icons/play.webp` | `/spiffs/custom/assets/icons/play.webp` |
 
 Add or update rows when you introduce new images or fonts so UI code can reference the
 correct mount paths. Keep the filenames stable; bots only touch generated outputs under

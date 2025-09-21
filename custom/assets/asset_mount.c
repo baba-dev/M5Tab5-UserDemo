@@ -188,93 +188,9 @@ static void lv_fs_if_init(void)
 #define ASSET_LOGW(tag, fmt, ...) LV_LOG_WARN(fmt, ##__VA_ARGS__)
 #endif
 
-#define SD_ASSET_ROOT "/sdcard/custom/assets"
-#if !defined(ESP_PLATFORM) && defined(LV_FS_IF_POSIX) && (LV_FS_IF_POSIX != '\0')
-#define INTERNAL_ASSET_ROOT "./custom/assets"
-#else
-#define INTERNAL_ASSET_ROOT "/custom/assets"
-#endif
-#define BG_RELATIVE "/bg"
-
 static const char *k_tag = "assets";
 
 static bool s_fs_initialized = false;
-static bool s_sd_ok          = false;
-static bool s_warned_missing = false;
-
-static const char *drive_prefix(void)
-{
-#if defined(LV_FS_IF_POSIX) && (LV_FS_IF_POSIX != '\0')
-    static const char prefix[] = {LV_FS_IF_POSIX, ':', '\0'};
-    return prefix;
-#elif defined(LV_FS_MEMFS_LETTER) && (LV_FS_MEMFS_LETTER != '\0')
-    static const char prefix[] = {LV_FS_MEMFS_LETTER, ':', '\0'};
-    return prefix;
-#else
-    return "";
-#endif
-}
-
-static bool path_exists(const char *path)
-{
-    if (path == NULL) {
-        return false;
-    }
-
-    lv_fs_file_t file;
-    lv_fs_res_t res = lv_fs_open(&file, path, LV_FS_MODE_RD);
-    if (res == LV_FS_RES_OK) {
-        lv_fs_close(&file);
-        return true;
-    }
-    return false;
-}
-
-static bool format_path(char *buffer, size_t size, const char *root, const char *relative)
-{
-    const char *prefix = drive_prefix();
-    int length         = snprintf(buffer, size, "%s%s%s/%s", prefix, root, BG_RELATIVE, relative);
-    return length > 0 && length < (int)size;
-}
-
-static const char *pick_file(const char *relative, char *buffer, size_t size)
-{
-    if (buffer == NULL || size == 0) {
-        return NULL;
-    }
-
-    if (s_sd_ok && format_path(buffer, size, SD_ASSET_ROOT, relative) && path_exists(buffer)) {
-        return buffer;
-    }
-
-    static const char *const k_internal_roots[] = {
-#if defined(CONFIG_BSP_SPIFFS_MOUNT_POINT)
-        CONFIG_BSP_SPIFFS_MOUNT_POINT "/custom/assets",
-#endif
-        INTERNAL_ASSET_ROOT,
-    };
-
-    for (size_t i = 0; i < (sizeof(k_internal_roots) / sizeof(k_internal_roots[0])); i++) {
-        const char *root = k_internal_roots[i];
-        if (root == NULL || root[0] == '\0') {
-            continue;
-        }
-        if (!format_path(buffer, size, root, relative)) {
-            continue;
-        }
-        if (path_exists(buffer)) {
-            return buffer;
-        }
-    }
-
-    if (!s_warned_missing && format_path(buffer, size, INTERNAL_ASSET_ROOT, relative)) {
-        s_warned_missing = true;
-        ASSET_LOGW(k_tag, "Falling back to built-in wallpaper path: %s", buffer);
-        return buffer;
-    }
-
-    return NULL;
-}
 
 void assets_fs_init(void)
 {
@@ -286,7 +202,7 @@ void assets_fs_init(void)
 #if LV_USE_FS_IF
     lv_fs_if_init();
 #else
-    LV_LOG_WARN("LV_USE_FS_IF disabled; wallpaper loading from FS unavailable");
+    LV_LOG_WARN("LV_USE_FS_IF disabled; asset loading from FS unavailable");
 #endif
 
 #if defined(ESP_PLATFORM)
@@ -294,16 +210,4 @@ void assets_fs_init(void)
 #else
     ASSET_LOGI(k_tag, "Desktop build: using host filesystem without SD mount");
 #endif
-}
-
-const char *assets_path_1(void)
-{
-    static char path_buffer[128];
-    return pick_file("1.png", path_buffer, sizeof(path_buffer));
-}
-
-const char *assets_path_2(void)
-{
-    static char path_buffer[128];
-    return pick_file("2.png", path_buffer, sizeof(path_buffer));
 }
