@@ -24,10 +24,9 @@ extern "C"
 {
 #endif
 
-    typedef struct ui_wallpaper_t
-    {
-        lv_obj_t* layer;
-    } ui_wallpaper_t;
+     typedef struct {
+         lv_obj_t* layer;   // background layer only
+     } ui_wallpaper_t;
 
     ui_wallpaper_t* ui_wallpaper_attach(lv_obj_t* parent);
     void            ui_wallpaper_detach(ui_wallpaper_t* wallpaper);
