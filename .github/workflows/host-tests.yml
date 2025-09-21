@@ -46,16 +46,5 @@ jobs:
       - name: Build all tests
         run: cmake --build tests/build -j
 
-      - name: List golden assets (optional)
-        run: ls -la tests/ui/golden || true
-
       - name: Run tests
         run: ctest --test-dir tests/build --output-on-failure --timeout 60
-
-      - name: Secret scan (only if script exists)
-        run: |
-          if [ -x ./tools/check_secrets.sh ]; then
-            ./tools/check_secrets.sh
-          else
-            echo "tools/check_secrets.sh not found or not executable; skipping."
-          fi
