@@ -19,10 +19,10 @@ test: ## Host/unit tests
 	ctest --test-dir tests/build --output-on-failure
 
 fmt: ## Format source
-	./tools/run_clang_format.sh
+        ./tools/clang_tools.sh format
 
-tidy: build ## Static analysis
-	./tools/run_clang_tidy.sh
+tidy: ## Static analysis
+        ./tools/clang_tools.sh tidy
 
 assets: ## Convert PNG/JPG → runtime-friendly assets + manifest
 	python tools/gen_assets.py custom/assets out/assets
