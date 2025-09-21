@@ -39,15 +39,20 @@ jobs:
           command: idf.py build
 
       - name: Merge firmware for ESP Web Tools
+        shell: bash
         working-directory: platforms/tab5/build
+        env:
+          SITE_DIR: ${{ github.workspace }}/platforms/tab5/site
         run: |
           python -m pip install --upgrade esptool
-          mkdir -p ../../site
+          mkdir -p "$SITE_DIR"
+          # merge a single flashable image using the exact args from the build dir
           python -m esptool --chip esp32p4 merge_bin \
-            -o ../../site/firmware-merged.bin \
+            -o "$SITE_DIR/firmware-merged.bin" \
             "@flash_args"
-
+      
       - name: Create manifest.json
+        shell: bash
         working-directory: platforms/tab5/site
         run: |
           cat > manifest.json << 'JSON'
