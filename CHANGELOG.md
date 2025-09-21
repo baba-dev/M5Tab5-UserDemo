@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.1](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.0...v1.7.1) (2025-09-21)
+
+
+### Bug Fixes
+
+* **tests:** remove ui stub library ([9d68eba](https://github.com/baba-dev/M5Tab5-UserDemo/commit/9d68eba5f16b91f4d5fce89c6f621cfe4c128135))
+* **wifi:** guard init in progress ([11334fa](https://github.com/baba-dev/M5Tab5-UserDemo/commit/11334fad1f644dcf372c5df5b578e1565270e5b1))
+* **wifi:** stabilize hosted softap bringup ([5dd7ab7](https://github.com/baba-dev/M5Tab5-UserDemo/commit/5dd7ab7ce7a41ee3da4fd964c6ea555b4af4c61b))
+
 ## [1.7.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.6.3...v1.7.0) (2025-09-21)
 
 
