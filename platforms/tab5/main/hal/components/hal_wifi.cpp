@@ -216,7 +216,11 @@ bool HalEsp32::wifi_init()
     portENTER_CRITICAL(&spinlock);
     bool already_started   = state.started;
     bool previously_failed = state.failed;
-    state.attempted        = true;
+    bool in_progress       = state.attempted && !state.started && !state.failed;
+    if (!state.attempted)
+    {
+        state.attempted = true;
+    }
     portEXIT_CRITICAL(&spinlock);
 
     if (already_started)
@@ -226,6 +230,11 @@ bool HalEsp32::wifi_init()
     if (previously_failed)
     {
         ESP_LOGW(TAG, "Skipping Wi-Fi init after previous failure");
+        return false;
+    }
+    if (in_progress)
+    {
+        ESP_LOGW(TAG, "Wi-Fi init already in progress");
         return false;
     }
 
