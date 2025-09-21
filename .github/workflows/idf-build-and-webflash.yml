@@ -65,21 +65,6 @@ jobs:
             }]
           }
           JSON
-
-      - name: Create manifest.json
-        shell: bash
-        working-directory: platforms/tab5/site
-        run: |
-          cat > manifest.json << 'JSON'
-          {
-            "name": "M5Tab5 User Demo",
-            "version": "${{ github.run_number }}",
-            "builds": [{
-              "chipFamily": "ESP32",
-              "parts": [{ "path": "firmware-merged.bin", "offset": 0 }]
-            }]
-          }
-          JSON
       
       - name: Create web flasher page(s)
         shell: bash
