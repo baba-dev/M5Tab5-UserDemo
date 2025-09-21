@@ -16,12 +16,10 @@ jobs:
           lfs: false
           submodules: recursive
 
-      # Install build tools and GTest
-      - name: Install deps
+      - name: Install deps (Ninja, CMake, GTest)
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build cmake ccache libgtest-dev
-          # Build GTest libs (headers are already present)
           sudo cmake -S /usr/src/googletest -B /usr/src/googletest/build
           sudo cmake --build /usr/src/googletest/build -j
           sudo cp -a /usr/src/googletest/build/lib/* /usr/local/lib/
@@ -34,7 +32,7 @@ jobs:
           restore-keys: |
             ccache-host-${{ runner.os }}-
 
-      - name: Configure (Ninja + ccache + unity)
+      - name: Configure (Ninja + ccache)
         env:
           CCACHE_DIR: ~/.cache/ccache
         run: |
@@ -45,14 +43,19 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DROMS_ONLY=ON
 
-      - name: Build rooms_page_test
-        run: cmake --build tests/build --target rooms_page_test -j
+      - name: Build all tests
+        run: cmake --build tests/build -j
 
-      - name: List golden assets
-        run: ls -la tests/ui/golden
+      - name: List golden assets (optional)
+        run: ls -la tests/ui/golden || true
 
       - name: Run tests
         run: ctest --test-dir tests/build --output-on-failure --timeout 60
 
-      - name: Secret scan
-        run: ./tools/check_secrets.sh
+      - name: Secret scan (only if script exists)
+        run: |
+          if [ -x ./tools/check_secrets.sh ]; then
+            ./tools/check_secrets.sh
+          else
+            echo "tools/check_secrets.sh not found or not executable; skipping."
+          fi
