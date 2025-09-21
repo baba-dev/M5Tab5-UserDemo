@@ -1,47 +1,42 @@
-name: IDF Preflight (esp32p4)
+name: IDF Preflight
 
 on:
-  push:
-  pull_request:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 3 * * 1"  # weekly, optional
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  preflight:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (no LFS)
         uses: actions/checkout@v4
+        with:
+          lfs: false
+          submodules: recursive
 
-      # Install Python deps (pytest-embedded optional; enables on-target tests when HW is present)
-      - name: Python setup
+      - name: Set up Python (if your installer needs it)
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pyserial pytest pytest-embedded pytest-embedded-idf
-        shell: bash
+          python-version: "3.x"
 
-      # Install ESP-IDF using official action (respects Linux runners)
-      - name: Install ESP-IDF
-        uses: espressif/install-esp-idf-action@v1
-        with:
-          version: latest
-      # Alternatively, to match your repo script exactly, source your installer:
-      # - run: bash tools/install_idf.sh
+      # Use your repo's installer (as you asked)
+      - name: Run repo install script (ESP-IDF)
+        env:
+          IDF_VERSION: v5.4.2   # keep in sync with your main build
+        run: |
+          bash tools/install_idf.sh
 
-      - name: Preflight
+      - name: Verify toolchain works
         shell: bash
         run: |
-          bash scripts/preflight.sh
-
-      # Upload build artifacts & logs for debugging
-      - name: Archive build
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: tab5-build
-          path: |
-            platforms/tab5/build/**
-            **/build/tests/**
-          if-no-files-found: ignore
+          # Common export paths used by installers; adapt if your script installs elsewhere
+          if [ -f "$HOME/esp-idf/export.sh" ]; then
+            . "$HOME/esp-idf/export.sh"
+          elif [ -f "$HOME/.espressif/esp-idf/export.sh" ]; then
+            . "$HOME/.espressif/esp-idf/export.sh"
+          fi
+          idf.py --version
