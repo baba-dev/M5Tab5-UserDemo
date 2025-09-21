@@ -66,11 +66,49 @@ jobs:
           }
           JSON
 
+      - name: Create manifest.json
+        shell: bash
+        working-directory: platforms/tab5/site
+        run: |
+          cat > manifest.json << 'JSON'
+          {
+            "name": "M5Tab5 User Demo",
+            "version": "${{ github.run_number }}",
+            "builds": [{
+              "chipFamily": "ESP32",
+              "parts": [{ "path": "firmware-merged.bin", "offset": 0 }]
+            }]
+          }
+          JSON
+      
+      - name: Create web flasher page(s)
+        shell: bash
+        working-directory: platforms/tab5/site
+        run: |
+          cat > index.html << 'HTML'
+          <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>M5Tab5 Web Flash</title>
+          <script type="module"
+            src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+          <h1>M5Tab5 – Web Flash</h1>
+          <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
+          <p>If the installer doesn’t recognize your device, download
+            <a href="firmware-merged.bin" download>firmware-merged.bin</a> and flash with esptool.</p>
+          HTML
+          # Provide flash.html as an alias so /flash.html works too
+          cp index.html flash.html
+          # Avoid Jekyll processing edge-cases
+          : > .nojekyll
+
+      - name: List site files (debug)
+        run: |
+          find platforms/tab5/site -maxdepth 1 -type f -printf "%f\n"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: platforms/tab5/site
-
+          
   publish:
     name: Deploy Web Flash
     runs-on: ubuntu-latest
@@ -91,3 +129,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        
