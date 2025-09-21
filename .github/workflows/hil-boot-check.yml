@@ -8,13 +8,17 @@ on:
 jobs:
   hil:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: [self-hosted, esp32]   # self-hosted runner with the Tab5 on USB
+    runs-on: [self-hosted, esp32]
     permissions:
       contents: read
       actions: read
 
+    concurrency:
+      group: hil-runner-tab5
+      cancel-in-progress: false
+
     env:
-      ESPPORT: /dev/ttyUSB0         # adjust for your runner
+      ESPPORT: /dev/ttyUSB0
       ESPBAUD: "460800"
 
     steps:
@@ -41,7 +45,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-embedded pytest-embedded-serial pytest-embedded-idf esptool
 
-      # Optional: if your runner needs udev/dialout prep, do it out-of-band.
+      # Optional: quick visibility into serial ports
+      - name: List serial ports (debug)
+        run: python - << 'PY'
+import serial.tools.list_ports as p
+print([str(x) for x in p.comports()])
+PY
 
       - name: Run boot-loop check
         working-directory: _dl/platforms/tab5/build
@@ -49,9 +58,8 @@ jobs:
           ESPPORT: ${{ env.ESPPORT }}
           ESPBAUD: ${{ env.ESPBAUD }}
         run: |
-          # pytest-embedded can detect ports automatically via esptool,
-          # but we pass explicit port/baud for reliability.
           pytest -q \
             --embedded-services esp,idf,serial \
+            --app-path . \
             --port "$ESPPORT" --baud "$ESPBAUD" \
             ../../../tests/hil
