@@ -90,6 +90,15 @@ pre-commit install
 Running `pre-commit install` configures Git to automatically run clang-format on
 changed files before each commit.
 
+For manual formatting or static analysis runs, use the consolidated helper in
+`tools/clang_tools.sh`:
+
+```bash
+./tools/clang_tools.sh format   # clang-format across tracked sources
+./tools/clang_tools.sh tidy     # clang-tidy using compile_commands.json
+./tools/clang_tools.sh fix      # format + clang-tidy --fix
+```
+
 ---
 
 ## 📂 Repository Structure
