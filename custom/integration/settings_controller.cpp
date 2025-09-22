@@ -907,7 +907,7 @@ namespace custom::integration
 
     void SettingsController::Impl::test_wifi_connection()
     {
-#if defined(ESP_PLATFORM)
+#if defined(ESP_PLATFORM) && CONFIG_APP_ENABLE_WIFI_HOSTED
         wifi_ap_record_t ap_info{};
         esp_err_t        err = esp_wifi_sta_get_ap_info(&ap_info);
         if (err == ESP_OK)
@@ -923,6 +923,8 @@ namespace custom::integration
         {
             post_connection_result("wifi", UI_PAGE_SETTINGS_STATUS_UNKNOWN, "Unavailable");
         }
+#elif defined(ESP_PLATFORM)
+        post_connection_result("wifi", UI_PAGE_SETTINGS_STATUS_UNKNOWN, "ESP-Hosted disabled");
 #else
         post_connection_result("wifi", UI_PAGE_SETTINGS_STATUS_WARNING, "Not supported on host");
 #endif

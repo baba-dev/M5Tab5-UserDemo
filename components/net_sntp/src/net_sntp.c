@@ -8,8 +8,14 @@
 #include "esp_log.h"
 #include "esp_netif_sntp.h"
 #include "esp_sntp.h"
-#include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
+
+#if defined(ESP_PLATFORM)
+#    include "sdkconfig.h"
+#    if CONFIG_APP_ENABLE_WIFI_HOSTED
+#        include "esp_wifi.h"
+#    endif
+#endif
 
 static const char* TAG = "net_sntp";
 
@@ -47,9 +53,20 @@ esp_err_t net_sntp_start(const char* server, bool wait_for_sync)
             ESP_LOGW(TAG, "SNTP sync wait timed out: 0x%x", (unsigned int)err);
         }
     }
+    ESP_LOGI(TAG, "SNTP running");
+
+#if defined(ESP_PLATFORM) && CONFIG_APP_ENABLE_WIFI_HOSTED
     wifi_mode_t mode = WIFI_MODE_NULL;
-    esp_wifi_get_mode(&mode);
-    ESP_LOGI(TAG, "SNTP running (wifi mode=%d)", mode);
+    esp_err_t   wifi_err = esp_wifi_get_mode(&mode);
+    if (wifi_err == ESP_OK)
+    {
+        ESP_LOGI(TAG, "Wi-Fi mode: %d", mode);
+    }
+    else
+    {
+        ESP_LOGW(TAG, "Failed to query Wi-Fi mode: 0x%x", (unsigned int)wifi_err);
+    }
+#endif
     return err;
 }
 

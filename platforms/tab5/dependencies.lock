@@ -126,7 +126,7 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     rules:
-    - if: CONFIG_APP_ENABLE_WIFI_HOSTED
+    - if: $CONFIG{CONFIG_APP_ENABLE_WIFI_HOSTED} == y
     version: 1.4.0
   espressif/esp_lcd_ili9881c:
     component_hash: eb9ba0484d1d14171b69e5d192716fb1cdd6ef068aa4014dc3202486e124498e
@@ -228,7 +228,7 @@ dependencies:
       registry_url: https://components.espressif.com/
       type: service
     rules:
-    - if: CONFIG_APP_ENABLE_WIFI_HOSTED
+    - if: $CONFIG{CONFIG_APP_ENABLE_WIFI_HOSTED} == y
     version: 0.8.5
   espressif/led_strip:
     component_hash: f907c58f722c58ab8545366668cfd8769cefb7d97a631a14e9d16234cc72bdff
