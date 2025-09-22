@@ -4,11 +4,11 @@
  * SPDX-License-Identifier: MIT
  */
 #include "app_launcher.h"
-
+#include "ui_home.h"
+#include <hal/hal.h>
 #include <mooncake.h>
 #include <mooncake_log.h>
-
-#include "ui_home.h"
+#include <smooth_lvgl.h>
 
 using namespace mooncake;
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.3](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.2...v1.7.3) (2025-09-22)
+
+
+### Bug Fixes
+
+* **build:** remove tab5 dependencies lock ([d0a22de](https://github.com/baba-dev/M5Tab5-UserDemo/commit/d0a22de05ca80fcaf618ae1b2fb2ef576b2ab15c))
+* **hosted:** harden sdio bring-up ([a1733bf](https://github.com/baba-dev/M5Tab5-UserDemo/commit/a1733bfcb39ba314c1459a3ee129ac4457be738a))
+* **platforms:** guard optional wifi hosted deps ([a3b3c76](https://github.com/baba-dev/M5Tab5-UserDemo/commit/a3b3c7640bbc2ec72c95f9f33c81c9f7511fb755))
+* **tab5:** clean wifi remote dependencies ([c5dde79](https://github.com/baba-dev/M5Tab5-UserDemo/commit/c5dde795d979634f52c47dd031ece6ce0585eb4a))
+* **tab5:** guard hosted wifi and add heap tracing ([c1d3851](https://github.com/baba-dev/M5Tab5-UserDemo/commit/c1d3851641085126803ab1a43160cb38e438774d))
+* **ui:** restore launcher view build deps ([873de9e](https://github.com/baba-dev/M5Tab5-UserDemo/commit/873de9e4a652b4df242e000feb077f3b257dea12))
+
 ## [1.7.2](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.1...v1.7.2) (2025-09-22)
 
 

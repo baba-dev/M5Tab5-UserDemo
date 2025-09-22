@@ -4,18 +4,18 @@
  * SPDX-License-Identifier: MIT
  */
 #include "hal/hal_esp32.h"
-extern "C" {
+extern "C"
+{
 #include "utils/rx8130/rx8130.h"
 }
 #include <algorithm>
-#include <initializer_list>
-#include <sys/time.h>
-#include <mooncake_log.h>
+#include <bsp/m5stack_tab5.h>
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <bsp/m5stack_tab5.h>
-#include <lv_demos.h>
+#include <initializer_list>
+#include <mooncake_log.h>
+#include <sys/time.h>
 
 extern esp_lcd_touch_handle_t _lcd_touch_handle;
 
@@ -23,7 +23,8 @@ static const std::string _tag = "hal";
 
 static void lvgl_read_cb(lv_indev_t* indev, lv_indev_data_t* data)
 {
-    if (_lcd_touch_handle == NULL) {
+    if (_lcd_touch_handle == NULL)
+    {
         data->state = LV_INDEV_STATE_REL;
         return;
     }
@@ -31,16 +32,19 @@ static void lvgl_read_cb(lv_indev_t* indev, lv_indev_data_t* data)
     uint16_t touch_x[1];
     uint16_t touch_y[1];
     uint16_t touch_strength[1];
-    uint8_t touch_cnt = 0;
+    uint8_t  touch_cnt = 0;
 
     esp_lcd_touch_read_data(_lcd_touch_handle);
-    bool touchpad_pressed =
-        esp_lcd_touch_get_coordinates(_lcd_touch_handle, touch_x, touch_y, touch_strength, &touch_cnt, 1);
+    bool touchpad_pressed = esp_lcd_touch_get_coordinates(
+        _lcd_touch_handle, touch_x, touch_y, touch_strength, &touch_cnt, 1);
     // mclog::tagInfo(_tag, "touchpad pressed: {}", touchpad_pressed);
 
-    if (!touchpad_pressed) {
+    if (!touchpad_pressed)
+    {
         data->state = LV_INDEV_STATE_REL;
-    } else {
+    }
+    else
+    {
         data->state   = LV_INDEV_STATE_PR;
         data->point.x = touch_x[0];
         data->point.y = touch_y[0];
@@ -87,7 +91,9 @@ void HalEsp32::init()
 
     mclog::tagInfo(_tag, "ina226 init");
     ina226.begin(i2c_bus_handle, 0x41);
-    ina226.configure(INA226_AVERAGES_16, INA226_BUS_CONV_TIME_1100US, INA226_SHUNT_CONV_TIME_1100US,
+    ina226.configure(INA226_AVERAGES_16,
+                     INA226_BUS_CONV_TIME_1100US,
+                     INA226_SHUNT_CONV_TIME_1100US,
                      INA226_MODE_SHUNT_BUS_CONT);
     ina226.calibrate(0.005, 8.192);
     mclog::tagInfo(_tag, "bus voltage: {}", ina226.readBusVoltage());
@@ -140,12 +146,17 @@ void HalEsp32::init()
 
 void HalEsp32::set_gpio_output_capability()
 {
-    auto set_drive_cap = [](gpio_drive_cap_t cap, std::initializer_list<gpio_num_t> gpios) {
-        for (gpio_num_t gpio : gpios) {
+    auto set_drive_cap = [](gpio_drive_cap_t cap, std::initializer_list<gpio_num_t> gpios)
+    {
+        for (gpio_num_t gpio : gpios)
+        {
             esp_err_t ret = gpio_set_drive_capability(gpio, cap);
-            if (ret == ESP_OK) {
+            if (ret == ESP_OK)
+            {
                 printf("GPIO %d drive capability set to %d\n", gpio, (int)cap);
-            } else {
+            }
+            else
+            {
                 printf("Failed to set GPIO %d drive capability: %s\n", gpio, esp_err_to_name(ret));
             }
         }
@@ -224,7 +235,8 @@ uint32_t HalEsp32::millis()
 
 int HalEsp32::getCpuTemp()
 {
-    if (_temp_sensor == nullptr) {
+    if (_temp_sensor == nullptr)
+    {
         temperature_sensor_config_t temp_sensor_config = {
             .range_min = 20,
             .range_max = 100,
@@ -276,8 +288,14 @@ void HalEsp32::clearRtcIrq()
 
 void HalEsp32::setRtcTime(tm time)
 {
-    mclog::tagInfo(_tag, "set rtc time to {}/{}/{} {:02d}:{:02d}:{:02d}", time.tm_year + 1900, time.tm_mon + 1,
-                   time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec);
+    mclog::tagInfo(_tag,
+                   "set rtc time to {}/{}/{} {:02d}:{:02d}:{:02d}",
+                   time.tm_year + 1900,
+                   time.tm_mon + 1,
+                   time.tm_mday,
+                   time.tm_hour,
+                   time.tm_min,
+                   time.tm_sec);
     rx8130.setTime(&time);
     delay(50);
 
@@ -289,8 +307,14 @@ void HalEsp32::update_system_time()
     mclog::tagInfo(_tag, "update system time");
     struct tm time;
     rx8130.getTime(&time);
-    mclog::tagInfo(_tag, "sync to rtc time: {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}", time.tm_year + 1900,
-                   time.tm_mon + 1, time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec);
+    mclog::tagInfo(_tag,
+                   "sync to rtc time: {}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}",
+                   time.tm_year + 1900,
+                   time.tm_mon + 1,
+                   time.tm_mday,
+                   time.tm_hour,
+                   time.tm_min,
+                   time.tm_sec);
     struct timeval now;
     now.tv_sec  = mktime(&time);
     now.tv_usec = 0;
@@ -332,23 +356,29 @@ bool HalEsp32::headPhoneDetect()
 std::vector<uint8_t> HalEsp32::i2cScan(bool isInternal)
 {
     i2c_master_bus_handle_t i2c_bus_handle;
-    std::vector<uint8_t> addrs;
+    std::vector<uint8_t>    addrs;
 
-    if (isInternal) {
+    if (isInternal)
+    {
         i2c_bus_handle = bsp_i2c_get_handle();
-    } else {
+    }
+    else
+    {
         i2c_bus_handle = bsp_ext_i2c_get_handle();
     }
 
     esp_err_t ret;
-    uint8_t address;
+    uint8_t   address;
 
-    for (int i = 16; i < 128; i += 16) {
-        for (int j = 0; j < 16; j++) {
+    for (int i = 16; i < 128; i += 16)
+    {
+        for (int j = 0; j < 16; j++)
+        {
             fflush(stdout);
             address = i + j;
             ret     = i2c_master_probe(i2c_bus_handle, address, 50);
-            if (ret == ESP_OK) {
+            if (ret == ESP_OK)
+            {
                 addrs.push_back(address);
             }
         }
