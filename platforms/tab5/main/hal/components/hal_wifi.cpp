@@ -8,10 +8,8 @@
 #include <cstring>
 #include <esp_check.h>
 #include <esp_event.h>
-#include <esp_hosted_api.h>
 #include <esp_log.h>
 #include <esp_netif.h>
-#include <esp_wifi.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <mooncake_log.h>
@@ -20,6 +18,11 @@
 #include "hal/hal_esp32.h"
 #include "integration/wifi_remote/hosted_safe.h"
 #include "sdkconfig.h"
+
+#if CONFIG_APP_ENABLE_WIFI_HOSTED
+#    include <esp_hosted_api.h>
+#    include <esp_wifi.h>
+#endif
 
 #define TAG "wifi"
 
@@ -30,7 +33,7 @@
 namespace
 {
 
-#if CONFIG_M5TAB5_USE_ESP_HOSTED
+#if CONFIG_APP_ENABLE_WIFI_HOSTED
 
     struct WifiRuntimeState
     {
@@ -210,13 +213,13 @@ namespace
         return ESP_OK;
     }
 
-#endif  // CONFIG_M5TAB5_USE_ESP_HOSTED
+#endif  // CONFIG_APP_ENABLE_WIFI_HOSTED
 
 }  // namespace
 
 bool HalEsp32::wifi_init()
 {
-#if !CONFIG_M5TAB5_USE_ESP_HOSTED
+#if !CONFIG_APP_ENABLE_WIFI_HOSTED
     ESP_LOGW(TAG, "ESP-Hosted disabled via Kconfig; skipping Wi-Fi init");
     return false;
 #else
