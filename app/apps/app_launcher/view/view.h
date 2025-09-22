@@ -6,8 +6,9 @@
 #pragma once
 #include <memory>
 
-
-#include <memory>
+#include "integration/cctv_controller.h"
+#include "integration/media_controller.h"
+#include "integration/settings_controller.h"
 struct ui_root_t;
 
 namespace launcher_view
