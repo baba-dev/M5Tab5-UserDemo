@@ -177,12 +177,14 @@ void LauncherView::update()
 
 LauncherView::~LauncherView()
 {
-    _media_controller.reset();
-    _cctv_controller.reset();
-    _settings_controller.reset();
     if (_ui_root != nullptr)
     {
+        LvglLockGuard lock;
         ui_root_destroy(_ui_root);
         _ui_root = nullptr;
     }
+
+    _media_controller.reset();
+    _cctv_controller.reset();
+    _settings_controller.reset();
 }
