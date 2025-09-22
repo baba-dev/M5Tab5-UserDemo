@@ -46,99 +46,69 @@ jobs:
         run: |
           python -m pip install --upgrade esptool
           mkdir -p "$SITE_DIR"
-          # merge a single flashable image using the exact args from the build dir
-          python -m esptool --chip esp32p4 merge_bin \
-            -o "$SITE_DIR/firmware-merged.bin" \
-            "@flash_args"
+          python -m esptool --chip esp32p4 merge_bin -o "$SITE_DIR/firmware-merged.bin" "@flash_args"
 
-      - name: Create GitHub Release (build tag) & upload merged bin
-        if: ${{ github.event_name != 'pull_request' }}
+      # OPTIONAL: publish each build’s bin as a Release asset (so the page can list last 5)
+      - name: Create Release & upload merged bin (main branch only)
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -e
+          set -euo pipefail
           TAG="build-${{ github.run_number }}"
           NAME="M5Tab5 build ${{ github.run_number }}"
           BIN="platforms/tab5/site/firmware-merged.bin"
-          LABEL="m5tab5_userdemo-${{ github.run_number }}-${{ github.sha::0:7 }}.bin"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          LABEL="m5tab5_userdemo-${{ github.run_number }}-${SHORT_SHA}.bin"
 
-          # Create release (idempotent if it exists) and upload asset
-          gh release create "$TAG" -t "$NAME" -n "Automated build from ${{ github.sha }}" || true
+          gh release create "$TAG" -t "$NAME" -n "Automated build from $GITHUB_SHA" || true
           gh release upload "$TAG" "$BIN#${LABEL}" --clobber
 
       - name: Prune old build releases (keep last 5)
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -e
-          # List build-* releases sorted by creation date desc, skip first 5, delete the rest
-          mapfile -t OLD < <(gh release list --limit 100 --json tagName,createdAt --jq '.[] | select(.tagName|startswith("build-")) | .tagName' | tail -n +6)
-          for tag in "${OLD[@]}"; do
-            gh release delete "$tag" -y
-          done
-      
-      - name: Create manifest.json
+          set -euo pipefail
+          mapfile -t TAGS < <(gh release list --limit 100 --json tagName,createdAt \
+            --jq '.[] | select(.tagName|startswith("build-")) | .tagName')
+          # sorted newest->oldest by default; drop first 5
+          if [ "${#TAGS[@]}" -gt 5 ]; then
+            for tag in "${TAGS[@]:5}"; do gh release delete "$tag" -y; done
+          fi
+
+      - name: Write site files
         shell: bash
         working-directory: platforms/tab5/site
         run: |
-          cat > manifest.json << 'JSON'
-          {
-            "name": "M5Tab5 User Demo",
-            "version": "${{ github.run_number }}",
-            "builds": [{
-              "chipFamily": "ESP32",
-              "parts": [{ "path": "firmware-merged.bin", "offset": 0 }]
-            }]
-          }
-          JSON
-      
-      - name: Create web flasher page(s)
-        shell: bash
-        working-directory: platforms/tab5/site
-        run: |
-          cat > index.html << 'HTML'
-          <!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-          <title>M5Tab5 Web Flash</title>
-          <script type="module"
-            src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
-          <h1>M5Tab5 – Web Flash</h1>
-          <esp-web-install-button manifest="manifest.json"></esp-web-install-button>
-          <p>If the installer doesn’t recognize your device, download
-            <a href="firmware-merged.bin" download>firmware-merged.bin</a> and flash with esptool.</p>
-          HTML
-          # Provide flash.html as an alias so /flash.html works too
+          # Drop in the enhanced index.html from your repo (already added).
+          # Provide alias for /flash.html and disable Jekyll.
           cp index.html flash.html
-          # Avoid Jekyll processing edge-cases
           : > .nojekyll
 
       - name: List site files (debug)
-        run: |
-          find platforms/tab5/site -maxdepth 1 -type f -printf "%f\n"
+        run: find platforms/tab5/site -maxdepth 1 -type f -printf "%f\n"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: platforms/tab5/site
-          
+
   publish:
     name: Deploy Web Flash
     runs-on: ubuntu-latest
     needs: build
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
     permissions:
       contents: read
-      pages: write         # required by deploy-pages
-      id-token: write      # required by deploy-pages
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      # (optional but recommended) Configure Pages
-      - name: Configure GitHub Pages
+      - name: Configure Pages
         uses: actions/configure-pages@v5
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        
