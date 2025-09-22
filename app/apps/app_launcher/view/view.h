@@ -4,16 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-
 #include <memory>
 
-namespace custom::integration
-{
-    class CctvController;
-    class MediaController;
-    class SettingsController;
-}  // namespace custom::integration
 
+#include <memory>
 struct ui_root_t;
 
 namespace launcher_view

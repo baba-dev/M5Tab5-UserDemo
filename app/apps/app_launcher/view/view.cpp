@@ -7,9 +7,11 @@
 
 #include <lvgl.h>
 #include <mooncake_log.h>
+
 #include <smooth_lvgl.h>
 #include <string>
 
+#include "hal/hal.h"
 #include "integration/cctv_controller.h"
 #include "integration/media_controller.h"
 #include "integration/settings_controller.h"
