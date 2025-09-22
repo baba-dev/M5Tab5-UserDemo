@@ -22,12 +22,12 @@ Links to key design and documentation resources:
 - [`docs/AI_GUIDELINES.md`](docs/AI_GUIDELINES.md): workflow rules for AI-driven contributions.
 
 - **Navigation Rail Preview**
-  - Persistent left rail with icon buttons for ESP32P4 demo, Rooms, Frigate Security, Local Climate Station, and TV Controls.
+  - Persistent left rail with icon buttons for Rooms, Frigate Security, Local Climate Station, TV Controls, and Settings.
   - Tap a destination to reveal a full-bleed gradient backdrop (`linear-gradient(90deg, #fcff9e 0%, #c67700 100%)`).
   - Cards, buttons, and title bars share softened 16 px radii and shadows to match the hardware aesthetic.
 
-- **First Page: Default Demo for Tab5**
-  The default user demo for testing out Tab5 features & control.
+- **First Page: Rooms Dashboard**
+  The tablet boots directly into the Rooms view for lighting and scene control.
 
 - **Second Page: Landscape-first dashboard (1280×720)**  
   At-a-glance view of lights, climate, security, and media from Home Assistant.
