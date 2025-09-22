@@ -5,11 +5,11 @@ dependencies:
   espressif/esp_hosted:
     version: 1.4.0
     rules:
-      - if: "CONFIG_APP_ENABLE_WIFI_HOSTED"
+      - if: "$CONFIG{CONFIG_APP_ENABLE_WIFI_HOSTED} == y"
   espressif/esp_wifi_remote:
     version: 0.8.5
     rules:
-      - if: "CONFIG_APP_ENABLE_WIFI_HOSTED"
+      - if: "$CONFIG{CONFIG_APP_ENABLE_WIFI_HOSTED} == y"
   chmorgan/esp-audio-player: 1.0.7
   chmorgan/esp-file-iterator: 1.0.0
   espressif/led_strip: 3.0.0
