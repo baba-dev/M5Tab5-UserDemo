@@ -41,7 +41,15 @@ jobs:
           esp_idf_version: v5.4.2
           target: esp32p4
           path: platforms/tab5
-          command: idf.py build
+          command: |
+            set -euo pipefail
+            if grep -R "espressif/settings_core" -n .; then
+              echo "Do not reference espressif/settings_core"
+              exit 1
+            fi
+            rm -rf managed_components
+            idf.py reconfigure
+            idf.py build
 
       - name: Merge firmware for ESP Web Tools
         shell: bash

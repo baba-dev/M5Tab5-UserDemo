@@ -1,4 +1,4 @@
-menu "Tab5 application"
+menu "Project Options"
 
 config APP_LOG_LEVEL
     int "Default application log level"
@@ -11,14 +11,10 @@ config APP_LOG_LEVEL
 menu "App Features"
 
 config APP_ENABLE_WIFI_HOSTED
-    bool "Enable ESP-Hosted (Wi-Fi over SDIO) on Tab5"
-    default n
+    bool "Enable Wi-Fi over ESP-Hosted"
+    default y
     help
-      When enabled, the firmware will power on the ESP-Hosted SDIO coprocessor
-      and bring up the remote Wi-Fi stack. Disable this to keep SDIO idle while
-      other system issues are being debugged.
-
-endmenu
+      Build the app with remote Wi-Fi (ESP-Hosted/esp_wifi_remote) enabled.
 
 config HAL_AUDIO_ENABLE_LONG_DEMO
     bool "Enable long Canon in D demo"
@@ -27,5 +23,7 @@ config HAL_AUDIO_ENABLE_LONG_DEMO
       Enable this option to embed the long-form Canon in D MP3 demo track in
       the firmware. Disable it for CI or release builds to save flash space and
       reduce build times.
+
+endmenu
 
 endmenu
