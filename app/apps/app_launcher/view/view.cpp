@@ -7,6 +7,8 @@
 
 #include <lvgl.h>
 #include <mooncake_log.h>
+
+#include <smooth_lvgl.h>
 #include <string>
 
 #include "hal/hal.h"
@@ -20,6 +22,7 @@ using namespace launcher_view;
 using custom::integration::CctvController;
 using custom::integration::MediaController;
 using custom::integration::SettingsController;
+using smooth_ui_toolkit::LvglLockGuard;
 
 static const std::string _tag = "launcher-view";
 

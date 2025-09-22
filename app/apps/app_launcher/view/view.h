@@ -4,13 +4,10 @@
  * SPDX-License-Identifier: MIT
  */
 #pragma once
-
 #include <memory>
 
-#include "integration/cctv_controller.h"
-#include "integration/media_controller.h"
-#include "integration/settings_controller.h"
 
+#include <memory>
 struct ui_root_t;
 
 namespace launcher_view
