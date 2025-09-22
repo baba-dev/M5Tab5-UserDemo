@@ -50,6 +50,33 @@ jobs:
           python -m esptool --chip esp32p4 merge_bin \
             -o "$SITE_DIR/firmware-merged.bin" \
             "@flash_args"
+
+      - name: Create GitHub Release (build tag) & upload merged bin
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          TAG="build-${{ github.run_number }}"
+          NAME="M5Tab5 build ${{ github.run_number }}"
+          BIN="platforms/tab5/site/firmware-merged.bin"
+          LABEL="m5tab5_userdemo-${{ github.run_number }}-${{ github.sha::0:7 }}.bin"
+
+          # Create release (idempotent if it exists) and upload asset
+          gh release create "$TAG" -t "$NAME" -n "Automated build from ${{ github.sha }}" || true
+          gh release upload "$TAG" "$BIN#${LABEL}" --clobber
+
+      - name: Prune old build releases (keep last 5)
+        if: ${{ github.event_name != 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          # List build-* releases sorted by creation date desc, skip first 5, delete the rest
+          mapfile -t OLD < <(gh release list --limit 100 --json tagName,createdAt --jq '.[] | select(.tagName|startswith("build-")) | .tagName' | tail -n +6)
+          for tag in "${OLD[@]}"; do
+            gh release delete "$tag" -y
+          done
       
       - name: Create manifest.json
         shell: bash
