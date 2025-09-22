@@ -61,6 +61,15 @@ void HalEsp32::init()
     i2c_master_bus_handle_t i2c_bus_handle = bsp_i2c_get_handle();
     bsp_io_expander_pi4ioe_init(i2c_bus_handle);
 
+    // Bring the downstream 5 V rails up before probing peripherals that rely on
+    // them.  The IO expanders default to the rails being disabled at power-on,
+    // so explicitly drive them high here to ensure the codec, RS485 transceiver
+    // and Wi-Fi co-processor are powered for the remainder of the HAL
+    // initialisation sequence.
+    setUsb5vEnable(true);
+    setExt5vEnable(true);
+    delay(10);
+
     setChargeQcEnable(true);
     delay(50);
     setChargeEnable(true);

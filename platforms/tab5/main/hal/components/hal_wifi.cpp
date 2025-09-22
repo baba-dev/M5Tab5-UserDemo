@@ -248,9 +248,10 @@ bool HalEsp32::wifi_init()
     // uninitialised buffer, crashing the TLSF heap.  Give the module time to boot
     // and then explicitly request a transport re-sync before touching the Wi-Fi
     // stack.
-    constexpr TickType_t kPowerOnGuardDelay   = pdMS_TO_TICKS(250);
-    constexpr TickType_t kPostResetGuardDelay = pdMS_TO_TICKS(400);
-    constexpr TickType_t kRetryBackoffDelay   = pdMS_TO_TICKS(150);
+    constexpr TickType_t kPowerOnGuardDelay   = pdMS_TO_TICKS(500);
+    constexpr TickType_t kPostResetGuardDelay = pdMS_TO_TICKS(800);
+    constexpr TickType_t kRetryBackoffDelay   = pdMS_TO_TICKS(200);
+    constexpr TickType_t kPowerCycleCooldown  = pdMS_TO_TICKS(100);
     constexpr int        kMaxTransportRetries = 3;
 
     vTaskDelay(kPowerOnGuardDelay);
@@ -260,8 +261,25 @@ bool HalEsp32::wifi_init()
     bool      softap_started     = false;
     bool      softap_unsupported = false;
 
+    auto power_cycle_wifi = [&]()
+    {
+        ESP_LOGW(TAG, "Power-cycling ESP-Hosted coprocessor");
+        bsp_set_wifi_power_enable(false);
+        vTaskDelay(kPowerCycleCooldown);
+        bsp_set_wifi_power_enable(true);
+        vTaskDelay(kPowerOnGuardDelay);
+    };
+
+    bool schedule_power_cycle = false;
+
     for (int attempt = 0; attempt < kMaxTransportRetries; ++attempt)
     {
+        if (schedule_power_cycle)
+        {
+            power_cycle_wifi();
+            schedule_power_cycle = false;
+        }
+
         if (attempt > 0)
         {
             ESP_LOGW(TAG,
@@ -279,6 +297,10 @@ bool HalEsp32::wifi_init()
                      attempt + 1,
                      kMaxTransportRetries,
                      esp_err_to_name(host_err));
+            if (attempt + 1 < kMaxTransportRetries)
+            {
+                schedule_power_cycle = true;
+            }
             continue;
         }
 
@@ -307,6 +329,11 @@ bool HalEsp32::wifi_init()
         {
             esp_wifi_stop();
             esp_wifi_deinit();
+        }
+
+        if (attempt + 1 < kMaxTransportRetries)
+        {
+            schedule_power_cycle = true;
         }
     }
 
