@@ -7,6 +7,19 @@ cd "$ROOT_DIR"
 echo "[preflight] Using repo installer to setup ESP-IDF..."
 bash tools/install_idf.sh
 
+# Ensure the ESP-IDF environment is active for the remainder of the script.
+ESP_IDF_VERSION=${ESP_IDF_VERSION:-v5.4.2}
+ESP_IDF_ROOT=${ESP_IDF_ROOT:-$HOME/.espressif}
+IDF_PATH="${ESP_IDF_ROOT}/esp-idf-${ESP_IDF_VERSION}"
+
+if [ ! -d "${IDF_PATH}" ]; then
+  echo "::error::Expected ESP-IDF at ${IDF_PATH}, but it was not found"
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+source "${IDF_PATH}/export.sh"
+
 echo "[preflight] Fetching external components..."
 python ./fetch_repos.py
 
