@@ -1,11 +1,6 @@
 menu "M5Tab5 Connectivity"
 
-config M5TAB5_USE_ESP_HOSTED
-    bool "Enable ESP-Hosted (Wi-Fi over SDIO)"
-    default n
-    help
-      When enabled, the app will initialize the ESP-Hosted SDIO slave (ESP32-Cx).
-      When disabled, boot never touches SDIO/Hosted and Wi-Fi is unavailable.
+if APP_ENABLE_WIFI_HOSTED
 
 config M5TAB5_HOSTED_BOOT_RETRIES
     int "Hosted init retries at boot"
@@ -16,5 +11,7 @@ config M5TAB5_HOSTED_BOOT_DELAY_MS
     int "Delay after slave reset before SDIO init (ms)"
     range 0 5000
     default 500
+
+endif
 
 endmenu

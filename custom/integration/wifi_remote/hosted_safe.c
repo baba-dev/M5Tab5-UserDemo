@@ -11,16 +11,16 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 
-#if CONFIG_M5TAB5_USE_ESP_HOSTED
+#if CONFIG_APP_ENABLE_WIFI_HOSTED
 #    include "esp_hosted_api.h"
 #    include "esp_wifi.h"
 #    include "esp_wifi_remote.h"
 #endif
 
 static const char* TAG            = "hosted_safe";
-static bool        s_hosted_ready = false;
+static bool        s_hosted_ready = false;  // Guarded by CONFIG_APP_ENABLE_WIFI_HOSTED
 
-#if CONFIG_M5TAB5_USE_ESP_HOSTED
+#if CONFIG_APP_ENABLE_WIFI_HOSTED
 static void slave_pulse_reset(void)
 {
     const gpio_num_t    rst = 54;
@@ -40,7 +40,7 @@ static void slave_pulse_reset(void)
 
 bool hosted_try_init_with_retries(void)
 {
-#if !CONFIG_M5TAB5_USE_ESP_HOSTED
+#if !CONFIG_APP_ENABLE_WIFI_HOSTED
     ESP_LOGI(TAG, "ESP-Hosted disabled via Kconfig.");
     return false;
 #else
@@ -95,7 +95,7 @@ bool hosted_try_init_with_retries(void)
 
 void hosted_deinit_safe(void)
 {
-#if CONFIG_M5TAB5_USE_ESP_HOSTED
+#if CONFIG_APP_ENABLE_WIFI_HOSTED
     if (!s_hosted_ready)
     {
         return;
