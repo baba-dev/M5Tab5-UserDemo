@@ -5,13 +5,11 @@
  */
 #include "view.h"
 
-#include <apps/utils/audio/audio.h>
-#include <hal/hal.h>
 #include <lvgl.h>
 #include <mooncake_log.h>
-#include <smooth_lvgl.h>
-#include <smooth_ui_toolkit.h>
+#include <string>
 
+#include "hal/hal.h"
 #include "integration/cctv_controller.h"
 #include "integration/media_controller.h"
 #include "integration/settings_controller.h"
@@ -19,8 +17,6 @@
 #include "ui/ui_root.h"
 
 using namespace launcher_view;
-using namespace smooth_ui_toolkit;
-using namespace smooth_ui_toolkit::lvgl_cpp;
 using custom::integration::CctvController;
 using custom::integration::MediaController;
 using custom::integration::SettingsController;
@@ -31,38 +27,12 @@ void LauncherView::init()
 {
     mclog::tagInfo(_tag, "init");
 
-    ui::signal_window_opened().clear();
-    ui::signal_window_opened().connect([&](bool opened) { _is_stacked = opened; });
-
     LvglLockGuard lock;
 
-    // Base screen
     lv_obj_t* screen = lv_screen_active();
     lv_obj_remove_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(screen, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
-
-    // Install panels
-    _panels.push_back(std::make_unique<PanelRtc>());
-    _panels.push_back(std::make_unique<PanelLcdBacklight>());
-    _panels.push_back(std::make_unique<PanelSpeakerVolume>());
-    _panels.push_back(std::make_unique<PanelPowerMonitor>());
-    _panels.push_back(std::make_unique<PanelImu>());
-    _panels.push_back(std::make_unique<PanelSwitches>());
-    _panels.push_back(std::make_unique<PanelPower>());
-    _panels.push_back(std::make_unique<PanelCamera>());
-    _panels.push_back(std::make_unique<PanelDualMic>());
-    _panels.push_back(std::make_unique<PanelHeadphone>());
-    _panels.push_back(std::make_unique<PanelSdCard>());
-    _panels.push_back(std::make_unique<PanelI2cScan>());
-    _panels.push_back(std::make_unique<PanelGpioTest>());
-    _panels.push_back(std::make_unique<PanelMusic>());
-    _panels.push_back(std::make_unique<PanelComMonitor>());
-
-    for (auto& panel : _panels)
-    {
-        panel->init();
-    }
 
     if (_ui_root != nullptr)
     {
@@ -72,6 +42,7 @@ void LauncherView::init()
         ui_root_destroy(_ui_root);
         _ui_root = nullptr;
     }
+
     _ui_root = ui_root_create();
     if (_ui_root != nullptr)
     {
@@ -201,11 +172,6 @@ void LauncherView::init()
 void LauncherView::update()
 {
     LvglLockGuard lock;
-
-    for (auto& panel : _panels)
-    {
-        panel->update(_is_stacked);
-    }
 }
 
 LauncherView::~LauncherView()

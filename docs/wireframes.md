@@ -22,8 +22,9 @@ Primary integration: **Home Assistant (MQTT + Assist)**, **Frigate**.
 
 ## Global structure (navigation)
 
-- Left-side **nav rail** holds icon+label buttons for **ESP32P4**, **Rooms**, **Frigate Security**,
+- Left-side **nav rail** holds icon+label buttons for **Rooms**, **Frigate Security**,
   **Local Climate**, **Media**, and **Settings**.
+- Rooms opens by default on boot so the dashboard is immediately actionable.
 - Rail is hidden by default; a left-edge drag reveals it, and releasing past one-third of the travel
   keeps it open. Nav buttons close the rail after changing screens.
 - A translucent scrim covers content while the rail is open; tapping the scrim or swiping the rail
@@ -33,7 +34,6 @@ Primary integration: **Home Assistant (MQTT + Assist)**, **Frigate**.
 
 ```mermaid
 flowchart TD
-  Rail[Nav rail] --> ESP32P4
   Rail --> Rooms
   Rail --> Frigate
   Rail --> Climate
