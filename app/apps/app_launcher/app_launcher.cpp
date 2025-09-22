@@ -4,11 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 #include "app_launcher.h"
-#include "ui_home.h"
-#include <hal/hal.h>
-#include <mooncake.h>
+
 #include <mooncake_log.h>
-#include <smooth_lvgl.h>
 
 using namespace mooncake;
 
@@ -28,12 +25,23 @@ void AppLauncher::onOpen()
 {
     mclog::tagInfo(getAppInfo().name, "on open");
 
-    ui_home_create(nullptr);
+    if (_view == nullptr)
+    {
+        _view = std::make_unique<launcher_view::LauncherView>();
+    }
+
+    if (_view != nullptr)
+    {
+        _view->init();
+    }
 }
 
 void AppLauncher::onRunning()
 {
-    // Static wireframe has no dynamic updates yet.
+    if (_view != nullptr)
+    {
+        _view->update();
+    }
 }
 
 void AppLauncher::onClose()
