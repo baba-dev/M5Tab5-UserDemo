@@ -8,3 +8,4 @@ dependencies
 custom/assets/bg/*.c
 custom/assets/bg/*.h
 tests/ui/output/
+platforms/*/managed_components/
