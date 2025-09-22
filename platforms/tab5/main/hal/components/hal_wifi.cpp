@@ -18,6 +18,7 @@
 #include <nvs_flash.h>
 
 #include "hal/hal_esp32.h"
+#include "integration/wifi/hosted_safe.h"
 
 #define TAG "wifi"
 
@@ -260,6 +261,7 @@ bool HalEsp32::wifi_init()
     esp_err_t softap_err         = ESP_FAIL;
     bool      softap_started     = false;
     bool      softap_unsupported = false;
+    bool      hosted_initialised = false;
 
     auto power_cycle_wifi = [&]()
     {
@@ -289,6 +291,18 @@ bool HalEsp32::wifi_init()
             vTaskDelay(kRetryBackoffDelay * static_cast<TickType_t>(attempt));
         }
 
+        if (!custom::integration::wifi::HostedSafeStart())
+        {
+            host_err = ESP_FAIL;
+            if (attempt + 1 < kMaxTransportRetries)
+            {
+                schedule_power_cycle = true;
+            }
+            continue;
+        }
+
+        hosted_initialised = true;
+
         host_err = esp_hosted_slave_reset();
         if (host_err != ESP_OK)
         {
@@ -297,6 +311,7 @@ bool HalEsp32::wifi_init()
                      attempt + 1,
                      kMaxTransportRetries,
                      esp_err_to_name(host_err));
+            esp_hosted_deinit();
             if (attempt + 1 < kMaxTransportRetries)
             {
                 schedule_power_cycle = true;
@@ -331,6 +346,8 @@ bool HalEsp32::wifi_init()
             esp_wifi_deinit();
         }
 
+        esp_hosted_deinit();
+
         if (attempt + 1 < kMaxTransportRetries)
         {
             schedule_power_cycle = true;
@@ -342,9 +359,14 @@ bool HalEsp32::wifi_init()
         portENTER_CRITICAL(&spinlock);
         state.failed = true;
         portEXIT_CRITICAL(&spinlock);
+        esp_hosted_deinit();
         bsp_set_wifi_power_enable(false);
 
-        if (softap_unsupported)
+        if (!hosted_initialised)
+        {
+            ESP_LOGW(TAG, "Hosted init failed; Wi-Fi disabled");
+        }
+        else if (softap_unsupported)
         {
             ESP_LOGW(TAG, "SoftAP unsupported on hosted slave; Wi-Fi will stay disabled");
         }
