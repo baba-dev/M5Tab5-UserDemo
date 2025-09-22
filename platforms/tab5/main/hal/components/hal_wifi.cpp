@@ -18,7 +18,8 @@
 #include <nvs_flash.h>
 
 #include "hal/hal_esp32.h"
-#include "integration/wifi/hosted_safe.h"
+#include "integration/wifi_remote/hosted_safe.h"
+#include "sdkconfig.h"
 
 #define TAG "wifi"
 
@@ -28,6 +29,8 @@
 
 namespace
 {
+
+#if CONFIG_M5TAB5_USE_ESP_HOSTED
 
     struct WifiRuntimeState
     {
@@ -207,10 +210,16 @@ namespace
         return ESP_OK;
     }
 
+#endif  // CONFIG_M5TAB5_USE_ESP_HOSTED
+
 }  // namespace
 
 bool HalEsp32::wifi_init()
 {
+#if !CONFIG_M5TAB5_USE_ESP_HOSTED
+    ESP_LOGW(TAG, "ESP-Hosted disabled via Kconfig; skipping Wi-Fi init");
+    return false;
+#else
     auto&         state    = wifi_state();
     portMUX_TYPE& spinlock = wifi_state_spinlock();
 
@@ -218,9 +227,10 @@ bool HalEsp32::wifi_init()
     bool already_started   = state.started;
     bool previously_failed = state.failed;
     bool in_progress       = state.attempted && !state.started && !state.failed;
-    if (!state.attempted)
+    if (!state.attempted || state.failed)
     {
         state.attempted = true;
+        state.failed    = false;
     }
     portEXIT_CRITICAL(&spinlock);
 
@@ -228,162 +238,71 @@ bool HalEsp32::wifi_init()
     {
         return true;
     }
-    if (previously_failed)
-    {
-        ESP_LOGW(TAG, "Skipping Wi-Fi init after previous failure");
-        return false;
-    }
     if (in_progress)
     {
         ESP_LOGW(TAG, "Wi-Fi init already in progress");
         return false;
+    }
+    if (previously_failed)
+    {
+        ESP_LOGW(TAG, "Retrying Wi-Fi init after previous failure");
     }
 
     mclog::tagInfo(TAG, "wifi init");
 
     bsp_set_wifi_power_enable(true);
 
-    // The hosted C6 coprocessor requires a guard time after power up before it
-    // responds to the transport reset sequence.  Without the delay the first RPC
-    // request races the SDIO link initialisation and the transport driver frees an
-    // uninitialised buffer, crashing the TLSF heap.  Give the module time to boot
-    // and then explicitly request a transport re-sync before touching the Wi-Fi
-    // stack.
     constexpr TickType_t kPowerOnGuardDelay   = pdMS_TO_TICKS(500);
     constexpr TickType_t kPostResetGuardDelay = pdMS_TO_TICKS(800);
-    constexpr TickType_t kRetryBackoffDelay   = pdMS_TO_TICKS(200);
-    constexpr TickType_t kPowerCycleCooldown  = pdMS_TO_TICKS(100);
-    constexpr int        kMaxTransportRetries = 3;
 
     vTaskDelay(kPowerOnGuardDelay);
 
-    esp_err_t host_err           = ESP_FAIL;
-    esp_err_t softap_err         = ESP_FAIL;
-    bool      softap_started     = false;
-    bool      softap_unsupported = false;
-    bool      hosted_initialised = false;
-
-    auto power_cycle_wifi = [&]()
+    if (!hosted_try_init_with_retries())
     {
-        ESP_LOGW(TAG, "Power-cycling ESP-Hosted coprocessor");
-        bsp_set_wifi_power_enable(false);
-        vTaskDelay(kPowerCycleCooldown);
-        bsp_set_wifi_power_enable(true);
-        vTaskDelay(kPowerOnGuardDelay);
-    };
-
-    bool schedule_power_cycle = false;
-
-    for (int attempt = 0; attempt < kMaxTransportRetries; ++attempt)
-    {
-        if (schedule_power_cycle)
-        {
-            power_cycle_wifi();
-            schedule_power_cycle = false;
-        }
-
-        if (attempt > 0)
-        {
-            ESP_LOGW(TAG,
-                     "Retrying ESP-Hosted transport bring-up (%d/%d)",
-                     attempt + 1,
-                     kMaxTransportRetries);
-            vTaskDelay(kRetryBackoffDelay * static_cast<TickType_t>(attempt));
-        }
-
-        if (!custom::integration::wifi::HostedSafeStart())
-        {
-            host_err = ESP_FAIL;
-            if (attempt + 1 < kMaxTransportRetries)
-            {
-                schedule_power_cycle = true;
-            }
-            continue;
-        }
-
-        hosted_initialised = true;
-
-        host_err = esp_hosted_slave_reset();
-        if (host_err != ESP_OK)
-        {
-            ESP_LOGE(TAG,
-                     "ESP-Hosted reset failed on attempt %d/%d: %s",
-                     attempt + 1,
-                     kMaxTransportRetries,
-                     esp_err_to_name(host_err));
-            esp_hosted_deinit();
-            if (attempt + 1 < kMaxTransportRetries)
-            {
-                schedule_power_cycle = true;
-            }
-            continue;
-        }
-
-        vTaskDelay(kPostResetGuardDelay);
-
-        softap_err = start_softap();
-        if (softap_err == ESP_OK)
-        {
-            softap_started = true;
-            break;
-        }
-
-        if (softap_err == ESP_ERR_NOT_SUPPORTED)
-        {
-            softap_unsupported = true;
-            break;
-        }
-
-        ESP_LOGE(TAG,
-                 "SoftAP start failed on attempt %d/%d: %s",
-                 attempt + 1,
-                 kMaxTransportRetries,
-                 esp_err_to_name(softap_err));
-
-        if (softap_err == ESP_ERR_TIMEOUT || softap_err == ESP_FAIL)
-        {
-            esp_wifi_stop();
-            esp_wifi_deinit();
-        }
-
-        esp_hosted_deinit();
-
-        if (attempt + 1 < kMaxTransportRetries)
-        {
-            schedule_power_cycle = true;
-        }
-    }
-
-    if (!softap_started)
-    {
+        ESP_LOGW(TAG, "Hosted slave not ready; Wi-Fi unavailable this boot.");
         portENTER_CRITICAL(&spinlock);
         state.failed = true;
         portEXIT_CRITICAL(&spinlock);
-        esp_hosted_deinit();
         bsp_set_wifi_power_enable(false);
+        return false;
+    }
 
-        if (!hosted_initialised)
-        {
-            ESP_LOGW(TAG, "Hosted init failed; Wi-Fi disabled");
-        }
-        else if (softap_unsupported)
+    esp_err_t host_err = esp_hosted_slave_reset();
+    if (host_err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "ESP-Hosted reset failed: %s", esp_err_to_name(host_err));
+        hosted_deinit_safe();
+        portENTER_CRITICAL(&spinlock);
+        state.failed = true;
+        portEXIT_CRITICAL(&spinlock);
+        bsp_set_wifi_power_enable(false);
+        return false;
+    }
+
+    vTaskDelay(kPostResetGuardDelay);
+
+    const esp_err_t softap_err = start_softap();
+    if (softap_err != ESP_OK)
+    {
+        if (softap_err == ESP_ERR_NOT_SUPPORTED)
         {
             ESP_LOGW(TAG, "SoftAP unsupported on hosted slave; Wi-Fi will stay disabled");
         }
-        else if (host_err != ESP_OK)
-        {
-            ESP_LOGE(TAG,
-                     "Failed to bring ESP-Hosted transport up after %d attempts: %s",
-                     kMaxTransportRetries,
-                     esp_err_to_name(host_err));
-        }
         else
         {
-            ESP_LOGE(TAG,
-                     "Failed to start Wi-Fi after %d attempts: %s",
-                     kMaxTransportRetries,
-                     esp_err_to_name(softap_err));
+            ESP_LOGE(TAG, "Failed to start Wi-Fi: %s", esp_err_to_name(softap_err));
+            if (softap_err == ESP_ERR_TIMEOUT || softap_err == ESP_FAIL)
+            {
+                esp_wifi_stop();
+                esp_wifi_deinit();
+            }
         }
+
+        hosted_deinit_safe();
+        portENTER_CRITICAL(&spinlock);
+        state.failed = true;
+        portEXIT_CRITICAL(&spinlock);
+        bsp_set_wifi_power_enable(false);
         return false;
     }
 
@@ -391,6 +310,7 @@ bool HalEsp32::wifi_init()
     state.started = true;
     portEXIT_CRITICAL(&spinlock);
     return true;
+#endif
 }
 
 void HalEsp32::setExtAntennaEnable(bool enable)
