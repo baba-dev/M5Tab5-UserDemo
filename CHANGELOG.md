@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.3...v1.8.0) (2025-09-22)
+
+
+### Features
+
+* **ui:** add static Home/Rooms wireframe with reserved nav rail ([f8fa48c](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f8fa48c176bdc68d3db94fdf52ceaa14607936ae))
+
 ## [1.7.3](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.2...v1.7.3) (2025-09-22)
 
 
