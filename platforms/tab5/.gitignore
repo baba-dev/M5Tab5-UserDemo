@@ -8,3 +8,4 @@ managed_components
 # /output
 
 sdkconfig.old
+dependencies.lock

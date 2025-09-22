@@ -4,5 +4,5 @@ targets:
   - esp32p4
 dependencies:
   idf: "~5.4"
-  espressif/settings_core: "^0.1.0"
+  settings_core: "^0.1.0"
   espressif/mdns: "^1.8.0"
