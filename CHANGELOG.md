@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.2](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.1...v1.7.2) (2025-09-22)
+
+
+### Bug Fixes
+
+* **tab5:** allow preflight to use idf 5.4.2 ([bca4938](https://github.com/baba-dev/M5Tab5-UserDemo/commit/bca49389776daf7bf0b4ea8e6275d938e87c06d1))
+* **tab5:** harden wifi init and enable 5v rails ([eb83235](https://github.com/baba-dev/M5Tab5-UserDemo/commit/eb832357a81efdf9603cfce73bed6bf18b739910))
+* **tab5:** remove stale wifi remote override ([393712f](https://github.com/baba-dev/M5Tab5-UserDemo/commit/393712f23b03db88991818a3bc0171986c7f00ef))
+
 ## [1.7.1](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.0...v1.7.1) (2025-09-21)
 
 
