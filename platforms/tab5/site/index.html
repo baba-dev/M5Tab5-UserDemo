@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1"
+  />
+  <title>M5Tab5 – Web Flash & Console</title>
+
+  <!-- ESP Web Tools (installer button) -->
+  <script type="module"
+    src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module">
+  </script>
+
+  <!-- xterm.js for the terminal -->
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
+
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #121a32;
+      --ink: #e8ecf6;
+      --muted: #a8b3cf;
+      --accent: #6ea8ff;
+      --good: #35c274;
+      --warn: #ffb454;
+      --bad: #ff6b6b;
+      --border: #223153;
+
+      /* ESP Web Tools theming */
+      --esp-tools-button-color: var(--accent);
+      --esp-tools-button-text-color: #0b1020;
+      --esp-tools-button-border-radius: 10px;
+    }
+    [data-theme="light"]{
+      --bg:#f6f7fb; --panel:#ffffff; --ink:#0b1020; --muted:#51607d;
+      --accent:#2f6bff; --border:#e6e9f3;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font: 15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
+    a{ color: var(--accent); text-decoration: none; }
+    a:hover{ text-decoration: underline; }
+
+    header{
+      display:flex; gap:16px; align-items:center;
+      padding:20px 24px; border-bottom:1px solid var(--border);
+    }
+    .brand{ font-weight:700; letter-spacing:.3px; }
+    .spacer{ flex:1; }
+    .theme-toggle{ background:var(--panel); color:var(--ink); border:1px solid var(--border);
+      padding:8px 12px; border-radius:10px; cursor:pointer; }
+
+    .wrap{
+      display:grid; gap:16px; grid-template-columns: 1.15fr 0.85fr;
+      padding:16px; min-height: calc(100vh - 72px);
+    }
+    .card{
+      background:var(--panel); border:1px solid var(--border);
+      border-radius:16px; padding:16px;
+    }
+    h1{ margin:0 0 4px 0; font-size:22px; }
+    h2{ margin:0 0 8px 0; font-size:16px; font-weight:600; }
+    .muted{ color:var(--muted); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    select, button, .btn{
+      background:#0d1733; color:var(--ink); border:1px solid var(--border);
+      padding:10px 12px; border-radius:10px; font-weight:600;
+    }
+    [data-theme="light"] select, [data-theme="light"] button, [data-theme="light"] .btn{
+      background:#f4f6fe; color:#0b1020;
+    }
+
+    .cols{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .kpi{
+      display:flex; flex-direction:column; gap:6px;
+      background:rgba(255,255,255,.03); border:1px dashed var(--border);
+      padding:10px; border-radius:12px;
+    }
+    .kpi b{ font-size:13px; color: var(--muted); font-weight:700; }
+    .kpi span{ font-size:14px; }
+
+    .terminal{
+      height: 520px;
+      border-radius:12px; overflow:hidden;
+      border:1px solid var(--border);
+      background:#000;
+    }
+    .toolbar{
+      display:flex; gap:8px; align-items:center; margin-bottom:10px;
+    }
+    .footnote{ font-size:12px; color:var(--muted); margin-top:10px; }
+    .list{ margin:0; padding:0; list-style:none; }
+    .list li{ padding:8px 0; border-bottom:1px dashed var(--border); }
+    .pill{ padding:3px 8px; border-radius:999px; border:1px solid var(--border); }
+    .ok{ color:var(--good) } .warn{ color:var(--warn) } .bad{ color:var(--bad) }
+    @media (max-width: 1024px){ .wrap{ grid-template-columns: 1fr; } .terminal{ height:380px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">M5Tab5 – Web Flash & Console</div>
+    <div class="spacer"></div>
+    <button class="theme-toggle" id="themeBtn" title="Toggle theme">Toggle Theme</button>
+  </header>
+
+  <main class="wrap">
+    <!-- LEFT: flasher + builds -->
+    <section class="card">
+      <h1>Flash your device</h1>
+      <p class="muted" id="supportMsg">
+        1) Connect the Tab5 over USB. 2) Pick a build. 3) Click <b>Install</b>.  
+        (Chrome/Edge on desktop; site must be served over HTTPS.)</p>
+
+      <div class="row" style="margin:12px 0;">
+        <label for="buildSel"><b>Build:</b></label>
+        <select id="buildSel" aria-label="Select build" style="min-width:260px"></select>
+        <button id="refreshBtn" title="Refresh release list">Refresh</button>
+        <span id="chipBadge" class="pill">Chip: <span id="chipTxt">—</span></span>
+        <span id="statusBadge" class="pill">Status: <span id="statusTxt" class="warn">Idle</span></span>
+      </div>
+
+      <div class="cols" style="margin:10px 0 16px">
+        <div class="kpi"><b>Selected build</b><span id="selTag">—</span></div>
+        <div class="kpi"><b>Binary</b><span id="selBin">—</span></div>
+      </div>
+
+      <!-- ESP Web Tools install button -->
+      <esp-web-install-button id="installer" manifest="">
+        <button slot="activate">Install selected build</button>
+        <span slot="unsupported">
+          Your browser doesn’t support Web Serial. Use Chrome or Edge on desktop.
+        </span>
+        <span slot="not-allowed">
+          This page must be served via HTTPS (or localhost).
+        </span>
+      </esp-web-install-button>
+
+      <div class="footnote">
+        • Using a <b>merged firmware</b> single image at offset <code>0</code> as recommended for ESP-IDF 4+ projects.  
+        • We dynamically generate the manifest in-page (Blob URL) and point it to the release asset’s download URL. :contentReference[oaicite:3]{index=3}
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border); margin:16px 0">
+
+      <h2>Recent builds</h2>
+      <ul class="list" id="recentList"></ul>
+    </section>
+
+    <!-- RIGHT: terminal -->
+    <aside class="card">
+      <h1>Device console</h1>
+      <div class="toolbar">
+        <button id="portBtn">Connect</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+        <button id="clearBtn">Clear</button>
+        <label class="pill" style="display:flex;gap:6px;align-items:center;padding:6px 10px;">
+          <input type="checkbox" id="autoscroll" checked/> Autoscroll
+        </label>
+        <span class="spacer"></span>
+        <span class="muted" id="portInfo">No port</span>
+      </div>
+      <div id="terminal" class="terminal"></div>
+      <div class="footnote">
+        Note: you can’t flash and view the serial log at the same time on the same COM port. Disconnect the console before clicking Install. :contentReference[oaicite:4]{index=4}
+      </div>
+    </aside>
+  </main>
+
+  <footer class="card" style="margin:16px;">
+    <div class="row">
+      <div><b>About this project</b> — M5Tab5 User Demo (ESP-IDF 5.4.2 / ESP32-P4). See the
+        <a href="https://github.com/baba-dev/M5Tab5-UserDemo" target="_blank" rel="noreferrer">repository</a>.</div>
+    </div>
+  </footer>
+
+<script>
+(() => {
+  const OWNER = "baba-dev";
+  const REPO  = "M5Tab5-UserDemo";
+  const RELEASES_API = `https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=20`;
+
+  const buildSel = document.getElementById('buildSel');
+  const recentList = document.getElementById('recentList');
+  const installer = document.getElementById('installer');
+  const selTag = document.getElementById('selTag');
+  const selBin = document.getElementById('selBin');
+  const chipTxt = document.getElementById('chipTxt');
+  const statusTxt = document.getElementById('statusTxt');
+
+  // theme
+  const themeBtn = document.getElementById('themeBtn');
+  const setTheme = t => document.documentElement.setAttribute('data-theme', t);
+  setTheme(localStorage.getItem('theme') || 'dark');
+  themeBtn.onclick = () => {
+    const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+    setTheme(next); localStorage.setItem('theme', next);
+  };
+
+  // fetch last 5 "build-*" releases
+  async function loadReleases(){
+    buildSel.innerHTML = `<option>Loading…</option>`;
+    recentList.innerHTML = "";
+    const res = await fetch(RELEASES_API);
+    const all = await res.json();
+    const builds = all
+      .filter(r => r.tag_name && r.tag_name.startsWith('build-'))
+      .slice(0, 10); // take more, we’ll filter assets
+    const rows = [];
+    let choices = [];
+    for (const r of builds){
+      if (!Array.isArray(r.assets)) continue;
+      for (const a of r.assets){
+        if (!a.name.endsWith('.bin')) continue;
+        choices.push({
+          tag: r.tag_name,
+          published: r.published_at,
+          name: a.name,
+          url: a.browser_download_url
+        });
+      }
+    }
+    // last 5 by published date
+    choices.sort((a,b) => new Date(b.published) - new Date(a.published));
+    choices = choices.slice(0,5);
+
+    buildSel.innerHTML = "";
+    for (const c of choices){
+      const opt = document.createElement('option');
+      opt.value = JSON.stringify(c);
+      opt.textContent = `${c.tag} — ${c.name}`;
+      buildSel.appendChild(opt);
+
+      const li = document.createElement('li');
+      li.innerHTML = `<b>${c.tag}</b> • ${c.name} <span class="muted">(${new Date(c.published).toLocaleString()})</span>`;
+      recentList.appendChild(li);
+    }
+
+    if (choices.length){
+      setSelection(choices[0]);
+    } else {
+      buildSel.innerHTML = `<option>No builds found</option>`;
+    }
+  }
+
+  function setSelection(choice){
+    selTag.textContent = choice.tag;
+    selBin.textContent = choice.name;
+
+    // Build a dynamic manifest Blob (supported by ESP Web Tools docs)
+    const manifest = {
+      name: "M5Tab5 User Demo",
+      version: choice.tag,
+      new_install_prompt_erase: true,
+      builds: [{
+        // P4 flashing is supported via esptool-js; chipFamily list in docs
+        // doesn’t yet mention P4, so we advertise as ESP32 single merged bin.
+        chipFamily: "ESP32",
+        improv: false,
+        parts: [{ path: choice.url, offset: 0 }]
+      }]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    installer.setAttribute('manifest', url);
+  }
+
+  document.getElementById('refreshBtn').onclick = loadReleases;
+  buildSel.onchange = () => setSelection(JSON.parse(buildSel.value));
+
+  // update chip + status from installer events when available
+  installer.addEventListener('esp-web-install', (e) => {
+    // Custom events aren’t documented exhaustively; keep simple
+    statusTxt.textContent = "Installing…";
+    statusTxt.className = "warn";
+  });
+  installer.addEventListener('esp-web-install-success', () => {
+    statusTxt.textContent = "Installed";
+    statusTxt.className = "ok";
+  });
+  installer.addEventListener('esp-web-install-error', () => {
+    statusTxt.textContent = "Error";
+    statusTxt.className = "bad";
+  });
+
+  // serial console (Web Serial + xterm)
+  const term = new window.Terminal({ cursorBlink: true, convertEol: true, fontSize: 13 });
+  const fitAddon = new window.FitAddon.FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(document.getElementById('terminal'));
+  fitAddon.fit();
+
+  let reader, port;
+  const portBtn = document.getElementById('portBtn');
+  const disconnectBtn = document.getElementById('disconnectBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const portInfo = document.getElementById('portInfo');
+  const autoscroll = document.getElementById('autoscroll');
+
+  function setPortUI(connected, info = "No port"){
+    portBtn.disabled = connected;
+    disconnectBtn.disabled = !connected;
+    portInfo.textContent = info;
+  }
+
+  portBtn.onclick = async () => {
+    try{
+      port = await navigator.serial.requestPort();
+      await port.open({ baudRate: 115200 });
+      setPortUI(true, "115200 baud");
+      const dec = new TextDecoderStream();
+      const readable = port.readable.pipeThrough(dec);
+      reader = readable.getReader();
+      (async () => {
+        while (true){
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value){
+            term.write(value.replace(/\r?\n/g, "\r\n"));
+            if (autoscroll.checked) term.scrollToBottom();
+          }
+        }
+      })();
+    } catch(e){
+      console.error(e);
+    }
+  };
+
+  disconnectBtn.onclick = async () => {
+    try{
+      if (reader){ await reader.cancel(); reader.releaseLock(); }
+      if (port){ await port.close(); }
+    } finally{
+      setPortUI(false);
+    }
+  };
+
+  clearBtn.onclick = () => term.reset();
+
+  // show chip family (best effort once connected via installer)
+  installer.addEventListener('click', () => {
+    // The component detects chip on connect; we mirror a placeholder
+    chipTxt.textContent = "Detecting…";
+  });
+
+  // init
+  loadReleases();
+})();
+</script>
+</body>
+</html>
