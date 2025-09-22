@@ -242,42 +242,99 @@ bool HalEsp32::wifi_init()
 
     bsp_set_wifi_power_enable(true);
 
-    // The hosted C6 coprocessor requires a short guard time after power up before it
+    // The hosted C6 coprocessor requires a guard time after power up before it
     // responds to the transport reset sequence.  Without the delay the first RPC
     // request races the SDIO link initialisation and the transport driver frees an
     // uninitialised buffer, crashing the TLSF heap.  Give the module time to boot
     // and then explicitly request a transport re-sync before touching the Wi-Fi
     // stack.
-    vTaskDelay(pdMS_TO_TICKS(200));
+    constexpr TickType_t kPowerOnGuardDelay   = pdMS_TO_TICKS(250);
+    constexpr TickType_t kPostResetGuardDelay = pdMS_TO_TICKS(400);
+    constexpr TickType_t kRetryBackoffDelay   = pdMS_TO_TICKS(150);
+    constexpr int        kMaxTransportRetries = 3;
 
-    esp_err_t host_err = esp_hosted_slave_reset();
-    if (host_err != ESP_OK)
+    vTaskDelay(kPowerOnGuardDelay);
+
+    esp_err_t host_err           = ESP_FAIL;
+    esp_err_t softap_err         = ESP_FAIL;
+    bool      softap_started     = false;
+    bool      softap_unsupported = false;
+
+    for (int attempt = 0; attempt < kMaxTransportRetries; ++attempt)
     {
-        ESP_LOGE(TAG, "Failed to bring ESP-Hosted transport up: %s", esp_err_to_name(host_err));
-        portENTER_CRITICAL(&spinlock);
-        state.failed = true;
-        portEXIT_CRITICAL(&spinlock);
-        bsp_set_wifi_power_enable(false);
-        return false;
+        if (attempt > 0)
+        {
+            ESP_LOGW(TAG,
+                     "Retrying ESP-Hosted transport bring-up (%d/%d)",
+                     attempt + 1,
+                     kMaxTransportRetries);
+            vTaskDelay(kRetryBackoffDelay * static_cast<TickType_t>(attempt));
+        }
+
+        host_err = esp_hosted_slave_reset();
+        if (host_err != ESP_OK)
+        {
+            ESP_LOGE(TAG,
+                     "ESP-Hosted reset failed on attempt %d/%d: %s",
+                     attempt + 1,
+                     kMaxTransportRetries,
+                     esp_err_to_name(host_err));
+            continue;
+        }
+
+        vTaskDelay(kPostResetGuardDelay);
+
+        softap_err = start_softap();
+        if (softap_err == ESP_OK)
+        {
+            softap_started = true;
+            break;
+        }
+
+        if (softap_err == ESP_ERR_NOT_SUPPORTED)
+        {
+            softap_unsupported = true;
+            break;
+        }
+
+        ESP_LOGE(TAG,
+                 "SoftAP start failed on attempt %d/%d: %s",
+                 attempt + 1,
+                 kMaxTransportRetries,
+                 esp_err_to_name(softap_err));
+
+        if (softap_err == ESP_ERR_TIMEOUT || softap_err == ESP_FAIL)
+        {
+            esp_wifi_stop();
+            esp_wifi_deinit();
+        }
     }
 
-    esp_err_t err = start_softap();
-    if (err == ESP_ERR_NOT_SUPPORTED)
+    if (!softap_started)
     {
-        ESP_LOGW(TAG, "SoftAP unsupported on hosted slave; Wi-Fi will stay disabled");
         portENTER_CRITICAL(&spinlock);
         state.failed = true;
         portEXIT_CRITICAL(&spinlock);
         bsp_set_wifi_power_enable(false);
-        return false;
-    }
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(TAG, "Failed to start Wi-Fi: %s", esp_err_to_name(err));
-        portENTER_CRITICAL(&spinlock);
-        state.failed = true;
-        portEXIT_CRITICAL(&spinlock);
-        bsp_set_wifi_power_enable(false);
+
+        if (softap_unsupported)
+        {
+            ESP_LOGW(TAG, "SoftAP unsupported on hosted slave; Wi-Fi will stay disabled");
+        }
+        else if (host_err != ESP_OK)
+        {
+            ESP_LOGE(TAG,
+                     "Failed to bring ESP-Hosted transport up after %d attempts: %s",
+                     kMaxTransportRetries,
+                     esp_err_to_name(host_err));
+        }
+        else
+        {
+            ESP_LOGE(TAG,
+                     "Failed to start Wi-Fi after %d attempts: %s",
+                     kMaxTransportRetries,
+                     esp_err_to_name(softap_err));
+        }
         return false;
     }
 
