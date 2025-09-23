@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.8.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.3...v1.8.0) (2025-09-23)
+
+
+### Features
+
+* **ui:** add static Home/Rooms wireframe with reserved nav rail ([f8fa48c](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f8fa48c176bdc68d3db94fdf52ceaa14607936ae))
+
+
+### Bug Fixes
+
+* **app_launcher:** use launcher view abstraction ([dd7da71](https://github.com/baba-dev/M5Tab5-UserDemo/commit/dd7da714a7a76ce4c5015fb0a34ccd2ee349da85))
+* **platform:** restore touch input driver ([6bad476](https://github.com/baba-dev/M5Tab5-UserDemo/commit/6bad47656aa08a84f1baf71fad306740c925a52b))
+* **tab5:** guard lvgl usage and enable diagnostics ([8ada687](https://github.com/baba-dev/M5Tab5-UserDemo/commit/8ada6871b173a8cb9c4a1c513f84d39e562c09cd))
+* **touch:** rotate gt911 points with display ([f4bfadc](https://github.com/baba-dev/M5Tab5-UserDemo/commit/f4bfadc60d145475d5cc1e8bffceb16e0bf98fd9))
+* **ui:** run launcher setup on lvgl task ([de1ab4a](https://github.com/baba-dev/M5Tab5-UserDemo/commit/de1ab4a8080c40fbf0ab646759c3fcf1b240de9a))
+
 ## [1.8.0](https://github.com/baba-dev/M5Tab5-UserDemo/compare/v1.7.3...v1.8.0) (2025-09-22)
 
 
