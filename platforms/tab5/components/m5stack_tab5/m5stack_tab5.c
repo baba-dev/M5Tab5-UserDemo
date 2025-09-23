@@ -1587,10 +1587,66 @@ static void lvgl_read_cb(lv_indev_t* indev, lv_indev_data_t* data)
 
     if (!touchpad_pressed) {
         data->state = LV_INDEV_STATE_REL;
-    } else {
-        data->state   = LV_INDEV_STATE_PR;
-        data->point.x = touch_x[0];
-        data->point.y = touch_y[0];
+        return;
+    }
+
+    lv_display_t*         disp                 = lv_indev_get_display(indev);
+    lv_display_rotation_t rotation             = LV_DISPLAY_ROTATION_0;
+    lv_coord_t            raw_w                = BSP_LCD_H_RES;
+    lv_coord_t            raw_h                = BSP_LCD_V_RES;
+    static bool           logged_right_edge_ok = false;
+
+    if (disp != NULL)
+    {
+        rotation = lv_display_get_rotation(disp);
+
+        lv_coord_t phys_w = lv_display_get_physical_horizontal_resolution(disp);
+        lv_coord_t phys_h = lv_display_get_physical_vertical_resolution(disp);
+        if (phys_w > 0)
+        {
+            raw_w = phys_w;
+        }
+        if (phys_h > 0)
+        {
+            raw_h = phys_h;
+        }
+    }
+
+    lv_coord_t transformed_x = touch_x[0];
+    lv_coord_t transformed_y = touch_y[0];
+
+    switch (rotation)
+    {
+        case LV_DISPLAY_ROTATION_90:
+            transformed_x = touch_y[0];
+            transformed_y = raw_w - 1 - touch_x[0];
+            break;
+        case LV_DISPLAY_ROTATION_180:
+            transformed_x = raw_w - 1 - touch_x[0];
+            transformed_y = raw_h - 1 - touch_y[0];
+            break;
+        case LV_DISPLAY_ROTATION_270:
+            transformed_x = raw_h - 1 - touch_y[0];
+            transformed_y = touch_x[0];
+            break;
+        case LV_DISPLAY_ROTATION_0:
+        default:
+            break;
+    }
+
+    data->state   = LV_INDEV_STATE_PR;
+    data->point.x = transformed_x;
+    data->point.y = transformed_y;
+
+    lv_coord_t right_edge_threshold = LV_MAX(raw_h - 5, 0);
+    if (!logged_right_edge_ok && rotation == LV_DISPLAY_ROTATION_90
+        && transformed_x >= right_edge_threshold)
+    {
+        ESP_LOGI(TAG,
+                 "Touch rotation check: right edge press mapped to (%d,%d)",
+                 transformed_x,
+                 transformed_y);
+        logged_right_edge_ok = true;
     }
 }
 
