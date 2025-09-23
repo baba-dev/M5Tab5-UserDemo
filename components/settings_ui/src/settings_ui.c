@@ -5,14 +5,65 @@
  */
 #include "settings_ui/settings_ui.h"
 
+#include <string.h>
+
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "lvgl.h"
 
 static const char* TAG = "settings_ui";
 
 static esp_timer_handle_t s_dim_timer = NULL;
 
 static settings_ui_runtime_t* s_dim_state = NULL;
+
+typedef struct settings_ui_async_payload
+{
+    settings_ui_runtime_t* state;
+    app_cfg_ui_t           ui_cfg;
+} settings_ui_async_payload_t;
+
+static void settings_ui_apply_cb(void* param)
+{
+    settings_ui_async_payload_t* payload = (settings_ui_async_payload_t*)param;
+    if (payload == NULL)
+    {
+        return;
+    }
+
+    settings_ui_runtime_t* state = payload->state;
+    app_cfg_ui_t           cfg   = payload->ui_cfg;
+
+    lv_free(payload);
+
+    if (state == NULL)
+    {
+        return;
+    }
+
+    const char* theme_label = "auto";
+    switch (cfg.theme)
+    {
+        case APP_CFG_UI_THEME_LIGHT:
+            theme_label = "light";
+            break;
+        case APP_CFG_UI_THEME_DARK:
+            theme_label = "dark";
+            break;
+        case APP_CFG_UI_THEME_AUTO:
+        default:
+            theme_label = "auto";
+            break;
+    }
+
+    ESP_LOGI(
+        TAG, "Applying %s theme with brightness %u", theme_label, (unsigned int)cfg.brightness);
+
+    state->theme_initialized = true;
+    state->theme_pending     = false;
+    state->last_applied      = cfg;
+    state->dimming_active    = false;
+}
 
 static void dim_timer_callback(void* arg)
 {
@@ -34,25 +85,42 @@ esp_err_t settings_ui_apply(const app_cfg_t* cfg, settings_ui_runtime_t* state)
         return ESP_ERR_INVALID_ARG;
     }
 
-    state->last_applied   = cfg->ui;
     state->dimming_active = false;
 
-    switch (cfg->ui.theme)
+    if (state->theme_pending && memcmp(&state->pending_config, &cfg->ui, sizeof(app_cfg_ui_t)) == 0)
     {
-        case APP_CFG_UI_THEME_LIGHT:
-            ESP_LOGI(
-                TAG, "Applying light theme with brightness %u", (unsigned int)cfg->ui.brightness);
-            break;
-        case APP_CFG_UI_THEME_DARK:
-            ESP_LOGI(
-                TAG, "Applying dark theme with brightness %u", (unsigned int)cfg->ui.brightness);
-            break;
-        case APP_CFG_UI_THEME_AUTO:
-        default:
-            ESP_LOGI(
-                TAG, "Applying auto theme with brightness %u", (unsigned int)cfg->ui.brightness);
-            break;
+        return ESP_OK;
     }
+
+    if (!state->theme_pending && state->theme_initialized
+        && memcmp(&state->last_applied, &cfg->ui, sizeof(app_cfg_ui_t)) == 0)
+    {
+        return ESP_OK;
+    }
+
+    settings_ui_async_payload_t* payload =
+        (settings_ui_async_payload_t*)lv_malloc(sizeof(settings_ui_async_payload_t));
+    if (payload == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to allocate theme payload");
+        return ESP_ERR_NO_MEM;
+    }
+
+    payload->state  = state;
+    payload->ui_cfg = cfg->ui;
+
+    state->pending_config = cfg->ui;
+    state->theme_pending  = true;
+    state->last_applied   = cfg->ui;
+
+    if (lv_async_call(settings_ui_apply_cb, payload) != LV_RES_OK)
+    {
+        state->theme_pending = false;
+        ESP_LOGE(TAG, "Failed to schedule theme update");
+        lv_free(payload);
+        return ESP_FAIL;
+    }
+
     return ESP_OK;
 }
 

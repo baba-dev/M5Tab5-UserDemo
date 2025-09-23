@@ -3,6 +3,8 @@ idf_component_register(
         "src/settings_ui.c"
     INCLUDE_DIRS
         "include"
+    PRIV_REQUIRES
+        lvgl
     REQUIRES
         settings_core
         esp_timer

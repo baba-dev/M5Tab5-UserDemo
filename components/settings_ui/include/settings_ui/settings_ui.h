@@ -16,7 +16,10 @@ extern "C"
     typedef struct settings_ui_runtime
     {
         app_cfg_ui_t last_applied;
+        app_cfg_ui_t pending_config;
         bool         dimming_active;
+        bool         theme_initialized;
+        bool         theme_pending;
     } settings_ui_runtime_t;
 
     esp_err_t settings_ui_apply(const app_cfg_t* cfg, settings_ui_runtime_t* state);

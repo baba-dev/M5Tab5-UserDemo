@@ -727,10 +727,7 @@ namespace custom::integration
 
     void SettingsController::Impl::apply_current_theme()
     {
-        {
-            LvglLockGuard lock;
-            settings_ui_apply(&config_, &ui_runtime_);
-        }
+        settings_ui_apply(&config_, &ui_runtime_);
         ui_page_settings_apply_theme_state(config_.ui.theme == APP_CFG_UI_THEME_DARK,
                                            current_variant_id().c_str());
     }
