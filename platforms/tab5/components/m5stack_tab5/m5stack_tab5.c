@@ -1644,8 +1644,8 @@ static void lvgl_read_cb(lv_indev_t* indev, lv_indev_data_t* data)
     {
         ESP_LOGI(TAG,
                  "Touch rotation check: right edge press mapped to (%d,%d)",
-                 transformed_x,
-                 transformed_y);
+                 (int)transformed_x,
+                 (int)transformed_y);
         logged_right_edge_ok = true;
     }
 }
