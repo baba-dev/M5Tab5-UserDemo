@@ -172,26 +172,58 @@ void HalEsp32::init()
                                  .buff_spiram = true,
                                  .sw_rotate   = true,
                              }};
-    lvDisp = bsp_display_start_with_config(&cfg);
-    lv_display_set_rotation(lvDisp, LV_DISPLAY_ROTATION_90);
-    bsp_display_backlight_on();
-
-    lvTouchpad = bsp_display_get_input_dev();
-    if (lvTouchpad == nullptr)
+    lvDisp              = bsp_display_start_with_config(&cfg);
+    bool display_locked = false;
+    if (lvDisp == nullptr)
     {
-        mclog::tagWarn(_tag, "LVGL touch input not provided by BSP; creating fallback driver");
-
-        lvTouchpad = lv_indev_create();
-        if (lvTouchpad == nullptr)
+        mclog::tagError(_tag, "Failed to start LVGL display");
+    }
+    else
+    {
+        display_locked = bsp_display_lock(0);
+        if (!display_locked)
         {
-            mclog::tagError(_tag, "Failed to allocate LVGL touch input device");
+            mclog::tagError(_tag, "Failed to lock LVGL port during display init");
         }
         else
         {
-            lv_indev_set_type(lvTouchpad, LV_INDEV_TYPE_POINTER);
-            lv_indev_set_read_cb(lvTouchpad, lvgl_read_cb);
+            lv_display_set_rotation(lvDisp, LV_DISPLAY_ROTATION_90);
+            mclog::tagInfo(_tag, "Display rotation set to 90 degrees");
+        }
+    }
+
+    bsp_display_backlight_on();
+
+    lvTouchpad = bsp_display_get_input_dev();
+    if (display_locked)
+    {
+        if (lvTouchpad != nullptr)
+        {
             lv_indev_set_display(lvTouchpad, lvDisp);
         }
+        else
+        {
+            mclog::tagWarn(_tag, "LVGL touch input not provided by BSP; creating fallback driver");
+
+            lvTouchpad = lv_indev_create();
+            if (lvTouchpad == nullptr)
+            {
+                mclog::tagError(_tag, "Failed to allocate LVGL touch input device");
+            }
+            else
+            {
+                lv_indev_set_type(lvTouchpad, LV_INDEV_TYPE_POINTER);
+                lv_indev_set_read_cb(lvTouchpad, lvgl_read_cb);
+                lv_indev_set_display(lvTouchpad, lvDisp);
+            }
+        }
+
+        bsp_display_unlock();
+        display_locked = false;
+    }
+    else if (lvTouchpad == nullptr)
+    {
+        mclog::tagError(_tag, "Touch input unavailable and LVGL lock not taken");
     }
 
     mclog::tagInfo(_tag, "usb host init");
@@ -205,8 +237,6 @@ void HalEsp32::init()
 
     mclog::tagInfo(_tag, "set gpio output capability");
     set_gpio_output_capability();
-
-    bsp_display_unlock();
 }
 
 void HalEsp32::set_gpio_output_capability()
