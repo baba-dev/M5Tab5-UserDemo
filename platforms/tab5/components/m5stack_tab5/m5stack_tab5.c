@@ -798,6 +798,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
     assert(i2s_data_if);
 
     const audio_codec_gpio_if_t* gpio_if = audio_codec_new_gpio();
+    ESP_UNUSED(gpio_if);
 
     i2c_master_bus_handle_t i2c_bus_handle = bsp_i2c_get_handle();
     audio_codec_i2c_cfg_t i2c_cfg          = {
@@ -812,6 +813,7 @@ esp_codec_dev_handle_t bsp_audio_codec_speaker_init(void)
         .pa_voltage        = 5.0,
         .codec_dac_voltage = 3.3,
     };
+    ESP_UNUSED(gain);
 
     es8388_codec_cfg_t es8388_cfg = {
         .codec_mode  = ESP_CODEC_DEV_WORK_MODE_DAC,
@@ -1278,7 +1280,7 @@ err:
 #include "esp_lcd_st7123.h"
 
 // ST7123 触摸坐标打印回调函数
-static void st7123_touch_callback(esp_lcd_touch_handle_t tp)
+static void __attribute__((unused)) st7123_touch_callback(esp_lcd_touch_handle_t tp)
 {
     uint16_t touch_x[10];
     uint16_t touch_y[10];
@@ -1587,10 +1589,66 @@ static void lvgl_read_cb(lv_indev_t* indev, lv_indev_data_t* data)
 
     if (!touchpad_pressed) {
         data->state = LV_INDEV_STATE_REL;
-    } else {
-        data->state   = LV_INDEV_STATE_PR;
-        data->point.x = touch_x[0];
-        data->point.y = touch_y[0];
+        return;
+    }
+
+    lv_display_t*         disp                 = lv_indev_get_display(indev);
+    lv_display_rotation_t rotation             = LV_DISPLAY_ROTATION_0;
+    lv_coord_t            raw_w                = BSP_LCD_H_RES;
+    lv_coord_t            raw_h                = BSP_LCD_V_RES;
+    static bool           logged_right_edge_ok = false;
+
+    if (disp != NULL)
+    {
+        rotation = lv_display_get_rotation(disp);
+
+        lv_coord_t phys_w = lv_display_get_physical_horizontal_resolution(disp);
+        lv_coord_t phys_h = lv_display_get_physical_vertical_resolution(disp);
+        if (phys_w > 0)
+        {
+            raw_w = phys_w;
+        }
+        if (phys_h > 0)
+        {
+            raw_h = phys_h;
+        }
+    }
+
+    lv_coord_t transformed_x = touch_x[0];
+    lv_coord_t transformed_y = touch_y[0];
+
+    switch (rotation)
+    {
+        case LV_DISPLAY_ROTATION_90:
+            transformed_x = touch_y[0];
+            transformed_y = raw_w - 1 - touch_x[0];
+            break;
+        case LV_DISPLAY_ROTATION_180:
+            transformed_x = raw_w - 1 - touch_x[0];
+            transformed_y = raw_h - 1 - touch_y[0];
+            break;
+        case LV_DISPLAY_ROTATION_270:
+            transformed_x = raw_h - 1 - touch_y[0];
+            transformed_y = touch_x[0];
+            break;
+        case LV_DISPLAY_ROTATION_0:
+        default:
+            break;
+    }
+
+    data->state   = LV_INDEV_STATE_PR;
+    data->point.x = transformed_x;
+    data->point.y = transformed_y;
+
+    lv_coord_t right_edge_threshold = LV_MAX(raw_w - 5, 0);
+    if (!logged_right_edge_ok && rotation == LV_DISPLAY_ROTATION_90
+        && transformed_x >= right_edge_threshold)
+    {
+        ESP_LOGI(TAG,
+                 "Touch rotation check: right edge press mapped to (%ld,%ld)",
+                 (long)transformed_x,
+                 (long)transformed_y);
+        logged_right_edge_ok = true;
     }
 }
 
